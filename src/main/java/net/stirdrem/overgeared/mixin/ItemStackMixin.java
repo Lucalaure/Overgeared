@@ -117,7 +117,7 @@ public abstract class ItemStackMixin {
         if (player.hasEffect(MobEffects.FIRE_RESISTANCE)) {
             return;
         }
-
+        if (player.isCreative()) return;
         long tick = level.getGameTime();
         int cooldownTicks = ServerConfig.HEATED_ITEM_COOLDOWN_TICKS.get(); // add to your config
 
@@ -201,8 +201,8 @@ public abstract class ItemStackMixin {
                 lastTongsHit.put(uuid, tick);
             }
         } else {
-            if (tick % 10 != 0) return;
-            player.hurt(player.damageSources().hotFloor(), 1.0f);
+            entity.setSharedFlagOnFire(true);
+            entity.setRemainingFireTicks(20);
         }
     }
 
