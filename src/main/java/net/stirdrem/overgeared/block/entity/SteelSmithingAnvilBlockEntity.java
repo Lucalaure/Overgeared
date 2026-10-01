@@ -8,8 +8,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.stirdrem.overgeared.AnvilTier;
+import net.stirdrem.overgeared.BlueprintQuality;
 import net.stirdrem.overgeared.block.custom.AbstractSmithingAnvil;
 import net.stirdrem.overgeared.block.custom.SteelSmithingAnvil;
+import net.stirdrem.overgeared.config.ServerConfig;
 import net.stirdrem.overgeared.screen.SteelSmithingAnvilMenu;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,24 +30,33 @@ public class SteelSmithingAnvilBlockEntity extends AbstractSmithingAnvilBlockEnt
         return Component.translatable("gui.overgeared.smithing_anvil");
     }
 
+    @Nullable
     @Override
-    protected @Nullable AbstractContainerMenu createMenuInternal(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
-        return new SteelSmithingAnvilMenu(pContainerId, pPlayerInventory, this, this.data);
+    public AbstractContainerMenu createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
+        if (!pPlayer.isCrouching()) {
+            return new SteelSmithingAnvilMenu(pContainerId, pPlayerInventory, this, this.data);
+        } else return null;
     }
 
     @Override
     protected String determineForgingQuality() {
-        return super.determineForgingQualityInternal();
+        // Get quality from anvil or use default if null
+        if (!ServerConfig.ENABLE_BLUEPRINT_FORGING.get()) {
+            return super.determineForgingQualityNoBlueprint();
+        } else return super.determineForgingQuality();
     }
 
     @Override
     public String blueprintQuality() {
-        return super.blueprintQualityInternal();
+        if (!ServerConfig.ENABLE_BLUEPRINT_FORGING.get())
+            return BlueprintQuality.PERFECT.getDisplayName();
+        else return super.blueprintQuality();
     }
 
     @Override
     protected void craftItem() {
-        super.craftItemInternal();
+        super.craftItem();
+        super.craftItemWithBlueprint();
     }
 
     @Override
