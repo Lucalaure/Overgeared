@@ -10,11 +10,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.stirdrem.overgeared.advancement.ModAdvancementTriggers;
 import net.stirdrem.overgeared.datapack.KnappingResourceReloadListener;
+import net.stirdrem.overgeared.recipe.ItemListInput;
 import net.stirdrem.overgeared.recipe.ModRecipeTypes;
+import net.stirdrem.overgeared.recipe.RecipeLookup;
 import net.stirdrem.overgeared.recipe.RockKnappingRecipe;
 import net.stirdrem.overgeared.util.ModTags;
 
@@ -22,7 +23,6 @@ public class RockKnappingScreenHandler extends AbstractContainerMenu {
     private final Container craftingGrid = new SimpleContainer(9); // 3x3 grid
     private final Container resultContainer = new SimpleContainer(1); // Output slot
     private final Level world;
-    private final RecipeManager recipeManager;
     private final Player player;
     private ItemStack inputRock; // The rock being knapped
     private boolean knappingFinished = false;
@@ -37,10 +37,9 @@ public class RockKnappingScreenHandler extends AbstractContainerMenu {
     private static final int GRID_LAST_SLOT_INDEX = GRID_FIRST_SLOT_INDEX + 8;
     private static final int RESULT_SLOT_INDEX = GRID_LAST_SLOT_INDEX + 1;
 
-    public RockKnappingScreenHandler(int syncId, Inventory playerInv, RecipeManager recipeManager) {
+    public RockKnappingScreenHandler(int syncId, Inventory playerInv) {
         super(ModMenuTypes.ROCK_KNAPPING_MENU, syncId);
         this.world = playerInv.player.level();
-        this.recipeManager = recipeManager;
         this.player = playerInv.player;
 
         // Check if player has a knappable rock in either hand
@@ -149,7 +148,7 @@ public class RockKnappingScreenHandler extends AbstractContainerMenu {
                 mainHand.is(ModTags.Items.KNAPPABLE) &&
                         offHand.is(ModTags.Items.KNAPPABLE);
 
-        if (!hasRock && !player.level().isClientSide && player instanceof ServerPlayer serverPlayer) {
+        if (!hasRock && !player.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.closeContainer();
         }
 
@@ -233,11 +232,11 @@ public class RockKnappingScreenHandler extends AbstractContainerMenu {
     }
 
     private void consumeInputRock() {
-        if (world.isClientSide) return;
+        if (world.isClientSide()) return;
 
         ItemStack mainHand = player.getMainHandItem();
 
-        if (ItemStack.isSameItemSameTags(mainHand, inputRock) && mainHand.getCount() > 0) {
+        if (ItemStack.isSameItemSameComponents(mainHand, inputRock) && mainHand.getCount() > 0) {
             mainHand.shrink(1);
             player.getInventory().setChanged();
         }
@@ -246,17 +245,16 @@ public class RockKnappingScreenHandler extends AbstractContainerMenu {
     private void updateResult() {
         if (world == null || knappingFinished || resultCollected) return;
 
-        RockKnappingRecipe matchingRecipe = recipeManager
-                .getAllRecipesFor(ModRecipeTypes.KNAPPING)
+        ItemListInput gridInput = ItemListInput.of(craftingGrid);
+        RockKnappingRecipe matchingRecipe = RecipeLookup.<ItemListInput, RockKnappingRecipe>allValues(world, ModRecipeTypes.KNAPPING)
                 .stream()
                 .filter(recipe -> recipe.getIngredient().test(inputRock))
-                .filter(recipe -> recipe.matches(craftingGrid, world))
+                .filter(recipe -> recipe.matches(gridInput, world))
                 .findFirst()
                 .orElse(null);
 
         if (matchingRecipe != null) {
-            resultContainer.setItem(0,
-                    matchingRecipe.getResultItem(world.registryAccess()).copy());
+            resultContainer.setItem(0, matchingRecipe.assemble(gridInput));
         } else {
             resultContainer.setItem(0, ItemStack.EMPTY);
         }
@@ -295,7 +293,7 @@ public class RockKnappingScreenHandler extends AbstractContainerMenu {
         if (player.containerMenu != this) {
             return;
         }
-        if (!player.level().isClientSide) {
+        if (!player.level().isClientSide()) {
             ItemStack result = resultContainer.getItem(0);
             if (!result.isEmpty() && !resultCollected) {
                 if (player instanceof ServerPlayer serverPlayer) {

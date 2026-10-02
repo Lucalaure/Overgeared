@@ -238,7 +238,7 @@ public class AbstractSmithingAnvilScreenHandler extends AbstractContainerMenu {
         if (recipeOptional.isPresent()) {
             ForgingRecipe recipe = recipeOptional.get();
             if (blockEntity.hasRecipe()) {
-                return recipe.getResultItem(world.registryAccess()).copy();
+                return recipe.getResultItem().copy();
             }
         }
         return ItemStack.EMPTY;
@@ -281,7 +281,7 @@ public class AbstractSmithingAnvilScreenHandler extends AbstractContainerMenu {
 
         protected void checkTakeAchievements(ItemStack stack) {
             if (this.removeCount > 0) {
-                stack.onCraftedBy(AbstractSmithingAnvilScreenHandler.this.player.level(), AbstractSmithingAnvilScreenHandler.this.player, this.removeCount);
+                stack.onCraftedBy(AbstractSmithingAnvilScreenHandler.this.player, this.removeCount);
             }
             this.removeCount = 0;
         }
