@@ -8,7 +8,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.stirdrem.overgeared.Overgeared;
@@ -18,9 +18,9 @@ public class GrindingRecipeCategory implements IRecipeCategory<GrindingRecipe> {
     public static final RecipeType<GrindingRecipe> TYPE =
             RecipeType.create(Overgeared.MOD_ID, "grinding", GrindingRecipe.class);
 
-    public static final ResourceLocation UID = Overgeared.id("grinding");
+    public static final Identifier UID = Overgeared.id("grinding");
 
-    private static final ResourceLocation TEXTURE = Overgeared.id("textures/gui/grinding_jei.png");
+    private static final Identifier TEXTURE = Overgeared.id("textures/gui/grinding_jei.png");
 
     private final IDrawable background;
     private final IDrawable icon;

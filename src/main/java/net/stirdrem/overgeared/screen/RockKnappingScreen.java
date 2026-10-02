@@ -1,11 +1,11 @@
 package net.stirdrem.overgeared.screen;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.stirdrem.overgeared.Overgeared;
@@ -17,10 +17,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class RockKnappingScreen extends AbstractContainerScreen<RockKnappingScreenHandler> {
-    private static final ResourceLocation TEXTURE =
-            new ResourceLocation(Overgeared.MOD_ID, "textures/gui/rock_knapping_gui.png");
-    private static final ResourceLocation CHIPPED_TEXTURE =
-            new ResourceLocation(Overgeared.MOD_ID, "textures/gui/blank.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "textures/gui/rock_knapping_gui.png");
+    private static final Identifier CHIPPED_TEXTURE =
+            Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "textures/gui/blank.png");
 
     private static final int GRID_ORIGIN_X = 32;
     private static final int GRID_ORIGIN_Y = 19;
@@ -70,7 +70,7 @@ public class RockKnappingScreen extends AbstractContainerScreen<RockKnappingScre
             int y = this.topPos + GRID_ORIGIN_Y + row * SLOT_SIZE;
 
             final int index = i;
-            ResourceLocation texture = menu.isChipped(i) || resultCollected
+            Identifier texture = menu.isChipped(i) || resultCollected
                     ? CHIPPED_TEXTURE
                     : menu.getUnchippedTexture();
 

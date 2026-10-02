@@ -6,7 +6,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -33,7 +33,7 @@ public class CastBlastingRecipe extends BlastingRecipe {
     private final String toolType;
     private final boolean needPolishing;
 
-    public CastBlastingRecipe(ResourceLocation id, String group, CookingBookCategory category,
+    public CastBlastingRecipe(Identifier id, String group, CookingBookCategory category,
                                ItemStack result, float xp, int time,
                                Map<String, Double> reqMaterials, String toolType, boolean needPolishing) {
         super(id, group, category,
@@ -193,7 +193,7 @@ public class CastBlastingRecipe extends BlastingRecipe {
         public static final Serializer INSTANCE = new Serializer();
 
         @Override
-        public CastBlastingRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public CastBlastingRecipe fromJson(Identifier id, JsonObject json) {
             String group = GsonHelper.getAsString(json, "group", "");
             CookingBookCategory category = CookingBookCategory.MISC;
 
@@ -213,7 +213,7 @@ public class CastBlastingRecipe extends BlastingRecipe {
         }
 
         @Override
-        public CastBlastingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        public CastBlastingRecipe fromNetwork(Identifier id, FriendlyByteBuf buf) {
             String group = buf.readUtf();
             CookingBookCategory category = CookingBookCategory.MISC;
             int size = buf.readInt();

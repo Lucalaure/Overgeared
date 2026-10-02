@@ -6,7 +6,7 @@ import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.CraftingRecipeBuilder;
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
@@ -106,11 +106,11 @@ public class CastingRecipeBuilder extends CraftingRecipeBuilder {
 
     public void offerTo(
             Consumer<FinishedRecipe> exporter,
-            ResourceLocation id
+            Identifier id
     ) {
         ensureValid(id);
 
-        ResourceLocation recipeId = new ResourceLocation(
+        Identifier recipeId = Identifier.fromNamespaceAndPath(
                 id.getNamespace(),
                 id.getPath() + "_from_cast_furnace"
         );
@@ -143,7 +143,7 @@ public class CastingRecipeBuilder extends CraftingRecipeBuilder {
         ));
     }
 
-    private void ensureValid(ResourceLocation id) {
+    private void ensureValid(Identifier id) {
         if (toolType == null) {
             throw new IllegalStateException(
                     "Missing tool_type for casting recipe " + id
@@ -165,7 +165,7 @@ public class CastingRecipeBuilder extends CraftingRecipeBuilder {
 
     public static class Result implements FinishedRecipe {
 
-        private final ResourceLocation id;
+        private final Identifier id;
         private final ItemLike result;
         private final String group;
         private final String category;
@@ -175,10 +175,10 @@ public class CastingRecipeBuilder extends CraftingRecipeBuilder {
         private final int cookTime;
         private final Boolean needPolishing;
         private final Advancement.Builder advancement;
-        private final ResourceLocation advancementId;
+        private final Identifier advancementId;
 
         public Result(
-                ResourceLocation id,
+                Identifier id,
                 ItemLike result,
                 String group,
                 String category,
@@ -188,7 +188,7 @@ public class CastingRecipeBuilder extends CraftingRecipeBuilder {
                 int cookTime,
                 Boolean needPolishing,
                 Advancement.Builder advancement,
-                ResourceLocation advancementId
+                Identifier advancementId
         ) {
             this.id = id;
             this.result = result;
@@ -241,7 +241,7 @@ public class CastingRecipeBuilder extends CraftingRecipeBuilder {
         }
 
         @Override
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return id;
         }
 
@@ -253,7 +253,7 @@ public class CastingRecipeBuilder extends CraftingRecipeBuilder {
 
         @Nullable
         @Override
-        public ResourceLocation getAdvancementId() {
+        public Identifier getAdvancementId() {
             return advancementId;
         }
     }

@@ -3,7 +3,7 @@ package net.stirdrem.overgeared.recipe;
 import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -18,7 +18,7 @@ import java.util.Map;
 public class ShapedNetherAlloySmeltingRecipe extends AbstractShapedAlloyRecipe implements INetherAlloyRecipe {
 
     public ShapedNetherAlloySmeltingRecipe(
-            ResourceLocation id,
+            Identifier id,
             String group,
             CraftingBookCategory category,
             int width,
@@ -57,7 +57,7 @@ public class ShapedNetherAlloySmeltingRecipe extends AbstractShapedAlloyRecipe i
 
         @Override
         public ShapedNetherAlloySmeltingRecipe fromJson(
-                ResourceLocation id,
+                Identifier id,
                 JsonObject json
         ) {
             String group = GsonHelper.getAsString(json, "group", "");
@@ -108,7 +108,7 @@ public class ShapedNetherAlloySmeltingRecipe extends AbstractShapedAlloyRecipe i
 
         @Override
         public ShapedNetherAlloySmeltingRecipe fromNetwork(
-                ResourceLocation id,
+                Identifier id,
                 FriendlyByteBuf buf
         ) {
             String group = buf.readUtf();

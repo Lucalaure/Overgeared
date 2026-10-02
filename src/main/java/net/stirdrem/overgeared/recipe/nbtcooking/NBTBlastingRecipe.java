@@ -3,7 +3,7 @@ package net.stirdrem.overgeared.recipe.nbtcooking;
 import com.google.gson.JsonObject;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CookingBookCategory;
@@ -16,7 +16,7 @@ import net.stirdrem.overgeared.util.JsonToNBT;
 
 public class NBTBlastingRecipe extends AbstractNBTCookingRecipe {
 
-    public NBTBlastingRecipe(ResourceLocation id, String group, CookingBookCategory category,
+    public NBTBlastingRecipe(Identifier id, String group, CookingBookCategory category,
                               Ingredient ingredient, ItemStack result,
                               float xp, int time, CompoundTag tag) {
         super(RecipeType.BLASTING, id, group, category, ingredient, result, xp, time, tag);
@@ -31,7 +31,7 @@ public class NBTBlastingRecipe extends AbstractNBTCookingRecipe {
         public static final Serializer INSTANCE = new Serializer();
 
         @Override
-        public NBTBlastingRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public NBTBlastingRecipe fromJson(Identifier id, JsonObject json) {
             String group = GsonHelper.getAsString(json, "group", "");
 
             CookingBookCategory category = CookingBookCategory.CODEC.byName(
@@ -61,7 +61,7 @@ public class NBTBlastingRecipe extends AbstractNBTCookingRecipe {
         }
 
         @Override
-        public NBTBlastingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        public NBTBlastingRecipe fromNetwork(Identifier id, FriendlyByteBuf buf) {
             String group = buf.readUtf();
             CookingBookCategory category = buf.readEnum(CookingBookCategory.class);
             Ingredient ingredient = Ingredient.fromNetwork(buf);

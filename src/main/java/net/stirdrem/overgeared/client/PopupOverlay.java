@@ -3,7 +3,7 @@ package net.stirdrem.overgeared.client;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.stirdrem.overgeared.config.ClientConfig;
 
 import java.util.List;

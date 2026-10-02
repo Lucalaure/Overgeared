@@ -1,15 +1,19 @@
 package net.stirdrem.overgeared.item;
 
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.stirdrem.overgeared.components.BlueprintData;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.minecraft.world.level.block.Blocks;
 import net.stirdrem.overgeared.BlueprintQuality;
 import net.stirdrem.overgeared.Overgeared;
@@ -19,7 +23,7 @@ import net.stirdrem.overgeared.config.ServerConfig;
 public class ModCreativeModeTabs {
 
     public static final CreativeModeTab OVERGEARED_TAB = register("overgeared_tab",
-            FabricItemGroup.builder()
+            FabricCreativeModeTab.builder()
                     .icon(() -> new ItemStack(ModItems.IRON_TONGS))
                     .title(Component.translatable("creativetab.overgeared_tab"))
                     .displayItems((displayContext, entries) -> {
@@ -133,7 +137,7 @@ public class ModCreativeModeTabs {
                     .build());
 
     public static final CreativeModeTab LINGERING_ARROWS_TAB = register("lingering_arrows_tab",
-            FabricItemGroup.builder()
+            FabricCreativeModeTab.builder()
                     .icon(() -> new ItemStack(Blocks.FLETCHING_TABLE))
                     .title(Component.translatable("creativetab.overgeared.lingering_arrows_tab"))
                     .displayItems((displayContext, entries) -> {
@@ -144,62 +148,57 @@ public class ModCreativeModeTabs {
                         entries.accept(ModItems.STEEL_UPGRADE_ARROW);
                         entries.accept(ModItems.DIAMOND_UPGRADE_ARROW);
 
-                        for (Potion potion : BuiltInRegistries.POTION) {
-                            if (potion == Potions.EMPTY) continue;
+                        for (Holder<Potion> potion : displayContext.holders().lookupOrThrow(Registries.POTION).listElements().toList()) {
 
                             ItemStack arrow = new ItemStack(Items.TIPPED_ARROW);
-                            arrow.getOrCreateTag().putString("Potion", BuiltInRegistries.POTION.getKey(potion).toString());
+                            arrow.set(DataComponents.POTION_CONTENTS, new PotionContents(potion));
                             entries.accept(arrow);
                         }
 
-                        for (Potion potion : BuiltInRegistries.POTION) {
-                            if (potion == Potions.EMPTY) continue;
+                        for (Holder<Potion> potion : displayContext.holders().lookupOrThrow(Registries.POTION).listElements().toList()) {
 
                             ItemStack arrow = new ItemStack(ModItems.LINGERING_ARROW);
-                            arrow.getOrCreateTag().putString("Potion", BuiltInRegistries.POTION.getKey(potion).toString());
+                            arrow.set(DataComponents.POTION_CONTENTS, new PotionContents(potion));
                             entries.accept(arrow);
                         }
 
-                        for (Potion potion : BuiltInRegistries.POTION) {
-                            if (potion == Potions.EMPTY) continue;
+                        for (Holder<Potion> potion : displayContext.holders().lookupOrThrow(Registries.POTION).listElements().toList()) {
 
                             ItemStack iron = new ItemStack(ModItems.IRON_UPGRADE_ARROW);
-                            iron.getOrCreateTag().putString("Potion", BuiltInRegistries.POTION.getKey(potion).toString());
+                            iron.set(DataComponents.POTION_CONTENTS, new PotionContents(potion));
                             entries.accept(iron);
 
                             ItemStack ironLingering = iron.copy();
-                            ironLingering.getOrCreateTag().putBoolean("LingeringPotion", true);
+                            ironLingering.set(ModComponents.LINGERING_STATUS, true);
                             entries.accept(ironLingering);
                         }
 
-                        for (Potion potion : BuiltInRegistries.POTION) {
-                            if (potion == Potions.EMPTY) continue;
+                        for (Holder<Potion> potion : displayContext.holders().lookupOrThrow(Registries.POTION).listElements().toList()) {
 
                             ItemStack steel = new ItemStack(ModItems.STEEL_UPGRADE_ARROW);
-                            steel.getOrCreateTag().putString("Potion", BuiltInRegistries.POTION.getKey(potion).toString());
+                            steel.set(DataComponents.POTION_CONTENTS, new PotionContents(potion));
                             entries.accept(steel);
 
                             ItemStack steelLingering = steel.copy();
-                            steelLingering.getOrCreateTag().putBoolean("LingeringPotion", true);
+                            steelLingering.set(ModComponents.LINGERING_STATUS, true);
                             entries.accept(steelLingering);
                         }
 
-                        for (Potion potion : BuiltInRegistries.POTION) {
-                            if (potion == Potions.EMPTY) continue;
+                        for (Holder<Potion> potion : displayContext.holders().lookupOrThrow(Registries.POTION).listElements().toList()) {
 
                             ItemStack diamond = new ItemStack(ModItems.DIAMOND_UPGRADE_ARROW);
-                            diamond.getOrCreateTag().putString("Potion", BuiltInRegistries.POTION.getKey(potion).toString());
+                            diamond.set(DataComponents.POTION_CONTENTS, new PotionContents(potion));
                             entries.accept(diamond);
 
                             ItemStack diamondLingering = diamond.copy();
-                            diamondLingering.getOrCreateTag().putBoolean("LingeringPotion", true);
+                            diamondLingering.set(ModComponents.LINGERING_STATUS, true);
                             entries.accept(diamondLingering);
                         }
                     })
                     .build());
 
     public static final CreativeModeTab BLUEPRINT_TAB = register("blueprint_tab",
-            FabricItemGroup.builder()
+            FabricCreativeModeTab.builder()
                     .icon(() -> new ItemStack(ModItems.BLUEPRINT))
                     .title(Component.translatable("creativetab.overgeared.blueprint_tab"))
                     .displayItems((displayContext, entries) -> {
@@ -207,13 +206,8 @@ public class ModCreativeModeTabs {
                         for (ToolType toolType : ToolTypeRegistry.getRegisteredTypesAll()) {
                             for (BlueprintQuality quality : BlueprintQuality.values()) {
                                 ItemStack blueprint = new ItemStack(ModItems.BLUEPRINT);
-                                CompoundTag tag = blueprint.getOrCreateTag();
-
-                                tag.putString("ToolType", toolType.getId());
-                                tag.putString("Quality", quality.name());
-                                tag.putInt("Uses", 0);
-
-                                blueprint.setTag(tag);
+                                blueprint.set(ModComponents.BLUEPRINT_DATA,
+                                        new BlueprintData(quality.name(), toolType.getId(), 0));
                                 entries.accept(blueprint);
                             }
                         }

@@ -9,9 +9,9 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.stirdrem.overgeared.Overgeared;
 import net.stirdrem.overgeared.datapack.KnappingResourceReloadListener;
@@ -19,9 +19,9 @@ import net.stirdrem.overgeared.item.ModItems;
 import net.stirdrem.overgeared.recipe.RockKnappingRecipe;
 
 public class KnappingRecipeCategory implements IRecipeCategory<RockKnappingRecipe> {
-    public static final ResourceLocation UID = Overgeared.id("rock_knapping");
-    public static final ResourceLocation TEXTURE = Overgeared.id("textures/gui/rock_knapping_jei.png");
-    private static final ResourceLocation CHIPPED_TEXTURE = Overgeared.id("textures/gui/blank.png");
+    public static final Identifier UID = Overgeared.id("rock_knapping");
+    public static final Identifier TEXTURE = Overgeared.id("textures/gui/rock_knapping_jei.png");
+    private static final Identifier CHIPPED_TEXTURE = Overgeared.id("textures/gui/blank.png");
 
     public static final RecipeType<RockKnappingRecipe> KNAPPING_RECIPE_TYPE =
             new RecipeType<>(UID, RockKnappingRecipe.class);
@@ -86,7 +86,7 @@ public class KnappingRecipeCategory implements IRecipeCategory<RockKnappingRecip
                     isUnchipped = pattern[y][x];
                 }
 
-                ResourceLocation texture = isUnchipped
+                Identifier texture = isUnchipped
                         ? resolveUnchippedTexture(recipe)
                         : CHIPPED_TEXTURE;
 
@@ -95,16 +95,16 @@ public class KnappingRecipeCategory implements IRecipeCategory<RockKnappingRecip
         }
     }
 
-    private ResourceLocation resolveUnchippedTexture(RockKnappingRecipe recipe) {
+    private Identifier resolveUnchippedTexture(RockKnappingRecipe recipe) {
         ItemStack[] stacks = recipe.getIngredient().getItems();
 
         for (ItemStack stack : stacks) {
-            ResourceLocation tex = KnappingResourceReloadListener.getTexture(stack);
+            Identifier tex = KnappingResourceReloadListener.getTexture(stack);
             if (tex != null) {
                 return tex;
             }
         }
 
-        return ResourceLocation.tryParse("textures/block/stone.png");
+        return Identifier.tryParse("textures/block/stone.png");
     }
 }

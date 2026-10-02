@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class GrindingBlacklistReloadListener extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
 
-    private static final Map<ResourceLocation, Ingredient> DATA = new ConcurrentHashMap<>();
+    private static final Map<Identifier, Ingredient> DATA = new ConcurrentHashMap<>();
     public static final GrindingBlacklistReloadListener INSTANCE = new GrindingBlacklistReloadListener();
     private static final Gson GSON = new Gson();
 
@@ -27,17 +27,17 @@ public class GrindingBlacklistReloadListener extends SimpleJsonResourceReloadLis
     }
 
     @Override
-    public ResourceLocation getFabricId() {
+    public Identifier getFabricId() {
         return Overgeared.id("grinding_blacklist_listener");
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> resources, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, JsonElement> resources, ResourceManager resourceManager, ProfilerFiller profiler) {
         DATA.clear();
         Overgeared.LOGGER.info("Found {} grinding blacklist resources", resources.size());
 
-        for (Map.Entry<ResourceLocation, JsonElement> entry : resources.entrySet()) {
-            ResourceLocation id = entry.getKey();
+        for (Map.Entry<Identifier, JsonElement> entry : resources.entrySet()) {
+            Identifier id = entry.getKey();
             JsonElement jsonElement = entry.getValue();
 
             try {
@@ -65,7 +65,7 @@ public class GrindingBlacklistReloadListener extends SimpleJsonResourceReloadLis
         return Ingredient.fromJson(itemElement);
     }
 
-    public static Map<ResourceLocation, Ingredient> getData() {
+    public static Map<Identifier, Ingredient> getData() {
         return Collections.unmodifiableMap(DATA);
     }
 

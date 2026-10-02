@@ -12,12 +12,12 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.stirdrem.overgeared.AnvilTier;
@@ -31,12 +31,12 @@ import java.util.List;
 import java.util.Set;
 
 public class ForgingRecipeCategory implements IRecipeCategory<ForgingRecipe> {
-    public static final ResourceLocation UID = Overgeared.id("forging");
-    public static final ResourceLocation TEXTURE = Overgeared.id("textures/gui/smithing_anvil_jei.png");
+    public static final Identifier UID = Overgeared.id("forging");
+    public static final Identifier TEXTURE = Overgeared.id("textures/gui/smithing_anvil_jei.png");
 
-    public static final ResourceLocation RESULT_BIG = Overgeared.id("textures/gui/result_big.png");
+    public static final Identifier RESULT_BIG = Overgeared.id("textures/gui/result_big.png");
 
-    public static final ResourceLocation RESULT_TWOSLOT = Overgeared.id("textures/gui/twoslot.png");
+    public static final Identifier RESULT_TWOSLOT = Overgeared.id("textures/gui/twoslot.png");
 
     public static final RecipeType<ForgingRecipe> FORGING_RECIPE_TYPE =
             new RecipeType<>(UID, ForgingRecipe.class);

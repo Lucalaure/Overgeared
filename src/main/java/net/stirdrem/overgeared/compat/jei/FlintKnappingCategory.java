@@ -10,9 +10,9 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -22,9 +22,9 @@ import net.stirdrem.overgeared.recipe.ExplanationRecipe;
 import java.util.List;
 
 public class FlintKnappingCategory implements IRecipeCategory<ExplanationRecipe> {
-    private static final ResourceLocation BACKGROUND_LOCATION = Overgeared.id("textures/gui/explanation_jei.png");
+    private static final Identifier BACKGROUND_LOCATION = Overgeared.id("textures/gui/explanation_jei.png");
 
-    public static final ResourceLocation UID = Overgeared.id("flint_knapping");
+    public static final Identifier UID = Overgeared.id("flint_knapping");
 
     public static final RecipeType<ExplanationRecipe> FLINT_KNAPPING =
             new RecipeType<>(UID, ExplanationRecipe.class);

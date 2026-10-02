@@ -4,17 +4,17 @@ import com.google.gson.JsonObject;
 import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.DeserializationContext;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.stirdrem.overgeared.Overgeared;
 
 public class MaxLevelBlueprintAdvancementTrigger extends SimpleCriterionTrigger<MaxLevelBlueprintAdvancementTrigger.Conditions> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Overgeared.MOD_ID, "max_level_blueprint");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "max_level_blueprint");
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return ID;
     }
 

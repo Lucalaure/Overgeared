@@ -1,34 +1,34 @@
 package net.stirdrem.overgeared.loot;
 
 import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.floats.ConstantValue;
 import net.stirdrem.overgeared.item.ModItems;
 
 public class ModLootModifiers {
 
-    private static final ResourceLocation SIMPLE_DUNGEON = ResourceLocation.tryBuild("minecraft", "chests/simple_dungeon");
-    private static final ResourceLocation ABANDONED_MINESHAFT = ResourceLocation.tryBuild("minecraft", "chests/abandoned_mineshaft");
-    private static final ResourceLocation STRONGHOLD_CORRIDOR = ResourceLocation.tryBuild("minecraft", "chests/stronghold_corridor");
-    private static final ResourceLocation STRONGHOLD_CROSSING = ResourceLocation.tryBuild("minecraft", "chests/stronghold_crossing");
-    private static final ResourceLocation STRONGHOLD_LIBRARY = ResourceLocation.tryBuild("minecraft", "chests/stronghold_library");
-    private static final ResourceLocation DESERT_PYRAMID = ResourceLocation.tryBuild("minecraft", "chests/desert_pyramid");
-    private static final ResourceLocation JUNGLE_TEMPLE = ResourceLocation.tryBuild("minecraft", "chests/jungle_temple");
-    private static final ResourceLocation JUNGLE_TEMPLE_DISPENSER = ResourceLocation.tryBuild("minecraft", "chests/jungle_temple_dispenser");
-    private static final ResourceLocation SHIPWRECK_TREASURE = ResourceLocation.tryBuild("minecraft", "chests/shipwreck_treasure");
-    private static final ResourceLocation WOODLAND_MANSION = ResourceLocation.tryBuild("minecraft", "chests/woodland_mansion");
-    private static final ResourceLocation ANCIENT_CITY = ResourceLocation.tryBuild("minecraft", "chests/ancient_city");
-    private static final ResourceLocation PILLAGER_OUTPOST = ResourceLocation.tryBuild("minecraft", "chests/pillager_outpost");
-    private static final ResourceLocation BURIED_TREASURE = ResourceLocation.tryBuild("minecraft", "chests/buried_treasure");
+    private static final Identifier SIMPLE_DUNGEON = Identifier.tryBuild("minecraft", "chests/simple_dungeon");
+    private static final Identifier ABANDONED_MINESHAFT = Identifier.tryBuild("minecraft", "chests/abandoned_mineshaft");
+    private static final Identifier STRONGHOLD_CORRIDOR = Identifier.tryBuild("minecraft", "chests/stronghold_corridor");
+    private static final Identifier STRONGHOLD_CROSSING = Identifier.tryBuild("minecraft", "chests/stronghold_crossing");
+    private static final Identifier STRONGHOLD_LIBRARY = Identifier.tryBuild("minecraft", "chests/stronghold_library");
+    private static final Identifier DESERT_PYRAMID = Identifier.tryBuild("minecraft", "chests/desert_pyramid");
+    private static final Identifier JUNGLE_TEMPLE = Identifier.tryBuild("minecraft", "chests/jungle_temple");
+    private static final Identifier JUNGLE_TEMPLE_DISPENSER = Identifier.tryBuild("minecraft", "chests/jungle_temple_dispenser");
+    private static final Identifier SHIPWRECK_TREASURE = Identifier.tryBuild("minecraft", "chests/shipwreck_treasure");
+    private static final Identifier WOODLAND_MANSION = Identifier.tryBuild("minecraft", "chests/woodland_mansion");
+    private static final Identifier ANCIENT_CITY = Identifier.tryBuild("minecraft", "chests/ancient_city");
+    private static final Identifier PILLAGER_OUTPOST = Identifier.tryBuild("minecraft", "chests/pillager_outpost");
+    private static final Identifier BURIED_TREASURE = Identifier.tryBuild("minecraft", "chests/buried_treasure");
 
     public static void register() {
         LootTableEvents.MODIFY.register((resourceManager, lootManager, id, tableBuilder, source) -> {
             tableBuilder.apply(QualityLootFunction.INSTANCE);
             // Check if this is one of our target loot tables
-            for (ResourceLocation dungeon : getOtherDungeons()) {
+            for (Identifier dungeon : getOtherDungeons()) {
                 if (id.equals(dungeon)) {
                     String namePrefix = dungeon.getPath().replace("chests/", "");
 
@@ -64,7 +64,7 @@ public class ModLootModifiers {
             }
 
             // Less rare dungeons
-            for (ResourceLocation dungeon : getLessRareDungeons()) {
+            for (Identifier dungeon : getLessRareDungeons()) {
                 if (id.equals(dungeon)) {
                     String namePrefix = dungeon.getPath().replace("chests/", "");
 
@@ -99,8 +99,8 @@ public class ModLootModifiers {
         });
     }
 
-    private static ResourceLocation[] getOtherDungeons() {
-        return new ResourceLocation[]{
+    private static Identifier[] getOtherDungeons() {
+        return new Identifier[]{
                 STRONGHOLD_CORRIDOR,
                 STRONGHOLD_CROSSING,
                 STRONGHOLD_LIBRARY,
@@ -114,8 +114,8 @@ public class ModLootModifiers {
         };
     }
 
-    private static ResourceLocation[] getLessRareDungeons() {
-        return new ResourceLocation[]{
+    private static Identifier[] getLessRareDungeons() {
+        return new Identifier[]{
                 ABANDONED_MINESHAFT,
                 SIMPLE_DUNGEON
         };

@@ -5,11 +5,11 @@ import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.models.ItemModelGenerators;
-import net.minecraft.data.models.model.ModelTemplate;
-import net.minecraft.data.models.model.ModelTemplates;
-import net.minecraft.data.models.model.TextureMapping;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.model.ModelTemplate;
+import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.client.data.models.model.TextureMapping;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.Item;
 import java.util.*;
@@ -46,7 +46,7 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
             boolean joinConditions,
             OverrideCondition... conditions) {
 
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
 
         String namespace = itemId.getNamespace();
         String path = itemId.getPath();
@@ -138,8 +138,8 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
         // Main model
         // ---------------------------------------------------------------------
 
-        ResourceLocation modelId =
-                new ResourceLocation(
+        Identifier modelId =
+                Identifier.fromNamespaceAndPath(
                         namespace,
                         "item/" + path
                 );
@@ -160,11 +160,11 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
         if (item instanceof DyeableLeatherItem) {
 
             textures = TextureMapping.layered(
-                    new ResourceLocation(
+                    Identifier.fromNamespaceAndPath(
                             namespace,
                             "item/" + path
                     ),
-                    new ResourceLocation(
+                    Identifier.fromNamespaceAndPath(
                             namespace,
                             "item/" + path + "_overlay"
                     )
@@ -173,7 +173,7 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
         } else {
 
             textures = TextureMapping.layer0(
-                    new ResourceLocation(
+                    Identifier.fromNamespaceAndPath(
                             namespace,
                             "item/" + path
                     )
@@ -317,14 +317,14 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
             String modelName,
             ItemModelGenerators itemModelGenerator) {
 
-        ResourceLocation itemId =
+        Identifier itemId =
                 BuiltInRegistries.ITEM.getKey(item);
 
         String namespace =
                 itemId.getNamespace();
 
-        ResourceLocation modelId =
-                new ResourceLocation(
+        Identifier modelId =
+                Identifier.fromNamespaceAndPath(
                         namespace,
                         "item/" + modelName
                 );
@@ -333,11 +333,11 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
 
             TextureMapping textures =
                     TextureMapping.layered(
-                            new ResourceLocation(
+                            Identifier.fromNamespaceAndPath(
                                     namespace,
                                     "item/" + modelName
                             ),
-                            new ResourceLocation(
+                            Identifier.fromNamespaceAndPath(
                                     namespace,
                                     "item/" + modelName + "_overlay"
                             )
@@ -353,7 +353,7 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
             ModelTemplate layeredModel =
                     new ModelTemplate(
                             Optional.of(
-                                    new ResourceLocation(
+                                    Identifier.fromNamespaceAndPath(
                                             "minecraft",
                                             "item/handheld"
                                     )
@@ -371,7 +371,7 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
 
             TextureMapping textures =
                     TextureMapping.layer0(
-                            new ResourceLocation(
+                            Identifier.fromNamespaceAndPath(
                                     namespace,
                                     "item/" + modelName
                             )
@@ -392,7 +392,7 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
     private void addOverride(
             JsonArray overrides,
             String namespace,
-            ResourceLocation predicateKey,
+            Identifier predicateKey,
             Number predicateValue,
             String modelName) {
 
@@ -443,7 +443,7 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
             ModelTemplate model,
             ItemModelGenerators itemModelGenerator) {
 
-        ResourceLocation itemId =
+        Identifier itemId =
                 BuiltInRegistries.ITEM.getKey(item);
 
         String[] bannerPatternNames = {
@@ -458,8 +458,8 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
 
         for (String pattern : bannerPatternNames) {
 
-            ResourceLocation modelId =
-                    new ResourceLocation(
+            Identifier modelId =
+                    Identifier.fromNamespaceAndPath(
                             itemId.getNamespace(),
                             "item/" +
                                     itemId.getPath() +
@@ -469,7 +469,7 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
 
             TextureMapping textures =
                     TextureMapping.layer0(
-                            new ResourceLocation(
+                            Identifier.fromNamespaceAndPath(
                                     itemId.getNamespace(),
                                     "item/" +
                                             itemId.getPath() +
@@ -495,17 +495,17 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
             ModelTemplate model,
             ItemModelGenerators itemModelGenerator,
             String modelName,
-            ResourceLocation texturePath) {
+            Identifier texturePath) {
 
-        ResourceLocation itemId =
+        Identifier itemId =
                 BuiltInRegistries.ITEM.getKey(item);
 
-        ResourceLocation modelId;
+        Identifier modelId;
 
         if (modelName.isEmpty()) {
 
             modelId =
-                    new ResourceLocation(
+                    Identifier.fromNamespaceAndPath(
                             itemId.getNamespace(),
                             "item/" + itemId.getPath()
                     );
@@ -513,7 +513,7 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
         } else {
 
             modelId =
-                    new ResourceLocation(
+                    Identifier.fromNamespaceAndPath(
                             itemId.getNamespace(),
                             "item/" + modelName
                     );
@@ -530,7 +530,7 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
 
             texture =
                     TextureMapping.layer0(
-                            new ResourceLocation(
+                            Identifier.fromNamespaceAndPath(
                                     itemId.getNamespace(),
                                     "item/" + itemId.getPath()
                             )
@@ -549,7 +549,7 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
     // =========================================================================
 
     public record OverrideCondition(
-            ResourceLocation predicateKey,
+            Identifier predicateKey,
             Number predicateValue) {
 
         String getModelName(String basePath) {

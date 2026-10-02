@@ -7,10 +7,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -24,8 +24,8 @@ import net.stirdrem.overgeared.item.armor.model.CustomCopperLeggings;
  * original Forge port (which only overrode getHumanoidArmorModel for helmet/leggings).
  */
 public class CopperArmorRenderer implements ArmorRenderer {
-    private static final ResourceLocation HELMET_TEXTURE = Overgeared.id("textures/models/armor/copper_layer_1.png");
-    private static final ResourceLocation LEGGINGS_TEXTURE = Overgeared.id("textures/models/armor/copper_layer_2.png");
+    private static final Identifier HELMET_TEXTURE = Overgeared.id("textures/models/armor/copper_layer_1.png");
+    private static final Identifier LEGGINGS_TEXTURE = Overgeared.id("textures/models/armor/copper_layer_2.png");
 
     @Override
     public void render(PoseStack matrices, MultiBufferSource vertexConsumers, ItemStack stack,
@@ -48,7 +48,7 @@ public class CopperArmorRenderer implements ArmorRenderer {
      * our geometry is extracted straight from baked TexturedModelData with no Model wrapper.
      */
     private static void renderPart(PoseStack matrices, MultiBufferSource vertexConsumers, int light,
-                                     ItemStack stack, ModelPart part, ResourceLocation texture) {
+                                     ItemStack stack, ModelPart part, Identifier texture) {
         VertexConsumer vertexConsumer = ItemRenderer.getArmorFoilBuffer(
                 vertexConsumers, RenderType.armorCutoutNoCull(texture), false, stack.hasFoil());
         part.render(matrices, vertexConsumer, light, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);

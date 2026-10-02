@@ -1,14 +1,11 @@
 package net.stirdrem.overgeared.item.custom;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
@@ -16,87 +13,75 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.stirdrem.overgeared.BlueprintQuality;
+import net.stirdrem.overgeared.components.CastData;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.config.ServerConfig;
 import net.stirdrem.overgeared.util.ConfigHelper;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
+import java.util.Map;
+import java.util.function.Consumer;
 
 public class ToolCastItem extends Item {
     private final boolean allowMaterialInsert;
     private final boolean haveDurability;
 
     public ToolCastItem(boolean allowMaterialInsert, boolean haveDurability, Properties settings) {
-        // Vanilla's Item#getMaxDamage() is final (derived from Settings at construction),
-        // unlike Forge's per-stack getMaxDamage(ItemStack) override, so the configured
-        // durability is baked in here instead of read dynamically on every call.
+        // Max damage is a component baked in at construction, so the configured durability is
+        // read once here (the config is loaded before items register).
         super(haveDurability ? settings.durability(ServerConfig.FIRED_CAST_DURABILITY.get()) : settings);
         this.allowMaterialInsert = allowMaterialInsert;
         this.haveDurability = haveDurability;
     }
 
-    @Override
-    public boolean isEnchantable(ItemStack stack) {
-        return false;
+    public boolean hasDurability() {
+        return haveDurability;
     }
 
     @Override
-    public int getEnchantmentValue() {
-        return 0;
-    }
-
-    @Override
-    public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
-        if (!world.isClientSide) {
-            return calculateAndReturnMaterials(stack, player, hand);
+        if (!world.isClientSide()) {
+            return calculateAndReturnMaterials(stack, player);
         }
 
         return super.use(world, player, hand);
     }
 
-    private InteractionResultHolder<ItemStack> calculateAndReturnMaterials(ItemStack castStack, Player player, InteractionHand hand) {
-        CompoundTag tag = castStack.getTag();
-        if (tag == null) {
-            return InteractionResultHolder.fail(castStack);
+    private InteractionResult calculateAndReturnMaterials(ItemStack castStack, Player player) {
+        CastData data = castStack.get(ModComponents.CAST_DATA);
+        if (data == null) {
+            return InteractionResult.FAIL;
         }
 
-        if (tag.contains("Output", Tag.TAG_COMPOUND)) {
-            ItemStack output = ItemStack.of(tag.getCompound("Output"));
-
-            if (!output.isEmpty()) {
-                if (!player.getInventory().add(output.copy())) {
-                    player.drop(output.copy(), false);
-                }
-
-                tag.remove("Output");
-                tag.remove("Materials");
-                tag.remove("input");
-                tag.remove("Heated");
-                tag.putInt("Amount", 0);
-
-                player.level().playSound(
-                        null,
-                        player.blockPosition(),
-                        SoundEvents.ITEM_PICKUP,
-                        SoundSource.PLAYERS,
-                        0.8F,
-                        1.2F
-                );
-                return InteractionResultHolder.sidedSuccess(castStack, player.level().isClientSide());
+        if (data.hasOutput()) {
+            ItemStack output = data.outputStack();
+            if (!player.getInventory().add(output.copy())) {
+                player.drop(output.copy(), false);
             }
+
+            castStack.set(ModComponents.CAST_DATA, data.cleared());
+
+            player.level().playSound(
+                    null,
+                    player.blockPosition(),
+                    SoundEvents.ITEM_PICKUP,
+                    SoundSource.PLAYERS,
+                    0.8F,
+                    1.2F
+            );
+            return InteractionResult.SUCCESS;
         }
 
-        List<ItemStack> inputItems = getInputItemsFromCast(castStack);
+        List<ItemStack> inputItems = data.inputStacks();
         if (inputItems.isEmpty()) {
-            player.displayClientMessage(Component.translatable("message.overgeared.cast_empty"), true);
-            return InteractionResultHolder.fail(castStack);
+            player.sendOverlayMessage(Component.translatable("message.overgeared.cast_empty"));
+            return InteractionResult.FAIL;
         }
 
         for (ItemStack inputItem : inputItems) {
@@ -105,11 +90,8 @@ public class ToolCastItem extends Item {
             }
         }
 
-        tag.put("Materials", new CompoundTag());
-        tag.putInt("Amount", 0);
-        tag.remove("input");
-
-        return InteractionResultHolder.sidedSuccess(castStack, player.level().isClientSide());
+        castStack.set(ModComponents.CAST_DATA, data.cleared());
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -144,64 +126,29 @@ public class ToolCastItem extends Item {
     }
 
     private boolean insertMaterial(ItemStack cast, ItemStack material, Player player) {
-        if (cast.hasTag() && cast.getTag().contains("Output")) {
+        CastData data = cast.getOrDefault(ModComponents.CAST_DATA, CastData.EMPTY);
+        if (data.hasOutput()) {
             return false;
         }
         if (material.isEmpty()) return false;
 
-        CompoundTag tag = cast.getOrCreateTag();
-        ListTag list = tag.getList("input", Tag.TAG_COMPOUND);
-
         if (!ConfigHelper.isValidMaterial(material)) {
-            player.displayClientMessage(Component.translatable("message.overgeared.invalid_material"), true);
+            player.sendOverlayMessage(Component.translatable("message.overgeared.invalid_material"));
             return false;
         }
 
         int value = ConfigHelper.getMaterialValue(material);
         if (value <= 0) return false;
 
-        int amount = tag.getInt("Amount");
-        int maxAmount = tag.contains("MaxAmount") ? tag.getInt("MaxAmount") : Integer.MAX_VALUE;
-
-        if (amount + value > maxAmount) {
+        if (data.wouldOverflow(value)) {
             return false;
         }
 
         String mat = ConfigHelper.getMaterialForItem(material);
-        CompoundTag mats = tag.contains("Materials") ? tag.getCompound("Materials") : new CompoundTag();
-
-        int prev = mats.getInt(mat);
-        mats.putInt(mat, prev + value);
-        tag.put("Materials", mats);
-
-        for (int i = 0; i < list.size(); i++) {
-            CompoundTag entry = list.getCompound(i);
-            ItemStack entryStack = ItemStack.of(entry);
-
-            if (isSameItemSameNbt(entryStack, material)) {
-                entryStack.grow(1);
-                list.set(i, entryStack.save(entry));
-
-                tag.put("input", list);
-                tag.putInt("Amount", amount + value);
-                playInsertSound(player);
-                return true;
-            }
-        }
-
-        ItemStack stored = material.copy();
-        stored.setCount(1);
-        list.add(stored.save(new CompoundTag()));
-
-        tag.put("input", list);
-        tag.putInt("Amount", amount + value);
+        cast.set(ModComponents.CAST_DATA, data.withAddedMaterial(mat, value, material));
 
         playInsertSound(player);
         return true;
-    }
-
-    private static boolean isSameItemSameNbt(ItemStack a, ItemStack b) {
-        return ItemStack.isSameItem(a, b) && Objects.equals(a.getTag(), b.getTag());
     }
 
     private void playInsertSound(Player player) {
@@ -214,133 +161,97 @@ public class ToolCastItem extends Item {
         );
     }
 
-    private List<ItemStack> getInputItemsFromCast(ItemStack cast) {
-        List<ItemStack> items = new ArrayList<>();
-        CompoundTag tag = cast.getTag();
-
-        if (tag != null && tag.contains("input", Tag.TAG_LIST)) {
-            ListTag inputList = tag.getList("input", Tag.TAG_COMPOUND);
-
-            for (Tag inputTag : inputList) {
-                if (inputTag instanceof CompoundTag compound) {
-                    ItemStack item = ItemStack.of(compound);
-                    if (!item.isEmpty()) {
-                        items.add(item);
-                    }
-                }
-            }
-        }
-
-        return items;
-    }
-
     @Override
-    public boolean canBeDepleted() {
-        return haveDurability;
-    }
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
 
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
-        super.appendHoverText(stack, world, tooltip, context);
+        CastData data = stack.get(ModComponents.CAST_DATA);
+        if (data == null) return;
 
-        CompoundTag tag = stack.getTag();
-        if (tag == null) return;
-
-        if (tag.contains("Quality", Tag.TAG_STRING)) {
-            String quality = tag.getString("Quality");
+        String quality = data.quality();
+        if (!quality.isEmpty() && !quality.equals("NONE")) {
             ChatFormatting color = BlueprintQuality.getColor(quality);
-            if (!quality.equals("NONE"))
-                tooltip.add(
-                        Component.translatable("tooltip.overgeared.tool_cast.quality")
-                                .append(" ")
-                                .append(
-                                        Component.translatable("quality.overgeared." + quality.toLowerCase(Locale.ROOT))
-                                                .withStyle(color)
-                                )
-                                .withStyle(ChatFormatting.GRAY)
-                );
+            tooltip.accept(
+                    Component.translatable("tooltip.overgeared.tool_cast.quality")
+                            .append(" ")
+                            .append(
+                                    Component.translatable("quality.overgeared." + quality.toLowerCase(Locale.ROOT))
+                                            .withStyle(color)
+                            )
+                            .withStyle(ChatFormatting.GRAY)
+            );
         }
 
-        if (tag.contains("ToolType", Tag.TAG_STRING)) {
-            String toolType = tag.getString("ToolType");
-            tooltip.add(
+        if (!data.toolType().isEmpty()) {
+            tooltip.accept(
                     Component.translatable("tooltip.overgeared.tool_cast.type")
                             .append(" ")
-                            .append(Component.translatable("tooltype.overgeared." + toolType.toLowerCase(Locale.ROOT)).withStyle(ChatFormatting.BLUE))
+                            .append(Component.translatable("tooltype.overgeared." + data.toolType().toLowerCase(Locale.ROOT)).withStyle(ChatFormatting.BLUE))
                             .withStyle(ChatFormatting.GRAY)
             );
         }
 
-        if (tag.contains("Materials", Tag.TAG_COMPOUND)) {
-            CompoundTag materials = tag.getCompound("Materials");
-            if (!materials.isEmpty()) {
-                tooltip.add(
-                        Component.translatable("tooltip.overgeared.tool_cast.materials")
-                                .withStyle(ChatFormatting.GRAY)
-                );
+        if (!data.materials().isEmpty()) {
+            tooltip.accept(
+                    Component.translatable("tooltip.overgeared.tool_cast.materials")
+                            .withStyle(ChatFormatting.GRAY)
+            );
 
-                for (String key : materials.getAllKeys()) {
-                    int amount = materials.getInt(key);
-
-                    Component display = Component.translatable("material.overgeared." + key.toLowerCase(Locale.ROOT));
-                    if (display.getString().equals("material.overgeared." + key.toLowerCase(Locale.ROOT))) {
-                        display = Component.literal(key);
-                    }
-
-                    tooltip.add(
-                            Component.literal("  • ").append(display)
-                                    .append(Component.literal(": " + amount))
-                                    .withStyle(ChatFormatting.WHITE)
-                    );
+            for (Map.Entry<String, Integer> entry : data.materials().entrySet()) {
+                String key = entry.getKey();
+                Component name = Component.translatable("material.overgeared." + key.toLowerCase(Locale.ROOT));
+                if (name.getString().equals("material.overgeared." + key.toLowerCase(Locale.ROOT))) {
+                    name = Component.literal(key);
                 }
+
+                tooltip.accept(
+                        Component.literal("  • ").append(name)
+                                .append(Component.literal(": " + entry.getValue()))
+                                .withStyle(ChatFormatting.WHITE)
+                );
             }
         }
 
-        if (tag.contains("Amount")) {
-            int raw = tag.getInt("Amount");
-            double amt = raw / 9.0;
+        int raw = data.amount();
+        double amt = raw / 9.0;
+        int maxRaw = data.maxAmount() > 0 ? data.maxAmount() : raw;
+        double maxAmt = maxRaw / 9.0;
 
-            int maxRaw = tag.contains("MaxAmount") ? tag.getInt("MaxAmount") : raw;
-            double maxAmt = maxRaw / 9.0;
-
-            tooltip.add(
-                    Component.translatable("tooltip.overgeared.tool_cast.amount")
-                            .append(" ")
-                            .append(
-                                    Component.literal(String.format("%.2f", amt))
-                                            .withStyle(ChatFormatting.YELLOW)
-                            )
-                            .append(" / ")
-                            .append(
-                                    Component.literal(String.format("%.2f", maxAmt))
-                                            .withStyle(ChatFormatting.WHITE)
-                            )
-                            .withStyle(ChatFormatting.GRAY)
+        tooltip.accept(
+                Component.translatable("tooltip.overgeared.tool_cast.amount")
+                        .append(" ")
+                        .append(
+                                Component.literal(String.format("%.2f", amt))
+                                        .withStyle(ChatFormatting.YELLOW)
+                        )
+                        .append(" / ")
+                        .append(
+                                Component.literal(String.format("%.2f", maxAmt))
+                                        .withStyle(ChatFormatting.WHITE)
+                        )
+                        .withStyle(ChatFormatting.GRAY)
+        );
+        if (amt / maxAmt != 1) {
+            tooltip.accept(
+                    Component.translatable("tooltip.overgeared.add_materials")
+                            .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC)
             );
-            if (amt / maxAmt != 1)
-                tooltip.add(
-                        Component.translatable("tooltip.overgeared.add_materials")
-                                .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC)
-                );
         }
-        if (tag.contains("Output", Tag.TAG_COMPOUND)) {
-            ItemStack output = ItemStack.of(tag.getCompound("Output"));
 
-            tooltip.add(
+        if (data.hasOutput()) {
+            tooltip.accept(
                     Component.translatable("tooltip.overgeared.tool_cast.contains")
                             .withStyle(ChatFormatting.GRAY)
             );
-
-            tooltip.add(
+            tooltip.accept(
                     Component.literal("  • ")
-                            .append(output.getHoverName())
+                            .append(data.outputStack().getHoverName())
                             .withStyle(ChatFormatting.GOLD)
             );
         }
-        if ((tag.contains("Materials", Tag.TAG_COMPOUND) && !tag.getCompound("Materials").isEmpty()) ||
-                (tag.contains("input", Tag.TAG_LIST) && !tag.getList("input", Tag.TAG_COMPOUND).isEmpty()) ||
-                tag.contains("Output", Tag.TAG_COMPOUND)) {
-            tooltip.add(
+
+        if (!data.materials().isEmpty() || !data.input().isEmpty() || data.hasOutput()) {
+            tooltip.accept(
                     Component.translatable("tooltip.overgeared.cast_right_click")
                             .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC)
             );

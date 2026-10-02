@@ -1,14 +1,14 @@
 package net.stirdrem.overgeared.screen;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.stirdrem.overgeared.Overgeared;
 
 public class FletchingStationScreen extends AbstractContainerScreen<FletchingStationScreenHandler> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(Overgeared.MOD_ID, "textures/gui/fletching_table.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "textures/gui/fletching_table.png");
 
     public FletchingStationScreen(FletchingStationScreenHandler handler, Inventory playerInventory, Component title) {
         super(handler, playerInventory, title);

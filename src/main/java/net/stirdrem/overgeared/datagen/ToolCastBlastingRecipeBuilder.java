@@ -6,11 +6,11 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.advancements.RequirementsStrategy;
-import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.advancements.triggers.RecipeUnlockedTrigger;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.CraftingRecipeBuilder;
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
@@ -109,11 +109,11 @@ public class ToolCastBlastingRecipeBuilder extends CraftingRecipeBuilder {
 
     public void offerTo(
             Consumer<FinishedRecipe> exporter,
-            ResourceLocation id
+            Identifier id
     ) {
         ensureValid(id);
 
-        ResourceLocation recipeId = new ResourceLocation(
+        Identifier recipeId = Identifier.fromNamespaceAndPath(
                 id.getNamespace(),
                 id.getPath() + "_from_cast_blasting"
         );
@@ -144,7 +144,7 @@ public class ToolCastBlastingRecipeBuilder extends CraftingRecipeBuilder {
         ));
     }
 
-    private void ensureValid(ResourceLocation id) {
+    private void ensureValid(Identifier id) {
         if (toolType == null) {
             throw new IllegalStateException(
                     "Tool type missing for " + id
@@ -166,7 +166,7 @@ public class ToolCastBlastingRecipeBuilder extends CraftingRecipeBuilder {
 
     public static class Result implements FinishedRecipe {
 
-        private final ResourceLocation id;
+        private final Identifier id;
         private final ItemLike result;
         private final String group;
         private final String category;
@@ -176,10 +176,10 @@ public class ToolCastBlastingRecipeBuilder extends CraftingRecipeBuilder {
         private final int time;
         private final Boolean needPolishing;
         private final Advancement.Builder advancement;
-        private final ResourceLocation advancementId;
+        private final Identifier advancementId;
 
         public Result(
-                ResourceLocation id,
+                Identifier id,
                 ItemLike result,
                 String group,
                 String category,
@@ -189,7 +189,7 @@ public class ToolCastBlastingRecipeBuilder extends CraftingRecipeBuilder {
                 int time,
                 Boolean needPolishing,
                 Advancement.Builder advancement,
-                ResourceLocation advancementId
+                Identifier advancementId
         ) {
             this.id = id;
             this.result = result;
@@ -249,7 +249,7 @@ public class ToolCastBlastingRecipeBuilder extends CraftingRecipeBuilder {
         }
 
         @Override
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return id;
         }
 
@@ -261,7 +261,7 @@ public class ToolCastBlastingRecipeBuilder extends CraftingRecipeBuilder {
 
         @Nullable
         @Override
-        public ResourceLocation getAdvancementId() {
+        public Identifier getAdvancementId() {
             return advancementId;
         }
     }

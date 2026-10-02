@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -19,7 +19,7 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.Level;
 
 public class AlloySmeltingRecipe implements Recipe<SimpleContainer>, IAlloyRecipe {
-    private final ResourceLocation id;
+    private final Identifier id;
     private final String group;
     private final CraftingBookCategory category;
     private final List<Ingredient> inputs;
@@ -27,7 +27,7 @@ public class AlloySmeltingRecipe implements Recipe<SimpleContainer>, IAlloyRecip
     private final float experience;
     private final int cookingTime;
 
-    public AlloySmeltingRecipe(ResourceLocation id, String group, CraftingBookCategory category, List<Ingredient> inputs, ItemStack output, float experience, int cookingTime) {
+    public AlloySmeltingRecipe(Identifier id, String group, CraftingBookCategory category, List<Ingredient> inputs, ItemStack output, float experience, int cookingTime) {
         this.id = id;
         this.group = group;
         this.category = category;
@@ -104,7 +104,7 @@ public class AlloySmeltingRecipe implements Recipe<SimpleContainer>, IAlloyRecip
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -168,7 +168,7 @@ public class AlloySmeltingRecipe implements Recipe<SimpleContainer>, IAlloyRecip
         public static final Serializer INSTANCE = new Serializer();
 
         @Override
-        public AlloySmeltingRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public AlloySmeltingRecipe fromJson(Identifier id, JsonObject json) {
             String group = json.has("group") ? json.get("group").getAsString() : "";
             CraftingBookCategory category = json.has("category")
                     ? CraftingBookCategory.CODEC.byName(json.get("category").getAsString(), CraftingBookCategory.MISC)
@@ -195,7 +195,7 @@ public class AlloySmeltingRecipe implements Recipe<SimpleContainer>, IAlloyRecip
 
 
         @Override
-        public AlloySmeltingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        public AlloySmeltingRecipe fromNetwork(Identifier id, FriendlyByteBuf buf) {
             String group = buf.readUtf();
             CraftingBookCategory category = buf.readEnum(CraftingBookCategory.class);
 

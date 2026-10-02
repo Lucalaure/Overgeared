@@ -10,7 +10,7 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -79,7 +79,7 @@ public class OvergearedClient implements ClientModInitializer {
      * NBT written by FletchingStationScreenHandler when crafting tipped/lingering results.
      */
     private static void registerArrowPotionTypeProvider(Item item) {
-        ItemProperties.register(item, new ResourceLocation("overgeared", "potion_type"),
+        ItemProperties.register(item, Identifier.fromNamespaceAndPath("overgeared", "potion_type"),
                 (stack, world, entity, seed) -> {
                     CompoundTag nbt = stack.getTag();
                     if (nbt == null || !nbt.contains("Potion")) {

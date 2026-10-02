@@ -3,7 +3,7 @@ package net.stirdrem.overgeared.recipe;
 import java.util.List;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -14,7 +14,7 @@ import net.minecraft.world.level.Level;
 public abstract class AbstractShapedAlloyRecipe
         implements Recipe<SimpleContainer> {
 
-    protected final ResourceLocation id;
+    protected final Identifier id;
     protected final String group;
     protected final CraftingBookCategory category;
 
@@ -29,7 +29,7 @@ public abstract class AbstractShapedAlloyRecipe
     protected final int cookingTime;
 
     protected AbstractShapedAlloyRecipe(
-            ResourceLocation id,
+            Identifier id,
             String group,
             CraftingBookCategory category,
             int width,
@@ -126,7 +126,7 @@ public abstract class AbstractShapedAlloyRecipe
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 

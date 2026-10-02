@@ -3,7 +3,7 @@ package net.stirdrem.overgeared.datapack;
 import com.google.gson.*;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
@@ -29,23 +29,23 @@ public class RockInteractionReloadListener extends SimpleJsonResourceReloadListe
     public static final RockInteractionReloadListener INSTANCE = new RockInteractionReloadListener();
     private static final Gson GSON = new Gson();
 
-    private static final Map<ResourceLocation, RockInteractionData> DATA = new ConcurrentHashMap<>();
+    private static final Map<Identifier, RockInteractionData> DATA = new ConcurrentHashMap<>();
 
     public RockInteractionReloadListener() {
         super(GSON, "rock_interactions");
     }
 
     @Override
-    public ResourceLocation getFabricId() {
+    public Identifier getFabricId() {
         return Overgeared.id("rock_interactions_listener");
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> jsons, ResourceManager manager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, JsonElement> jsons, ResourceManager manager, ProfilerFiller profiler) {
         DATA.clear();
 
-        for (Map.Entry<ResourceLocation, JsonElement> entry : jsons.entrySet()) {
-            ResourceLocation id = entry.getKey();
+        for (Map.Entry<Identifier, JsonElement> entry : jsons.entrySet()) {
+            Identifier id = entry.getKey();
             JsonElement value = entry.getValue();
 
             try {
@@ -61,7 +61,7 @@ public class RockInteractionReloadListener extends SimpleJsonResourceReloadListe
                         }
 
                         // Create a synthetic ID for each array entry
-                        ResourceLocation entryId = new ResourceLocation(id.getNamespace(), id.getPath() + "_" + i);
+                        Identifier entryId = Identifier.fromNamespaceAndPath(id.getNamespace(), id.getPath() + "_" + i);
 
                         parseAndAddRockInteraction(entryId, element.getAsJsonObject());
                     }
@@ -83,14 +83,14 @@ public class RockInteractionReloadListener extends SimpleJsonResourceReloadListe
         }
     }
 
-    private void parseAndAddRockInteraction(ResourceLocation id, JsonObject obj) {
+    private void parseAndAddRockInteraction(Identifier id, JsonObject obj) {
         // ---------- BLOCKS ----------
-        ResourceLocation inputId = ResourceLocation.tryParse(GsonHelper.getAsString(obj, "input_block"));
+        Identifier inputId = Identifier.tryParse(GsonHelper.getAsString(obj, "input_block"));
         Block inputBlock = BuiltInRegistries.BLOCK.get(inputId);
         if (inputBlock == null || inputBlock == Blocks.AIR)
             throw new JsonParseException("Unknown input_block '" + inputId + "'");
 
-        ResourceLocation resultId = ResourceLocation.tryParse(GsonHelper.getAsString(obj, "result_block"));
+        Identifier resultId = Identifier.tryParse(GsonHelper.getAsString(obj, "result_block"));
         Block resultBlock = BuiltInRegistries.BLOCK.get(resultId);
         if (resultBlock == null || resultBlock == Blocks.AIR)
             throw new JsonParseException("Unknown result_block '" + resultId + "'");
@@ -119,7 +119,7 @@ public class RockInteractionReloadListener extends SimpleJsonResourceReloadListe
                 return; // unreachable but required
             }
 
-            ResourceLocation dropId = ResourceLocation.tryParse(GsonHelper.getAsString(toolObj, "drop_item"));
+            Identifier dropId = Identifier.tryParse(GsonHelper.getAsString(toolObj, "drop_item"));
             Item dropItem = BuiltInRegistries.ITEM.get(dropId);
             if (dropItem == null || dropItem == Items.AIR)
                 throw new JsonParseException("Unknown drop_item '" + dropId + "'");
@@ -138,7 +138,7 @@ public class RockInteractionReloadListener extends SimpleJsonResourceReloadListe
         return DATA.values();
     }
 
-    private static <T> T throwMissing(ResourceLocation id, String msg) {
+    private static <T> T throwMissing(Identifier id, String msg) {
         throw new JsonParseException("Error in " + id + ": " + msg);
     }
 
@@ -160,7 +160,7 @@ public class RockInteractionReloadListener extends SimpleJsonResourceReloadListe
 
         RockInteractionData data = new RockInteractionData(inputBlock, tools, resultBlock);
 
-        ResourceLocation id = new ResourceLocation(Overgeared.MOD_ID, "default_flint_on_stone");
+        Identifier id = Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "default_flint_on_stone");
         DATA.put(id, data);
 
         Overgeared.LOGGER.info("Loaded default rock interaction (flint -> stone)");

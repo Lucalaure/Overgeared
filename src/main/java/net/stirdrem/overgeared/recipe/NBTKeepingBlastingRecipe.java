@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class NBTKeepingBlastingRecipe extends BlastingRecipe {
 
-    public NBTKeepingBlastingRecipe(ResourceLocation id, String group, CookingBookCategory category, Ingredient ingredient, ItemStack result, float experience, int cookingTime) {
+    public NBTKeepingBlastingRecipe(Identifier id, String group, CookingBookCategory category, Ingredient ingredient, ItemStack result, float experience, int cookingTime) {
         super(id, group, category, ingredient, result, experience, cookingTime);
     }
 
@@ -53,7 +53,7 @@ public class NBTKeepingBlastingRecipe extends BlastingRecipe {
         public static final Serializer INSTANCE = new Serializer();
 
         @Override
-        public NBTKeepingBlastingRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public NBTKeepingBlastingRecipe fromJson(Identifier id, JsonObject json) {
             String group = GsonHelper.getAsString(json, "group", "");
             CookingBookCategory category = json.has("category")
                     ? CookingBookCategory.CODEC.byName(GsonHelper.getAsString(json, "category"), CookingBookCategory.MISC)
@@ -63,7 +63,7 @@ public class NBTKeepingBlastingRecipe extends BlastingRecipe {
 
             ItemStack result = json.get("result").isJsonObject()
                     ? ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"))
-                    : new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(GsonHelper.getAsString(json, "result"))));
+                    : new ItemStack(BuiltInRegistries.ITEM.get(Identifier.parse(GsonHelper.getAsString(json, "result"))));
 
             float xp = GsonHelper.getAsFloat(json, "experience", 0.0F);
             int cookTime = GsonHelper.getAsInt(json, "cookingtime", 200);
@@ -72,7 +72,7 @@ public class NBTKeepingBlastingRecipe extends BlastingRecipe {
         }
 
         @Override
-        public @Nullable NBTKeepingBlastingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        public @Nullable NBTKeepingBlastingRecipe fromNetwork(Identifier id, FriendlyByteBuf buf) {
             String group = buf.readUtf();
             CookingBookCategory category = buf.readEnum(CookingBookCategory.class);
             Ingredient ingredient = Ingredient.fromNetwork(buf);

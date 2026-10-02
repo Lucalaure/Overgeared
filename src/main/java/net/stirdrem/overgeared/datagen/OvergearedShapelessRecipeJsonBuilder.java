@@ -6,13 +6,13 @@ import com.google.gson.JsonObject;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.advancements.RequirementsStrategy;
-import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.advancements.triggers.RecipeUnlockedTrigger;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.CraftingRecipeBuilder;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -178,7 +178,7 @@ public class OvergearedShapelessRecipeJsonBuilder
     @Override
     public void save(
             Consumer<FinishedRecipe> exporter,
-            ResourceLocation recipeId
+            Identifier recipeId
     ) {
         this.validate(recipeId);
 
@@ -209,7 +209,7 @@ public class OvergearedShapelessRecipeJsonBuilder
         );
     }
 
-    private void validate(ResourceLocation recipeId) {
+    private void validate(Identifier recipeId) {
         if (this.advancementBuilder.getCriteria().isEmpty()) {
             throw new IllegalStateException(
                     "No way of obtaining recipe " + recipeId
@@ -220,23 +220,23 @@ public class OvergearedShapelessRecipeJsonBuilder
     public static class OvergearedShapelessRecipeJsonProvider
             extends CraftingResult {
 
-        private final ResourceLocation recipeId;
+        private final Identifier recipeId;
         private final Item output;
         private final int count;
         private final String group;
         private final List<Ingredient> inputs;
         private final Advancement.Builder advancementBuilder;
-        private final ResourceLocation advancementId;
+        private final Identifier advancementId;
 
         public OvergearedShapelessRecipeJsonProvider(
-                ResourceLocation recipeId,
+                Identifier recipeId,
                 Item output,
                 int outputCount,
                 String group,
                 CraftingBookCategory craftingCategory,
                 List<Ingredient> inputs,
                 Advancement.Builder advancementBuilder,
-                ResourceLocation advancementId
+                Identifier advancementId
         ) {
             super(craftingCategory);
             this.recipeId = recipeId;
@@ -283,7 +283,7 @@ public class OvergearedShapelessRecipeJsonBuilder
         }
 
         @Override
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return this.recipeId;
         }
 
@@ -295,7 +295,7 @@ public class OvergearedShapelessRecipeJsonBuilder
 
         @Nullable
         @Override
-        public ResourceLocation getAdvancementId() {
+        public Identifier getAdvancementId() {
             return this.advancementId;
         }
     }

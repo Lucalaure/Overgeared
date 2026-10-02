@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.SimpleContainer;
@@ -16,7 +16,6 @@ import net.minecraft.world.level.block.DispenserBlock;
 import net.stirdrem.overgeared.advancement.ModAdvancementTriggers;
 import net.stirdrem.overgeared.block.ModBlocks;
 import net.stirdrem.overgeared.block.UpgradeArrowDispenseBehavior;
-import net.stirdrem.overgeared.compat.accessories.AttributeModifierHandler;
 import net.stirdrem.overgeared.loot.ModLootModifiers;
 import net.stirdrem.overgeared.command.ModCommands;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -45,8 +44,8 @@ public class Overgeared implements ModInitializer {
     @Nullable
     private static MinecraftServer server;
 
-    public static ResourceLocation id(String path) {
-        return new ResourceLocation(MOD_ID, path);
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 
     /**
@@ -96,12 +95,7 @@ public class Overgeared implements ModInitializer {
         net.stirdrem.overgeared.event.ModEvents.register();
         ModMessages.register();
 
-        if (FabricLoader.getInstance().isModLoaded("accessories")) {
-            AttributeModifierHandler.register();
-            LOGGER.info("Accessories mod detected - AttributeModifierHandler registered");
-        } else {
-            LOGGER.info("Accessories mod not present - skipping AttributeModifierHandler registration");
-        }
+        // Accessories compat (disabled-compat/accessories) is off until Accessories ships a 26.3 build.
 
         ModLootModifiers.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
@@ -130,16 +124,16 @@ public class Overgeared implements ModInitializer {
     }
 
     public static boolean isDurabilityBlacklisted(ItemStack stack) {
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         List<? extends String> blacklist = ServerConfig.BASE_DURABILITY_BLACKLIST.get();
 
         for (String entry : blacklist) {
             if (entry.startsWith("#")) {
-                ResourceLocation tagId = ResourceLocation.tryParse(entry.substring(1));
+                Identifier tagId = Identifier.tryParse(entry.substring(1));
                 TagKey<Item> tag = TagKey.create(Registries.ITEM, tagId);
                 if (stack.is(tag)) return true;
             } else {
-                if (itemId != null && itemId.equals(ResourceLocation.tryParse(entry))) return true;
+                if (itemId != null && itemId.equals(Identifier.tryParse(entry))) return true;
             }
         }
         return net.stirdrem.overgeared.datapack.DurabilityBlacklistReloadListener.isBlacklisted(stack);

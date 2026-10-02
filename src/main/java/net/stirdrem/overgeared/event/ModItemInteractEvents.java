@@ -14,7 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,7 +36,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
@@ -491,13 +491,13 @@ public class ModItemInteractEvents {
 
     private static boolean isBlacklisted(ItemStack stack) {
         Item item = stack.getItem();
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
 
         for (String entry : ServerConfig.GRINDING_BLACKLIST.get()) {
             if (entry.startsWith("#")) {
-                TagKey<Item> tag = TagKey.create(Registries.ITEM, ResourceLocation.tryParse(entry.substring(1)));
+                TagKey<Item> tag = TagKey.create(Registries.ITEM, Identifier.tryParse(entry.substring(1)));
                 if (stack.is(tag)) return true;
-            } else if (itemId != null && itemId.equals(ResourceLocation.tryParse(entry))) {
+            } else if (itemId != null && itemId.equals(Identifier.tryParse(entry))) {
                 return true;
             }
         }

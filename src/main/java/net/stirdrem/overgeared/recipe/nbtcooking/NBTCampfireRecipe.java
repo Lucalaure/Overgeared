@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +20,7 @@ public class NBTCampfireRecipe extends CampfireCookingRecipe {
 
     private final CompoundTag resultTag;
 
-    public NBTCampfireRecipe(ResourceLocation id, String group, CookingBookCategory category,
+    public NBTCampfireRecipe(Identifier id, String group, CookingBookCategory category,
                               Ingredient ingredient, ItemStack result,
                               float xp, int time, CompoundTag tag) {
         super(id, group, category, ingredient, result, xp, time);
@@ -51,7 +51,7 @@ public class NBTCampfireRecipe extends CampfireCookingRecipe {
         public static final Serializer INSTANCE = new Serializer();
 
         @Override
-        public NBTCampfireRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public NBTCampfireRecipe fromJson(Identifier id, JsonObject json) {
             String group = GsonHelper.getAsString(json, "group", "");
 
             CookingBookCategory category = CookingBookCategory.CODEC.byName(
@@ -81,7 +81,7 @@ public class NBTCampfireRecipe extends CampfireCookingRecipe {
         }
 
         @Override
-        public NBTCampfireRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        public NBTCampfireRecipe fromNetwork(Identifier id, FriendlyByteBuf buf) {
             String group = buf.readUtf();
             CookingBookCategory category = buf.readEnum(CookingBookCategory.class);
             Ingredient ingredient = Ingredient.fromNetwork(buf);

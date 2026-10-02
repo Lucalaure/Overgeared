@@ -4,7 +4,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -21,7 +21,7 @@ import java.util.List;
 
 public class DynamicToolCastRecipe extends CustomRecipe {
 
-    public DynamicToolCastRecipe(ResourceLocation id, CraftingBookCategory category) {
+    public DynamicToolCastRecipe(Identifier id, CraftingBookCategory category) {
         super(id, category);
     }
 

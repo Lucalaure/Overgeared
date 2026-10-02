@@ -6,7 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import java.util.List;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -17,11 +17,11 @@ import net.minecraft.world.level.Level;
 
 public class ItemToToolTypeRecipe implements Recipe<SimpleContainer> {
 
-    private final ResourceLocation id;
+    private final Identifier id;
     private final Ingredient input;
     private final String toolType;
 
-    public ItemToToolTypeRecipe(ResourceLocation id, Ingredient input, String toolType) {
+    public ItemToToolTypeRecipe(Identifier id, Ingredient input, String toolType) {
         this.id = id;
         this.input = input;
         this.toolType = toolType;
@@ -56,7 +56,7 @@ public class ItemToToolTypeRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -80,7 +80,7 @@ public class ItemToToolTypeRecipe implements Recipe<SimpleContainer> {
     public static class Serializer implements RecipeSerializer<ItemToToolTypeRecipe> {
 
         @Override
-        public ItemToToolTypeRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public ItemToToolTypeRecipe fromJson(Identifier id, JsonObject json) {
             // Allow "item" to be either an object or an array
             if (!json.has("item")) {
                 throw new JsonSyntaxException("Missing 'item' for item_to_tooltype recipe");
@@ -94,7 +94,7 @@ public class ItemToToolTypeRecipe implements Recipe<SimpleContainer> {
         }
 
         @Override
-        public ItemToToolTypeRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        public ItemToToolTypeRecipe fromNetwork(Identifier id, FriendlyByteBuf buf) {
             Ingredient input = Ingredient.fromNetwork(buf);
             String toolType = buf.readUtf();
             return new ItemToToolTypeRecipe(id, input, toolType);

@@ -12,9 +12,9 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.stirdrem.overgeared.Overgeared;
@@ -26,8 +26,8 @@ import java.util.List;
 
 public class NetherAlloySmeltingRecipeCategory implements IRecipeCategory<INetherAlloyRecipe> {
 
-    public static final ResourceLocation UID = Overgeared.id("nether_alloy_smelting");
-    public static final ResourceLocation TEXTURE = Overgeared.id("textures/gui/nether_furnace_jei.png");
+    public static final Identifier UID = Overgeared.id("nether_alloy_smelting");
+    public static final Identifier TEXTURE = Overgeared.id("textures/gui/nether_furnace_jei.png");
 
     public static final RecipeType<INetherAlloyRecipe> ALLOY_SMELTING_TYPE =
             new RecipeType<>(UID, INetherAlloyRecipe.class);

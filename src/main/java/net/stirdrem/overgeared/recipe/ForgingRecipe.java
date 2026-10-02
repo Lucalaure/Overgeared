@@ -8,7 +8,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ArmorItem;
@@ -34,7 +34,7 @@ public class ForgingRecipe implements Recipe<Container> {
     private static int BLUEPRINT_SLOT = 11;
     public final int width;
     public final int height;
-    private final ResourceLocation id;
+    private final Identifier id;
     private final String group;
     private final Set<String> blueprintTypes;
     private final String tier;
@@ -53,7 +53,7 @@ public class ForgingRecipe implements Recipe<Container> {
     private final ForgingBookCategory tab;
 
 
-    public ForgingRecipe(ResourceLocation id, String group, boolean requireBlueprint, Set<String> blueprintTypes, String tier, NonNullList<ForgingIngredient> ingredients,
+    public ForgingRecipe(Identifier id, String group, boolean requireBlueprint, Set<String> blueprintTypes, String tier, NonNullList<ForgingIngredient> ingredients,
                           ItemStack result, ItemStack failedResult, int hammering, boolean hasQuality, boolean needsMinigame, boolean hasPolishing, boolean needQuenching, boolean showNotification, ForgingQuality minimumQuality, ForgingQuality qualityDifficulty, int width, int height, ForgingBookCategory tab) {
         this.id = id;
         this.group = group;
@@ -241,7 +241,7 @@ public class ForgingRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -346,7 +346,7 @@ public class ForgingRecipe implements Recipe<Container> {
 
     public static class Serializer implements RecipeSerializer<ForgingRecipe> {
         public static final Serializer INSTANCE = new Serializer();
-        public static final ResourceLocation ID = new ResourceLocation(Overgeared.MOD_ID, "forging");
+        public static final Identifier ID = Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "forging");
 
         private static Map<Character, ForgingIngredient> parseKey(JsonObject keyJson) {
             Map<Character, ForgingIngredient> keyMap = new HashMap<>();
@@ -410,7 +410,7 @@ public class ForgingRecipe implements Recipe<Container> {
 
 
         @Override
-        public ForgingRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
+        public ForgingRecipe fromJson(Identifier recipeId, JsonObject json) {
             String group = GsonHelper.getAsString(json, "group", "");
 
             Set<String> blueprintTypes = new LinkedHashSet<>();
@@ -506,7 +506,7 @@ public class ForgingRecipe implements Recipe<Container> {
 
 
         @Override
-        public ForgingRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
+        public ForgingRecipe fromNetwork(Identifier recipeId, FriendlyByteBuf buffer) {
             String group = buffer.readUtf();
             boolean requiresBlueprint = buffer.readBoolean();
             int blueprintCount = buffer.readVarInt();

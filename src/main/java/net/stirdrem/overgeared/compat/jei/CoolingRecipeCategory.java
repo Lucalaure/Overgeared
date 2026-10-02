@@ -8,7 +8,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.stirdrem.overgeared.Overgeared;
@@ -18,9 +18,9 @@ public class CoolingRecipeCategory implements IRecipeCategory<CoolingRecipe> {
     public static final RecipeType<CoolingRecipe> TYPE =
             RecipeType.create(Overgeared.MOD_ID, "cooling", CoolingRecipe.class);
 
-    public static final ResourceLocation UID = Overgeared.id("cooling");
+    public static final Identifier UID = Overgeared.id("cooling");
 
-    private static final ResourceLocation TEXTURE = Overgeared.id("textures/gui/cooling_jei.png");
+    private static final Identifier TEXTURE = Overgeared.id("textures/gui/cooling_jei.png");
 
     private final IDrawable background;
     private final IDrawable icon;

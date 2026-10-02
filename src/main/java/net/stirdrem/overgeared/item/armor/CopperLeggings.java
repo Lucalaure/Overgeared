@@ -1,12 +1,11 @@
 package net.stirdrem.overgeared.item.armor;
 
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Item;
 
-// Custom Blockbench armor model is rendered via CopperArmorRenderer (Fabric ArmorRenderer),
-// registered client-side in OvergearedClient - see item.armor.model.CustomCopperLeggings.
-public class CopperLeggings extends ArmorItem {
-    public CopperLeggings(ArmorMaterial material, Type type, Properties settings) {
-        super(material, type, settings);
+// Armor stats come from Item.Properties#humanoidArmor. The custom Blockbench model is rendered
+// client-side - see item.armor.model.CustomCopperLeggings.
+public class CopperLeggings extends Item {
+    public CopperLeggings(Properties settings) {
+        super(settings);
     }
 }

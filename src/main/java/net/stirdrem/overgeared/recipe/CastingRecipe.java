@@ -7,7 +7,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class CastingRecipe implements Recipe<Container> {
 
-    private final ResourceLocation id;
+    private final Identifier id;
     private final String group;
     private final CookingBookCategory category;
 
@@ -43,7 +43,7 @@ public class CastingRecipe implements Recipe<Container> {
     private final boolean needPolishing;
 
     public CastingRecipe(
-            ResourceLocation id,
+            Identifier id,
             String group,
             CookingBookCategory category,
             ItemStack result,
@@ -199,7 +199,7 @@ public class CastingRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -265,7 +265,7 @@ public class CastingRecipe implements Recipe<Container> {
         public static final Serializer INSTANCE = new Serializer();
 
         @Override
-        public CastingRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public CastingRecipe fromJson(Identifier id, JsonObject json) {
             String group = GsonHelper.getAsString(json, "group", "");
             CookingBookCategory category = CookingBookCategory.MISC;
 
@@ -319,7 +319,7 @@ public class CastingRecipe implements Recipe<Container> {
         }
 
         @Override
-        public CastingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        public CastingRecipe fromNetwork(Identifier id, FriendlyByteBuf buf) {
             String group = buf.readUtf();
             CookingBookCategory category = CookingBookCategory.MISC;
 

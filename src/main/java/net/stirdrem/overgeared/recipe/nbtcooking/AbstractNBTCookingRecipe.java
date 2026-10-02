@@ -2,7 +2,7 @@ package net.stirdrem.overgeared.recipe.nbtcooking;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
@@ -16,7 +16,7 @@ public abstract class AbstractNBTCookingRecipe extends AbstractCookingRecipe {
 
     public AbstractNBTCookingRecipe(
             RecipeType<?> type,
-            ResourceLocation id,
+            Identifier id,
             String group,
             CookingBookCategory category,
             Ingredient ingredient,

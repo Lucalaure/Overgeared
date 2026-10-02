@@ -3,7 +3,7 @@ package net.stirdrem.overgeared.recipe;
 import com.google.gson.JsonObject;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
@@ -15,11 +15,11 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.Level;
 
 public class GrindingRecipe implements Recipe<SimpleContainer> {
-    private final ResourceLocation id;
+    private final Identifier id;
     private final Ingredient input;
     private final ItemStack output;
 
-    public GrindingRecipe(ResourceLocation id, Ingredient input, ItemStack output) {
+    public GrindingRecipe(Identifier id, Ingredient input, ItemStack output) {
         this.id = id;
         this.input = input;
         this.output = output;
@@ -46,7 +46,7 @@ public class GrindingRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -75,14 +75,14 @@ public class GrindingRecipe implements Recipe<SimpleContainer> {
 
     public static class Serializer implements RecipeSerializer<GrindingRecipe> {
         @Override
-        public GrindingRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public GrindingRecipe fromJson(Identifier id, JsonObject json) {
             Ingredient input = Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "input"));
             ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
             return new GrindingRecipe(id, input, output);
         }
 
         @Override
-        public GrindingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buffer) {
+        public GrindingRecipe fromNetwork(Identifier id, FriendlyByteBuf buffer) {
             Ingredient input = Ingredient.fromNetwork(buffer);
             ItemStack output = buffer.readItem();
             return new GrindingRecipe(id, input, output);

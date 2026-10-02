@@ -3,7 +3,7 @@ package net.stirdrem.overgeared.datagen;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -373,7 +373,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
     private TagKey<Item> commonTag(String path) {
         return TagKey.create(
                 net.minecraft.core.registries.Registries.ITEM,
-                ResourceLocation.tryBuild("c", path)
+                Identifier.tryBuild("c", path)
         );
     }
 }

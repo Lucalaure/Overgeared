@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +18,7 @@ import net.stirdrem.overgeared.Overgeared;
 
 public class RockKnappingRecipe implements Recipe<Container> {
 
-    private final ResourceLocation id;
+    private final Identifier id;
     private final ItemStack output;
     private final Ingredient ingredient;
 
@@ -31,7 +31,7 @@ public class RockKnappingRecipe implements Recipe<Container> {
     /* ---------------- CONSTRUCTOR ---------------- */
 
     public RockKnappingRecipe(
-            ResourceLocation id,
+            Identifier id,
             ItemStack output,
             Ingredient ingredient,
             boolean[][] pattern,
@@ -133,7 +133,7 @@ public class RockKnappingRecipe implements Recipe<Container> {
     /* ---------------- RECIPE META ---------------- */
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -159,11 +159,11 @@ public class RockKnappingRecipe implements Recipe<Container> {
     public static class Serializer implements RecipeSerializer<RockKnappingRecipe> {
 
         public static final Serializer INSTANCE = new Serializer();
-        public static final ResourceLocation ID =
-                new ResourceLocation(Overgeared.MOD_ID, "rock_knapping");
+        public static final Identifier ID =
+                Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "rock_knapping");
 
         @Override
-        public RockKnappingRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public RockKnappingRecipe fromJson(Identifier id, JsonObject json) {
             ItemStack result =
                     ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
 
@@ -213,7 +213,7 @@ public class RockKnappingRecipe implements Recipe<Container> {
         }
 
         @Override
-        public RockKnappingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        public RockKnappingRecipe fromNetwork(Identifier id, FriendlyByteBuf buf) {
             ItemStack output = buf.readItem();
             Ingredient ingredient = Ingredient.fromNetwork(buf);
 

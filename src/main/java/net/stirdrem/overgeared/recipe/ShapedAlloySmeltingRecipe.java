@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class ShapedAlloySmeltingRecipe extends AbstractShapedAlloyRecipe implements IAlloyRecipe {
 
     public ShapedAlloySmeltingRecipe(
-            ResourceLocation id,
+            Identifier id,
             String group,
             CraftingBookCategory category,
             int width,
@@ -57,7 +57,7 @@ public class ShapedAlloySmeltingRecipe extends AbstractShapedAlloyRecipe impleme
         public static final Serializer INSTANCE = new Serializer();
 
         @Override
-        public ShapedAlloySmeltingRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public ShapedAlloySmeltingRecipe fromJson(Identifier id, JsonObject json) {
             String group = GsonHelper.getAsString(json, "group", "");
             CraftingBookCategory category =
                     json.has("category")
@@ -109,7 +109,7 @@ public class ShapedAlloySmeltingRecipe extends AbstractShapedAlloyRecipe impleme
 
         @Override
         public ShapedAlloySmeltingRecipe fromNetwork(
-                ResourceLocation id,
+                Identifier id,
                 FriendlyByteBuf buf
         ) {
             String group = buf.readUtf();

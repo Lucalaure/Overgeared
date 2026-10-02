@@ -2,7 +2,7 @@ package net.stirdrem.overgeared.util;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -20,13 +20,13 @@ public class BrokenHelper {
 
     private static boolean isBlacklisted(ItemStack stack) {
         Item item = stack.getItem();
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
 
         for (String entry : ServerConfig.QUALITY_BREAK_BLACKLIST.get()) {
             if (entry.startsWith("#")) {
-                TagKey<Item> tag = TagKey.create(Registries.ITEM, ResourceLocation.tryParse(entry.substring(1)));
+                TagKey<Item> tag = TagKey.create(Registries.ITEM, Identifier.tryParse(entry.substring(1)));
                 if (stack.is(tag)) return true;
-            } else if (itemId != null && itemId.equals(ResourceLocation.tryParse(entry))) {
+            } else if (itemId != null && itemId.equals(Identifier.tryParse(entry))) {
                 return true;
             }
         }

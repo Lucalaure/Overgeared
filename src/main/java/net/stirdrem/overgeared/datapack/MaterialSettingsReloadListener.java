@@ -2,7 +2,7 @@ package net.stirdrem.overgeared.datapack;
 
 import com.google.gson.*;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -47,7 +47,7 @@ public class MaterialSettingsReloadListener extends SimpleJsonResourceReloadList
         }
     }
 
-    private static final Map<ResourceLocation, List<MaterialEntry>> DATA = new ConcurrentHashMap<>();
+    private static final Map<Identifier, List<MaterialEntry>> DATA = new ConcurrentHashMap<>();
     public static final MaterialSettingsReloadListener INSTANCE = new MaterialSettingsReloadListener();
     private static final Gson GSON = new Gson();
 
@@ -56,16 +56,16 @@ public class MaterialSettingsReloadListener extends SimpleJsonResourceReloadList
     }
 
     @Override
-    public ResourceLocation getFabricId() {
+    public Identifier getFabricId() {
         return Overgeared.id("material_settings_listener");
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> resources, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, JsonElement> resources, ResourceManager resourceManager, ProfilerFiller profiler) {
         DATA.clear();
 
-        for (Map.Entry<ResourceLocation, JsonElement> entry : resources.entrySet()) {
-            ResourceLocation id = entry.getKey();
+        for (Map.Entry<Identifier, JsonElement> entry : resources.entrySet()) {
+            Identifier id = entry.getKey();
             JsonElement jsonElement = entry.getValue();
 
             try {
@@ -116,7 +116,7 @@ public class MaterialSettingsReloadListener extends SimpleJsonResourceReloadList
         return entries;
     }
 
-    public static Map<ResourceLocation, List<MaterialEntry>> getData() {
+    public static Map<Identifier, List<MaterialEntry>> getData() {
         return Collections.unmodifiableMap(DATA);
     }
 

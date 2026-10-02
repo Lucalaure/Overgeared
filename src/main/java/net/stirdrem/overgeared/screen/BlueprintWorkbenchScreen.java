@@ -1,11 +1,11 @@
 package net.stirdrem.overgeared.screen;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.stirdrem.overgeared.Overgeared;
 import net.stirdrem.overgeared.client.ClientModMessages;
@@ -17,8 +17,8 @@ import net.stirdrem.overgeared.networking.packet.SelectToolTypeC2SPacket;
 import java.util.List;
 
 public class BlueprintWorkbenchScreen extends AbstractContainerScreen<BlueprintWorkbenchScreenHandler> {
-    private static final ResourceLocation TEXTURE =
-            new ResourceLocation(Overgeared.MOD_ID, "textures/gui/blueprint_workbench.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "textures/gui/blueprint_workbench.png");
 
     private final List<ToolType> toolTypes;
     private int selectedIndex = 0;

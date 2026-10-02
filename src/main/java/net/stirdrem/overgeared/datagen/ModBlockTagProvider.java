@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.fabricmc.fabric.api.mininglevel.v1.MiningLevelManager;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
@@ -82,7 +82,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
          */
         TagKey<Block> STEEL_STORAGE_BLOCKS = TagKey.create(
                 Registries.BLOCK,
-                new ResourceLocation(
+                Identifier.fromNamespaceAndPath(
                         "c",
                         "storage_blocks/steel"
                 )

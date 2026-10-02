@@ -3,7 +3,7 @@ package net.stirdrem.overgeared.recipe;
 import com.google.gson.JsonObject;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
@@ -15,11 +15,11 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.Level;
 
 public class CoolingRecipe implements Recipe<SimpleContainer> {
-    private final ResourceLocation id;
+    private final Identifier id;
     private final Ingredient input;
     private final ItemStack output;
 
-    public CoolingRecipe(ResourceLocation id, Ingredient input, ItemStack output) {
+    public CoolingRecipe(Identifier id, Ingredient input, ItemStack output) {
         this.id = id;
         this.input = input;
         this.output = output;
@@ -46,7 +46,7 @@ public class CoolingRecipe implements Recipe<SimpleContainer> {
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -75,14 +75,14 @@ public class CoolingRecipe implements Recipe<SimpleContainer> {
 
     public static class Serializer implements RecipeSerializer<CoolingRecipe> {
         @Override
-        public CoolingRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public CoolingRecipe fromJson(Identifier id, JsonObject json) {
             Ingredient input = Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "input"));
             ItemStack output = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "output"));
             return new CoolingRecipe(id, input, output);
         }
 
         @Override
-        public CoolingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buffer) {
+        public CoolingRecipe fromNetwork(Identifier id, FriendlyByteBuf buffer) {
             Ingredient input = Ingredient.fromNetwork(buffer);
             ItemStack output = buffer.readItem();
             return new CoolingRecipe(id, input, output);

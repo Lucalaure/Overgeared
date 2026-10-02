@@ -2,8 +2,8 @@ package net.stirdrem.overgeared.client;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.resources.Identifier;
 import net.stirdrem.overgeared.Overgeared;
 import net.stirdrem.overgeared.config.ClientConfig;
 
@@ -13,8 +13,8 @@ import net.stirdrem.overgeared.config.ClientConfig;
  */
 public class AnvilMinigameOverlay {
 
-    private static final ResourceLocation TEXTURE =
-            new ResourceLocation(Overgeared.MOD_ID, "textures/gui/smithing_anvil_minigame.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "textures/gui/smithing_anvil_minigame.png");
 
     private static final int ARROW_WIDTH = 8;
     private static final int ARROW_HEIGHT = 16;

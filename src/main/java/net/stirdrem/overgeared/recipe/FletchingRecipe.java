@@ -3,7 +3,7 @@ package net.stirdrem.overgeared.recipe;
 import com.google.gson.JsonObject;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -16,7 +16,7 @@ import net.minecraft.world.level.Level;
 import net.stirdrem.overgeared.Overgeared;
 
 public class FletchingRecipe implements Recipe<Container> {
-    private final ResourceLocation id;
+    private final Identifier id;
     private final Ingredient tip, shaft, feather, potion;
     private final ItemStack result;
     private final ItemStack resultTipped;
@@ -24,7 +24,7 @@ public class FletchingRecipe implements Recipe<Container> {
     private final String tippedTag;
     private final String lingeringTag;
 
-    public FletchingRecipe(ResourceLocation id, Ingredient tip, Ingredient shaft, Ingredient feather, Ingredient potion,
+    public FletchingRecipe(Identifier id, Ingredient tip, Ingredient shaft, Ingredient feather, Ingredient potion,
                             ItemStack result, ItemStack resultTipped, ItemStack resultLingering,
                             String tippedTag, String lingeringTag) {
         this.id = id;
@@ -95,7 +95,7 @@ public class FletchingRecipe implements Recipe<Container> {
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return id;
     }
 
@@ -132,10 +132,10 @@ public class FletchingRecipe implements Recipe<Container> {
 
     public static class Serializer implements RecipeSerializer<FletchingRecipe> {
         public static final Serializer INSTANCE = new Serializer();
-        public static final ResourceLocation ID = new ResourceLocation(Overgeared.MOD_ID, "fletching");
+        public static final Identifier ID = Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "fletching");
 
         @Override
-        public FletchingRecipe fromJson(ResourceLocation id, JsonObject json) {
+        public FletchingRecipe fromJson(Identifier id, JsonObject json) {
             JsonObject material = GsonHelper.getAsJsonObject(json, "material");
 
             // Allow tip, shaft, feather to be optional
@@ -177,7 +177,7 @@ public class FletchingRecipe implements Recipe<Container> {
         }
 
         @Override
-        public FletchingRecipe fromNetwork(ResourceLocation id, FriendlyByteBuf buffer) {
+        public FletchingRecipe fromNetwork(Identifier id, FriendlyByteBuf buffer) {
             // Read ingredients (can be EMPTY)
             Ingredient tip = Ingredient.fromNetwork(buffer);
             Ingredient shaft = Ingredient.fromNetwork(buffer);

@@ -2,10 +2,10 @@ package net.stirdrem.overgeared.datapack.quality_attribute;
 
 import java.util.List;
 import java.util.Map;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public record QualityAttributeDefinition(
-        ResourceLocation attribute,
+        Identifier attribute,
         List<QualityTarget> targets,
         Map<String, QualityValue> qualities
 ) {

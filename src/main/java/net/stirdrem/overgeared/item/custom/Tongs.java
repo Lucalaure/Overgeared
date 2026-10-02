@@ -5,32 +5,32 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.DiggerItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.stirdrem.overgeared.util.ModTags;
 
-import java.util.List;
+import java.util.function.Consumer;
 
-public class Tongs extends DiggerItem {
+/** Tool stats come from {@code Item.Properties#tool} (mines the overgeared:smithing block tag). */
+public class Tongs extends Item {
 
-    public Tongs(Tier material, int attackDamageModifier, float attackSpeedModifier, Properties settings) {
-        super(attackDamageModifier, attackSpeedModifier, material, ModTags.Blocks.SMITHING, settings);
+    public Tongs(Properties settings) {
+        super(settings);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag context) {
-        tooltip.add(Component.translatable("tooltip.overgeared.tongs.tooltip").withStyle(ChatFormatting.GRAY));
-        super.appendHoverText(stack, world, tooltip, context);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.overgeared.tongs.tooltip").withStyle(ChatFormatting.GRAY));
+        super.appendHoverText(stack, context, display, tooltip, flag);
     }
 
     @Override
     public boolean mineBlock(ItemStack stack, Level world, BlockState state, BlockPos pos, LivingEntity entity) {
-        if (state.getDestroySpeed(world, pos) != 0.0F) {
-            stack.hurtAndBreak(2, entity, e -> e.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+        if (!world.isClientSide() && state.getDestroySpeed(world, pos) != 0.0F) {
+            stack.hurtAndBreak(2, entity, EquipmentSlot.MAINHAND);
         }
         return true;
     }

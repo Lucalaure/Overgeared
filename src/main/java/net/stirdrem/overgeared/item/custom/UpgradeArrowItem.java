@@ -1,25 +1,22 @@
 package net.stirdrem.overgeared.item.custom;
 
-import com.google.common.collect.Lists;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.Level;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.entity.ArrowTier;
 import net.stirdrem.overgeared.entity.custom.UpgradeArrowEntity;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
+/**
+ * Iron/steel/diamond arrows. Potion effects live in the vanilla POTION_CONTENTS component; the
+ * potion tooltip comes from that component (scaled by POTION_DURATION_SCALE, set in ModItems).
+ */
 public class UpgradeArrowItem extends ArrowItem {
     private final ArrowTier tier;
 
@@ -29,97 +26,45 @@ public class UpgradeArrowItem extends ArrowItem {
     }
 
     @Override
-    public AbstractArrow createArrow(Level world, ItemStack stack, LivingEntity shooter) {
-        return new UpgradeArrowEntity(tier, world, shooter, stack);
+    public AbstractArrow createArrow(Level world, ItemStack stack, LivingEntity shooter, @Nullable ItemStack firedFromWeapon) {
+        return new UpgradeArrowEntity(tier, world, shooter, stack, firedFromWeapon);
     }
 
     public ArrowTier getTier() {
         return tier;
     }
 
-    @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag context) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null && (tag.contains("Potion") || tag.contains("CustomPotionEffects"))) {
-            PotionUtils.addPotionTooltip(stack, tooltip, 0.125F);
+    private String getNameKey(ItemStack stack) {
+        String tierName = switch (this.tier) {
+            case IRON -> "item.overgeared.iron_arrow";
+            case STEEL -> "item.overgeared.steel_arrow";
+            case DIAMOND -> "item.overgeared.diamond_arrow";
+            default -> "item.overgeared.arrow";
+        };
+        if (Boolean.TRUE.equals(stack.get(ModComponents.LINGERING_STATUS))) {
+            return tierName + ".lingering_named";
         }
-        if (tag != null && (tag.contains("LingeringPotion", Tag.TAG_STRING))) {
-            PotionUtils.addPotionTooltip(getMobEffects(stack), tooltip, 0.125F);
+        if (stack.has(DataComponents.POTION_CONTENTS)) {
+            return tierName + ".tipped_named";
         }
-    }
-
-    @Override
-    public String getDescriptionId(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null) {
-            String tierName = switch (this.tier) {
-                case IRON -> "item.overgeared.iron_arrow";
-                case STEEL -> "item.overgeared.steel_arrow";
-                case DIAMOND -> "item.overgeared.diamond_arrow";
-                default -> "item.overgeared.arrow";
-            };
-
-            if (tag.contains("LingeringPotion", Tag.TAG_BYTE) && tag.getBoolean("LingeringPotion")) {
-                return tierName + ".lingering_named";
-            } else if (tag.contains("LingeringPotion", Tag.TAG_STRING)) {
-                return tierName + ".lingering_named";
-            } else if (tag.contains("Potion", Tag.TAG_STRING) || tag.contains("CustomPotionEffects", Tag.TAG_LIST)) {
-                return tierName + ".tipped_named";
-            }
-        }
-
-        return super.getDescriptionId(stack);
-    }
-
-
-    public static List<MobEffectInstance> getMobEffects(ItemStack stack) {
-        return getAllEffects(stack.getTag());
-    }
-
-    public static Potion getPotion(@Nullable CompoundTag tag) {
-        if (tag == null) return Potions.EMPTY;
-
-        // Prioritize "LingeringPotion" if present
-        if (tag.contains("LingeringPotion", Tag.TAG_STRING)) {
-            return Potion.byName(tag.getString("LingeringPotion"));
-        }
-        if (tag.contains("LingeringPotion") && tag.getBoolean("LingeringPotion")) {
-            return Potion.byName(tag.getString("Potion"));
-        }
-        if (tag.contains("Potion", Tag.TAG_STRING)) {
-            return Potion.byName(tag.getString("Potion"));
-        }
-
-        return Potions.EMPTY;
-    }
-
-    public static List<MobEffectInstance> getAllEffects(@Nullable CompoundTag compound) {
-        List<MobEffectInstance> list = Lists.newArrayList();
-        list.addAll(getPotion(compound).getEffects());
-        PotionUtils.getCustomEffects(compound, list);
-        return list;
+        return getDescriptionId();
     }
 
     @Override
     public Component getName(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null && !tag.isEmpty()) {
-            Potion potion = getPotion(tag);
-            if (potion != Potions.EMPTY) {
-                String potionId = potion.getName("").replace("effect.minecraft.", "");
-
-                boolean isNoEffectPotion = potionId.equals("mundane") || potionId.equals("awkward") || potionId.equals("thick");
-
-                if (!isNoEffectPotion) {
-                    String effectKey = "item.overgeared.arrow.effect." + potionId;
-                    Component effectComponent = Component.translatable(effectKey);
-
-                    // Determine if it's a Lingering or regular tipped arrow
-                    return Component.translatable(getDescriptionId(stack), effectComponent);
-                }
-            }
-            return Component.translatable(getDescriptionId(stack) + ".no_effect");
+        PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
+        if (contents == null) {
+            return super.getName(stack);
         }
-        return Component.translatable(getDescriptionId(stack));
+
+        String nameKey = getNameKey(stack);
+        if (contents.potion().isPresent()) {
+            String potionId = contents.potion().get().value().name();
+            boolean isNoEffectPotion = potionId.equals("mundane") || potionId.equals("awkward") || potionId.equals("thick");
+            if (!isNoEffectPotion) {
+                return Component.translatable(nameKey, Component.translatable("item.overgeared.arrow.effect." + potionId));
+            }
+        }
+        return Component.translatable(nameKey + ".no_effect");
     }
 }

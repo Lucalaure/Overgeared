@@ -4,7 +4,7 @@ import com.google.gson.*;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.tags.TagKey;
@@ -37,12 +37,12 @@ public class QualityAttributeReloadListener extends SimpleJsonResourceReloadList
     private static final Set<Item> cachedItems = new HashSet<>();
 
     @Override
-    public ResourceLocation getFabricId() {
+    public Identifier getFabricId() {
         return Overgeared.id("quality_attributes_listener");
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> jsons,
+    protected void apply(Map<Identifier, JsonElement> jsons,
                           ResourceManager manager,
                           ProfilerFiller profiler) {
 
@@ -67,7 +67,7 @@ public class QualityAttributeReloadListener extends SimpleJsonResourceReloadList
     private static QualityAttributeDefinition parse(JsonObject json) {
 
         // ---- attribute ----
-        ResourceLocation attributeId = ResourceLocation.tryParse(
+        Identifier attributeId = Identifier.tryParse(
                 GsonHelper.getAsString(json, "attribute")
         );
 
@@ -81,8 +81,8 @@ public class QualityAttributeReloadListener extends SimpleJsonResourceReloadList
             QualityTarget.TargetType type = QualityTarget.TargetType
                     .valueOf(GsonHelper.getAsString(obj, "type").toUpperCase(Locale.ROOT));
 
-            ResourceLocation id = obj.has("id")
-                    ? ResourceLocation.tryParse(GsonHelper.getAsString(obj, "id"))
+            Identifier id = obj.has("id")
+                    ? Identifier.tryParse(GsonHelper.getAsString(obj, "id"))
                     : null;
 
             targets.add(new QualityTarget(type, id));

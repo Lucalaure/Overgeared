@@ -1,6 +1,6 @@
 package net.stirdrem.overgeared.screen;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.Container;
@@ -122,7 +122,7 @@ public class RockKnappingScreenHandler extends AbstractContainerMenu {
         }
     }
 
-    public ResourceLocation getUnchippedTexture() {
+    public Identifier getUnchippedTexture() {
         return KnappingResourceReloadListener.getTexture(inputRock);
     }
 

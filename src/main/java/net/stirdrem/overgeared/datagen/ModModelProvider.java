@@ -5,17 +5,17 @@ import com.google.gson.JsonObject;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.models.BlockModelGenerators;
-import net.minecraft.data.models.ItemModelGenerators;
-import net.minecraft.data.models.blockstates.MultiVariantGenerator;
-import net.minecraft.data.models.blockstates.PropertyDispatch;
-import net.minecraft.data.models.blockstates.Variant;
-import net.minecraft.data.models.blockstates.VariantProperties;
-import net.minecraft.data.models.model.ModelLocationUtils;
-import net.minecraft.data.models.model.ModelTemplates;
-import net.minecraft.data.models.model.TextureMapping;
-import net.minecraft.data.models.model.TextureSlot;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
+import net.minecraft.client.data.models.blockstates.PropertyDispatch;
+import net.minecraft.client.data.models.blockstates.Variant;
+import net.minecraft.client.data.models.blockstates.VariantProperties;
+import net.minecraft.client.data.models.model.ModelLocationUtils;
+import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.client.data.models.model.TextureMapping;
+import net.minecraft.client.data.models.model.TextureSlot;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -29,20 +29,20 @@ import java.util.Map;
 
 public class ModModelProvider extends FabricModelProviderPlus {
 
-    private static final LinkedHashMap<ResourceLocation, Float> TRIM_MATERIALS =
+    private static final LinkedHashMap<Identifier, Float> TRIM_MATERIALS =
             new LinkedHashMap<>();
 
     static {
-        TRIM_MATERIALS.put(new ResourceLocation("minecraft", "quartz"), 0.1F);
-        TRIM_MATERIALS.put(new ResourceLocation("minecraft", "iron"), 0.2F);
-        TRIM_MATERIALS.put(new ResourceLocation("minecraft", "netherite"), 0.3F);
-        TRIM_MATERIALS.put(new ResourceLocation("minecraft", "redstone"), 0.4F);
-        TRIM_MATERIALS.put(new ResourceLocation("minecraft", "copper"), 0.5F);
-        TRIM_MATERIALS.put(new ResourceLocation("minecraft", "gold"), 0.6F);
-        TRIM_MATERIALS.put(new ResourceLocation("minecraft", "emerald"), 0.7F);
-        TRIM_MATERIALS.put(new ResourceLocation("minecraft", "diamond"), 0.8F);
-        TRIM_MATERIALS.put(new ResourceLocation("minecraft", "lapis"), 0.9F);
-        TRIM_MATERIALS.put(new ResourceLocation("minecraft", "amethyst"), 1.0F);
+        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "quartz"), 0.1F);
+        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "iron"), 0.2F);
+        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "netherite"), 0.3F);
+        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "redstone"), 0.4F);
+        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "copper"), 0.5F);
+        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "gold"), 0.6F);
+        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "emerald"), 0.7F);
+        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "diamond"), 0.8F);
+        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "lapis"), 0.9F);
+        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "amethyst"), 1.0F);
     }
 
     public ModModelProvider(FabricDataOutput output) {
@@ -123,7 +123,7 @@ public class ModModelProvider extends FabricModelProviderPlus {
     private void horizontalBlock(
             BlockModelGenerators generator,
             Block block,
-            ResourceLocation model
+            Identifier model
     ) {
         generator.blockStateOutput.accept(
                 MultiVariantGenerator.multiVariant(block)
@@ -177,10 +177,10 @@ public class ModModelProvider extends FabricModelProviderPlus {
             String baseModelName,
             String litModelName
     ) {
-        ResourceLocation baseModel =
+        Identifier baseModel =
                 modLoc("block/" + baseModelName);
 
-        ResourceLocation litModel =
+        Identifier litModel =
                 modLoc("block/" + litModelName);
 
         generator.blockStateOutput.accept(
@@ -436,30 +436,30 @@ public class ModModelProvider extends FabricModelProviderPlus {
             ItemModelGenerators generators,
             ArmorItem armor
     ) {
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(armor);
-        ResourceLocation baseModelId = ModelLocationUtils.getModelLocation(armor);
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(armor);
+        Identifier baseModelId = ModelLocationUtils.getModelLocation(armor);
 
-        ResourceLocation baseTexture = TextureMapping.getItemTexture(armor);
+        Identifier baseTexture = TextureMapping.getItemTexture(armor);
 
-        ResourceLocation skirtOverlay = ResourceLocation.tryBuild(
+        Identifier skirtOverlay = Identifier.tryBuild(
                 Overgeared.MOD_ID,
                 "item/" + itemId.getPath() + "_overlay"
         );
 
         JsonArray overrides = new JsonArray();
 
-        for (Map.Entry<ResourceLocation, Float> entry : TRIM_MATERIALS.entrySet()) {
-            ResourceLocation trimMaterial = entry.getKey();
+        for (Map.Entry<Identifier, Float> entry : TRIM_MATERIALS.entrySet()) {
+            Identifier trimMaterial = entry.getKey();
             float trimValue = entry.getValue();
 
             String trimName = trimMaterial.getPath();
 
-            ResourceLocation trimModelId =
+            Identifier trimModelId =
                     baseModelId.withSuffix(
                             "_" + trimName + "_trim"
                     );
 
-            ResourceLocation trimTexture = new ResourceLocation(
+            Identifier trimTexture = Identifier.fromNamespaceAndPath(
                     "minecraft",
                     "trims/items/"
                             + getArmorType(armor)
@@ -533,36 +533,36 @@ public class ModModelProvider extends FabricModelProviderPlus {
             ItemModelGenerators generator,
             Item item
     ) {
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
         String baseName = itemId.getPath();
 
-        ResourceLocation baseTexture = modLoc(
+        Identifier baseTexture = modLoc(
                 "item/" + baseName
         );
 
-        ResourceLocation tippedHead = modLoc(
+        Identifier tippedHead = modLoc(
                 "item/tipped_" + baseName + "_head"
         );
 
-        ResourceLocation tippedBase = modLoc(
+        Identifier tippedBase = modLoc(
                 "item/tipped_" + baseName + "_base"
         );
 
-        ResourceLocation lingeringHead = modLoc(
+        Identifier lingeringHead = modLoc(
                 "item/lingering_" + baseName + "_head"
         );
 
-        ResourceLocation lingeringBase = modLoc(
+        Identifier lingeringBase = modLoc(
                 "item/lingering_" + baseName + "_base"
         );
 
-        ResourceLocation baseModel = ModelLocationUtils.getModelLocation(item);
+        Identifier baseModel = ModelLocationUtils.getModelLocation(item);
 
-        ResourceLocation tippedModel = modLoc(
+        Identifier tippedModel = modLoc(
                 "item/" + baseName + "_tipped"
         );
 
-        ResourceLocation lingeringModel = modLoc(
+        Identifier lingeringModel = modLoc(
                 "item/" + baseName + "_lingering"
         );
 
@@ -664,8 +664,8 @@ public class ModModelProvider extends FabricModelProviderPlus {
                 .getPath();
     }
 
-    private ResourceLocation modLoc(String path) {
-        return new ResourceLocation(
+    private Identifier modLoc(String path) {
+        return Identifier.fromNamespaceAndPath(
                 Overgeared.MOD_ID,
                 path
         );

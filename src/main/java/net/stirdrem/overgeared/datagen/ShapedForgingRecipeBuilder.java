@@ -7,11 +7,11 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.advancements.RequirementsStrategy;
-import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.advancements.triggers.RecipeUnlockedTrigger;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.CraftingRecipeBuilder;
 import net.minecraft.data.recipes.FinishedRecipe;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.DiggerItem;
@@ -323,7 +323,7 @@ public class ShapedForgingRecipeBuilder extends CraftingRecipeBuilder {
 
     public void offerTo(
             Consumer<FinishedRecipe> exporter,
-            ResourceLocation recipeId
+            Identifier recipeId
     ) {
         validate(recipeId);
 
@@ -398,7 +398,7 @@ public class ShapedForgingRecipeBuilder extends CraftingRecipeBuilder {
         );
     }
 
-    private void validate(ResourceLocation recipeId) {
+    private void validate(Identifier recipeId) {
         if (rows.isEmpty()) {
             throw new IllegalStateException(
                     "No pattern is defined for shaped forging recipe "
@@ -419,7 +419,7 @@ public class ShapedForgingRecipeBuilder extends CraftingRecipeBuilder {
 
     static class Result implements FinishedRecipe {
 
-        private final ResourceLocation id;
+        private final Identifier id;
         private final int hammering;
         private final ItemStack result;
         private final ItemStack failedResult;
@@ -428,7 +428,7 @@ public class ShapedForgingRecipeBuilder extends CraftingRecipeBuilder {
         private final Map<Character, Ingredient> key;
 
         private final Advancement.Builder advancement;
-        private final ResourceLocation advancementId;
+        private final Identifier advancementId;
 
         private final boolean showNotification;
         private final String group;
@@ -448,7 +448,7 @@ public class ShapedForgingRecipeBuilder extends CraftingRecipeBuilder {
         private final Boolean needQuenching;
 
         public Result(
-                ResourceLocation id,
+                Identifier id,
                 int hammering,
                 ItemStack result,
                 ItemStack failedResult,
@@ -457,7 +457,7 @@ public class ShapedForgingRecipeBuilder extends CraftingRecipeBuilder {
                 List<String> pattern,
                 Map<Character, Ingredient> key,
                 Advancement.Builder advancement,
-                ResourceLocation advancementId,
+                Identifier advancementId,
                 boolean showNotification,
                 List<String> blueprintTypes,
                 Boolean requiresBlueprint,
@@ -640,7 +640,7 @@ public class ShapedForgingRecipeBuilder extends CraftingRecipeBuilder {
         }
 
         @Override
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return id;
         }
 
@@ -657,7 +657,7 @@ public class ShapedForgingRecipeBuilder extends CraftingRecipeBuilder {
 
         @Nullable
         @Override
-        public ResourceLocation getAdvancementId() {
+        public Identifier getAdvancementId() {
             return advancementId;
         }
     }

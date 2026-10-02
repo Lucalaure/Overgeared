@@ -7,7 +7,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -25,7 +25,7 @@ public class OvergearedShapelessRecipe extends ShapelessRecipe {
 
     private final NonNullList<IngredientWithRemainder> ingredientsWithRemainder;
 
-    public OvergearedShapelessRecipe(ResourceLocation id, String group, CraftingBookCategory category,
+    public OvergearedShapelessRecipe(Identifier id, String group, CraftingBookCategory category,
                                       ItemStack result, NonNullList<IngredientWithRemainder> ingredientsWithRemainder) {
         super(id, group, category, result, convertToBaseIngredients(ingredientsWithRemainder));
         this.ingredientsWithRemainder = ingredientsWithRemainder;
@@ -241,7 +241,7 @@ public class OvergearedShapelessRecipe extends ShapelessRecipe {
         public static final net.stirdrem.overgeared.recipe.OvergearedShapelessRecipe.Serializer INSTANCE = new net.stirdrem.overgeared.recipe.OvergearedShapelessRecipe.Serializer();
 
         @Override
-        public OvergearedShapelessRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
+        public OvergearedShapelessRecipe fromJson(Identifier recipeId, JsonObject json) {
             String group = json.has("group") ? json.get("group").getAsString() : "";
             CraftingBookCategory category = CraftingBookCategory.CODEC.byName(
                     GsonHelper.getAsString(json, "category", "misc"), CraftingBookCategory.MISC);
@@ -270,7 +270,7 @@ public class OvergearedShapelessRecipe extends ShapelessRecipe {
         }
 
         @Override
-        public OvergearedShapelessRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
+        public OvergearedShapelessRecipe fromNetwork(Identifier recipeId, FriendlyByteBuf buffer) {
             String group = buffer.readUtf();
             CraftingBookCategory category = buffer.readEnum(CraftingBookCategory.class);
             ItemStack result = buffer.readItem();

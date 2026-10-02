@@ -1,51 +1,17 @@
 package net.stirdrem.overgeared.item;
 
-import java.util.function.Supplier;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.item.ToolMaterial;
+import net.stirdrem.overgeared.util.ModTags;
 
 public class ModToolTiers {
-    // Forge's ForgeTier/TierSortingRegistry has no Fabric equivalent; ordering between
-    // vanilla tiers only matters for the mineable/needs_*_tool tags (see ModTags.Blocks),
-    // which already encode the same steel≈iron, copper≈stone placement.
-    public static final Tier STEEL = new SimpleToolMaterial(
-            3, 500, 7.0F, 3.0F, 12, () -> Ingredient.of(ModItems.STEEL_INGOT));
+    // Mines like iron (steel ≈ iron in the mineable/needs_*_tool tags, see ModTags.Blocks).
+    public static final ToolMaterial STEEL = new ToolMaterial(
+            BlockTags.INCORRECT_FOR_IRON_TOOL, 500, 7.0F, 3.0F, 12, ModTags.Items.STEEL_TOOL_MATERIALS);
 
-    public static final Tier COPPER = new SimpleToolMaterial(
-            2, 190, 5.0F, 1.0F, 12, () -> Ingredient.of(Items.COPPER_INGOT));
-
-    private record SimpleToolMaterial(int miningLevel, int durability, float miningSpeed, float attackDamage,
-                                      int enchantability,
-                                      Supplier<Ingredient> repairIngredient) implements Tier {
-        @Override
-        public int getUses() {
-            return durability;
-        }
-
-        @Override
-        public float getSpeed() {
-            return miningSpeed;
-        }
-
-        @Override
-        public float getAttackDamageBonus() {
-            return attackDamage;
-        }
-
-        @Override
-        public int getLevel() {
-            return miningLevel;
-        }
-
-        @Override
-        public int getEnchantmentValue() {
-            return enchantability;
-        }
-
-        @Override
-        public Ingredient getRepairIngredient() {
-            return repairIngredient.get();
-        }
-    }
+    // Vanilla gained its own copper tier in 26.x; this keeps Overgeared's original stats
+    // (enchantability 12 vs vanilla's 13) but shares vanilla's copper mining/repair tags.
+    public static final ToolMaterial COPPER = new ToolMaterial(
+            BlockTags.INCORRECT_FOR_COPPER_TOOL, 190, 5.0F, 1.0F, 12,
+            net.minecraft.tags.ItemTags.COPPER_TOOL_MATERIALS);
 }

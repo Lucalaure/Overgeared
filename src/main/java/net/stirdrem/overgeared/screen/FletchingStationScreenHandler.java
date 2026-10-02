@@ -408,7 +408,7 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
         if (tag == null) return Potions.EMPTY;
 
         if (tag.contains("Potion", 8)) {
-            return BuiltInRegistries.POTION.get(net.minecraft.resources.ResourceLocation.tryParse(tag.getString("Potion")));
+            return BuiltInRegistries.POTION.get(net.minecraft.resources.Identifier.tryParse(tag.getString("Potion")));
         }
 
         return Potions.EMPTY;

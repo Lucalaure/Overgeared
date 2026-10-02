@@ -4,8 +4,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.DeserializationContext;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.GsonHelper;
 import net.stirdrem.overgeared.Overgeared;
@@ -15,10 +15,10 @@ import org.jetbrains.annotations.Nullable;
 public class BlueprintQualityTrigger
         extends SimpleCriterionTrigger<BlueprintQualityTrigger.Conditions> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Overgeared.MOD_ID, "blueprint_quality");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "blueprint_quality");
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return ID;
     }
 

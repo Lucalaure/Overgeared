@@ -1,7 +1,7 @@
 package net.stirdrem.overgeared.recipe;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -12,7 +12,7 @@ import net.stirdrem.overgeared.BlueprintQuality;
 import net.stirdrem.overgeared.item.ModItems;
 
 public class BlueprintCloningRecipe extends CustomRecipe {
-    public BlueprintCloningRecipe(ResourceLocation id, CraftingBookCategory category) {
+    public BlueprintCloningRecipe(Identifier id, CraftingBookCategory category) {
         super(id, category);
     }
 

@@ -3,7 +3,7 @@ package net.stirdrem.overgeared.recipe;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -24,7 +24,7 @@ public class ClayToolCastRecipe extends CustomRecipe {
     // store the world between matches() and craft()
     private Level lastWorld = null;
 
-    public ClayToolCastRecipe(ResourceLocation id, CraftingBookCategory category) {
+    public ClayToolCastRecipe(Identifier id, CraftingBookCategory category) {
         super(id, category);
     }
 

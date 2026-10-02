@@ -7,7 +7,7 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SmithingTransformRecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
@@ -475,7 +475,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .pattern(" #")
                 .input('#', ModItems.HEATED_IRON_INGOT)
                 .criterion(getHasName(Items.IRON_INGOT), has(Items.IRON_INGOT))
-                .offerTo(exporter, new ResourceLocation(Overgeared.MOD_ID, "iron_axe_head_2"));
+                .offerTo(exporter, Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "iron_axe_head_2"));
 
         // Copper Tools
 
@@ -538,7 +538,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .pattern(" #")
                 .input('#', ModItems.HEATED_COPPER_INGOT)
                 .criterion(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
-                .offerTo(exporter, new ResourceLocation(Overgeared.MOD_ID, "copper_axe_head_2"));
+                .offerTo(exporter, Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "copper_axe_head_2"));
 
 
         // Steel Tools
@@ -600,7 +600,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .input('#', ModItems.HEATED_STEEL_INGOT)
                 .criterion("has_steel_ingot",
                         has(ModItems.STEEL_INGOT))
-                .offerTo(exporter, new ResourceLocation(Overgeared.MOD_ID, "steel_axe_head_2"));
+                .offerTo(exporter, Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "steel_axe_head_2"));
 
         // Gold Tools
         ShapedForgingRecipeBuilder.create(ForgingBookCategory.TOOL_HEADS, ModItems.GOLDEN_PICKAXE_HEAD, 3)
@@ -658,7 +658,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                 .pattern(" #")
                 .input('#', Items.GOLD_INGOT)
                 .criterion(getHasName(Items.GOLD_INGOT), has(Items.GOLD_INGOT))
-                .offerTo(exporter, new ResourceLocation(Overgeared.MOD_ID, "golden_axe_head_2"));
+                .offerTo(exporter, Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "golden_axe_head_2"));
 
         ShapedForgingRecipeBuilder.create(ForgingBookCategory.TOOL_HEADS, ModItems.IRON_TONG, 2)
                 .tier(AnvilTier.STONE)
@@ -942,7 +942,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         RecipeCategory.COMBAT,
                         Items.DIAMOND_AXE)
                 .unlocks("has_diamond", has(Items.DIAMOND))
-                .save(exporter, ResourceLocation.tryBuild("minecraft", "diamond_axe"));
+                .save(exporter, Identifier.tryBuild("minecraft", "diamond_axe"));
 
         // Steel Pickaxe to Diamond Pickaxe
         SmithingTransformRecipeBuilder.smithing(
@@ -952,7 +952,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         RecipeCategory.TOOLS,
                         Items.DIAMOND_PICKAXE)
                 .unlocks("has_diamond", has(Items.DIAMOND))
-                .save(exporter, ResourceLocation.tryBuild("minecraft", "diamond_pickaxe"));
+                .save(exporter, Identifier.tryBuild("minecraft", "diamond_pickaxe"));
 
         // Steel Shovel to Diamond Shovel
         SmithingTransformRecipeBuilder.smithing(
@@ -961,7 +961,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         Ingredient.of(Items.DIAMOND),
                         RecipeCategory.TOOLS,
                         Items.DIAMOND_SHOVEL).unlocks("has_diamond", has(Items.DIAMOND))
-                .save(exporter, ResourceLocation.tryBuild("minecraft", "diamond_shovel"));
+                .save(exporter, Identifier.tryBuild("minecraft", "diamond_shovel"));
 
         // Steel Hoe to Diamond Hoe
         SmithingTransformRecipeBuilder.smithing(
@@ -970,7 +970,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         Ingredient.of(Items.DIAMOND),
                         RecipeCategory.TOOLS,
                         Items.DIAMOND_HOE).unlocks("has_diamond", has(Items.DIAMOND))
-                .save(exporter, ResourceLocation.tryBuild("minecraft", "diamond_hoe"));
+                .save(exporter, Identifier.tryBuild("minecraft", "diamond_hoe"));
 
         // Steel Sword to Diamond Sword
         SmithingTransformRecipeBuilder.smithing(
@@ -979,7 +979,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         Ingredient.of(Items.DIAMOND),
                         RecipeCategory.COMBAT,
                         Items.DIAMOND_SWORD).unlocks("has_diamond", has(Items.DIAMOND))
-                .save(exporter, ResourceLocation.tryBuild("minecraft", "diamond_sword"));
+                .save(exporter, Identifier.tryBuild("minecraft", "diamond_sword"));
 
         // Steel Helmet to Diamond Helmet
         SmithingTransformRecipeBuilder.smithing(
@@ -988,7 +988,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         Ingredient.of(Items.DIAMOND),
                         RecipeCategory.COMBAT,
                         Items.DIAMOND_HELMET).unlocks("has_diamond", has(Items.DIAMOND))
-                .save(exporter, ResourceLocation.tryBuild("minecraft", "diamond_helmet"));
+                .save(exporter, Identifier.tryBuild("minecraft", "diamond_helmet"));
 
         // Steel Chestplate to Diamond Chestplate
         SmithingTransformRecipeBuilder.smithing(
@@ -997,7 +997,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         Ingredient.of(Items.DIAMOND),
                         RecipeCategory.COMBAT,
                         Items.DIAMOND_CHESTPLATE).unlocks("has_diamond", has(Items.DIAMOND))
-                .save(exporter, ResourceLocation.tryBuild("minecraft", "diamond_chestplate"));
+                .save(exporter, Identifier.tryBuild("minecraft", "diamond_chestplate"));
 
         // Steel Leggings to Diamond Leggings
         SmithingTransformRecipeBuilder.smithing(
@@ -1006,7 +1006,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         Ingredient.of(Items.DIAMOND),
                         RecipeCategory.COMBAT,
                         Items.DIAMOND_LEGGINGS).unlocks("has_diamond", has(Items.DIAMOND))
-                .save(exporter, ResourceLocation.tryBuild("minecraft", "diamond_leggings"));
+                .save(exporter, Identifier.tryBuild("minecraft", "diamond_leggings"));
 
         // Steel Boots to Diamond Boots
         SmithingTransformRecipeBuilder.smithing(
@@ -1015,7 +1015,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         Ingredient.of(Items.DIAMOND),
                         RecipeCategory.COMBAT,
                         Items.DIAMOND_BOOTS).unlocks("has_diamond", has(Items.DIAMOND))
-                .save(exporter, ResourceLocation.tryBuild("minecraft", "diamond_boots"));
+                .save(exporter, Identifier.tryBuild("minecraft", "diamond_boots"));
 
         /*
          * FletchingRecipeBuilder.fletching(
@@ -1460,8 +1460,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
 
     }
 
-    private ResourceLocation rl(String path) {
-        return new ResourceLocation(Overgeared.MOD_ID, path);
+    private Identifier rl(String path) {
+        return Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, path);
     }
 
 }

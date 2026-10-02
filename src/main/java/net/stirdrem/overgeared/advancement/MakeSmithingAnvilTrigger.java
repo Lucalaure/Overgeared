@@ -4,8 +4,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.DeserializationContext;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.stirdrem.overgeared.Overgeared;
 
@@ -14,10 +14,10 @@ import org.jetbrains.annotations.Nullable;
 public class MakeSmithingAnvilTrigger
         extends SimpleCriterionTrigger<MakeSmithingAnvilTrigger.Conditions> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Overgeared.MOD_ID, "make_smithing_anvil");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "make_smithing_anvil");
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return ID;
     }
 

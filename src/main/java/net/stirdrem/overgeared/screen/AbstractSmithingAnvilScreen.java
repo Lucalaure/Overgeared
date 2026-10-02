@@ -1,10 +1,10 @@
 package net.stirdrem.overgeared.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.stirdrem.overgeared.Overgeared;
@@ -15,7 +15,7 @@ import net.stirdrem.overgeared.Overgeared;
  * since it's tied to Forge's StackedContents/SlotItemHandler system this port doesn't have.
  */
 public abstract class AbstractSmithingAnvilScreen<T extends AbstractSmithingAnvilScreenHandler> extends AbstractContainerScreen<T> {
-    protected ResourceLocation TEXTURE;
+    protected Identifier TEXTURE;
 
     public AbstractSmithingAnvilScreen(T handler, Inventory playerInv, Component title, boolean enableBlueprintSlot) {
         super(handler, playerInv, title);
@@ -24,8 +24,8 @@ public abstract class AbstractSmithingAnvilScreen<T extends AbstractSmithingAnvi
         this.inventoryLabelY = this.imageHeight - 94;
         this.titleLabelX = 28;
         TEXTURE = enableBlueprintSlot
-                ? new ResourceLocation(Overgeared.MOD_ID, "textures/gui/smithing_anvil.png")
-                : new ResourceLocation(Overgeared.MOD_ID, "textures/gui/stone_smithing_anvil.png");
+                ? Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "textures/gui/smithing_anvil.png")
+                : Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "textures/gui/stone_smithing_anvil.png");
     }
 
     @Override

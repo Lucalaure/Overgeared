@@ -6,7 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class BlueprintTooltypesReloadListener extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
 
-    public static final Map<ResourceLocation, BlueprintTooltypesData> DATA = new ConcurrentHashMap<>();
+    public static final Map<Identifier, BlueprintTooltypesData> DATA = new ConcurrentHashMap<>();
 
     private static final Gson GSON = new Gson();
 
@@ -27,22 +27,22 @@ public class BlueprintTooltypesReloadListener extends SimpleJsonResourceReloadLi
     }
 
     @Override
-    public ResourceLocation getFabricId() {
+    public Identifier getFabricId() {
         return Overgeared.id("blueprint_tooltypes_listener");
     }
 
     @Override
     protected void apply(
-            Map<ResourceLocation, JsonElement> objects,
+            Map<Identifier, JsonElement> objects,
             ResourceManager resourceManager,
             ProfilerFiller profiler
     ) {
         DATA.clear();
 
-        Map<ResourceLocation, BlueprintTooltypesData> tempMap = new HashMap<>();
+        Map<Identifier, BlueprintTooltypesData> tempMap = new HashMap<>();
 
-        for (Map.Entry<ResourceLocation, JsonElement> entry : objects.entrySet()) {
-            ResourceLocation id = entry.getKey();
+        for (Map.Entry<Identifier, JsonElement> entry : objects.entrySet()) {
+            Identifier id = entry.getKey();
             JsonObject json = entry.getValue().getAsJsonObject();
 
             try {
@@ -83,15 +83,15 @@ public class BlueprintTooltypesReloadListener extends SimpleJsonResourceReloadLi
     }
 
     public static class BlueprintTooltypesData {
-        private final ResourceLocation id;
+        private final Identifier id;
         private final List<String> toolTypes;
 
-        public BlueprintTooltypesData(ResourceLocation id, List<String> toolTypes) {
+        public BlueprintTooltypesData(Identifier id, List<String> toolTypes) {
             this.id = id;
             this.toolTypes = toolTypes;
         }
 
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return id;
         }
 

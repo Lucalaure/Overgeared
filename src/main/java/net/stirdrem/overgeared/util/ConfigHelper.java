@@ -2,7 +2,7 @@ package net.stirdrem.overgeared.util;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -202,14 +202,14 @@ public class ConfigHelper {
     private static boolean matchesItemOrTag(Item item, String key) {
 
         // Direct item match
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
         if (itemId != null && itemId.toString().equals(key)) {
             return true;
         }
 
         // Tag match
         if (key.startsWith("#")) {
-            ResourceLocation tagId = new ResourceLocation(key.substring(1));
+            Identifier tagId = Identifier.parse(key.substring(1));
 
             // ---- Item tag check ----
             TagKey<Item> itemTag = TagKey.create(Registries.ITEM, tagId);
@@ -297,7 +297,7 @@ public class ConfigHelper {
 
         // Tag
         if (key.startsWith("#")) {
-            ResourceLocation tagId = new ResourceLocation(key.substring(1));
+            Identifier tagId = Identifier.parse(key.substring(1));
 
             // ---- Item tag ----
             TagKey<Item> itemTag = TagKey.create(Registries.ITEM, tagId);
@@ -320,7 +320,7 @@ public class ConfigHelper {
         }
 
         // Direct item
-        Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(key));
+        Item item = BuiltInRegistries.ITEM.get(Identifier.parse(key));
         if (item != net.minecraft.world.item.Items.AIR) {
             out.add(item);
         }
