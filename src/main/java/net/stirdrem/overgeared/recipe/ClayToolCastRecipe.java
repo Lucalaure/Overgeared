@@ -130,7 +130,7 @@ public class ClayToolCastRecipe extends CustomRecipe {
         return ModRecipes.CLAY_TOOL_CAST;
     }
 
-    public static final MapCodec<ClayToolCastRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClayToolCastRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+    public static final MapCodec<ClayToolCastRecipe> MAP_CODEC = MapCodec.unit(ClayToolCastRecipe::new); // new instance per recipe: 26.3 recipes are registry values and must be distinct
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClayToolCastRecipe> STREAM_CODEC = StreamCodec.of((buf, recipe) -> { }, buf -> new ClayToolCastRecipe());
     public static final RecipeSerializer<ClayToolCastRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 }

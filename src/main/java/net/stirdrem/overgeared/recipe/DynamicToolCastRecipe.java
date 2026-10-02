@@ -103,7 +103,7 @@ public class DynamicToolCastRecipe extends CustomRecipe {
         return ModRecipes.CRAFTING_DYNAMIC_TOOL_CAST;
     }
 
-    public static final MapCodec<DynamicToolCastRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
-    public static final StreamCodec<RegistryFriendlyByteBuf, DynamicToolCastRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+    public static final MapCodec<DynamicToolCastRecipe> MAP_CODEC = MapCodec.unit(DynamicToolCastRecipe::new); // new instance per recipe: 26.3 recipes are registry values and must be distinct
+    public static final StreamCodec<RegistryFriendlyByteBuf, DynamicToolCastRecipe> STREAM_CODEC = StreamCodec.of((buf, recipe) -> { }, buf -> new DynamicToolCastRecipe());
     public static final RecipeSerializer<DynamicToolCastRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 }

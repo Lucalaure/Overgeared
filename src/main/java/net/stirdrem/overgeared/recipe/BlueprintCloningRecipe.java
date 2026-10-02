@@ -80,7 +80,7 @@ public class BlueprintCloningRecipe extends CustomRecipe {
         return ModRecipes.CRAFTING_BLUEPRINTCLONING;
     }
 
-    public static final MapCodec<BlueprintCloningRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
-    public static final StreamCodec<RegistryFriendlyByteBuf, BlueprintCloningRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+    public static final MapCodec<BlueprintCloningRecipe> MAP_CODEC = MapCodec.unit(BlueprintCloningRecipe::new); // new instance per recipe: 26.3 recipes are registry values and must be distinct
+    public static final StreamCodec<RegistryFriendlyByteBuf, BlueprintCloningRecipe> STREAM_CODEC = StreamCodec.of((buf, recipe) -> { }, buf -> new BlueprintCloningRecipe());
     public static final RecipeSerializer<BlueprintCloningRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 }

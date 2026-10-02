@@ -158,7 +158,7 @@ Field names of every mod recipe type are unchanged unless noted below.
 - `overgeared:crafting_initial_cast` - `ClayToolCastRecipe` (tool in centre, 4 clay / nether bricks N/E/S/W ->
   unfired / nether tool cast with CAST_DATA tool type, downgraded quality, max amount). Indexes are those of the
   trimmed `CraftingInput`; the pattern fills the whole 3x3 box so slot 4 is the centre.
-- These three are `CustomRecipe` singletons (`INSTANCE`, `MapCodec.unit`); extra JSON fields such as `category`
+- These three are stateless `CustomRecipe`s whose codecs build a fresh instance per JSON file (26.3 recipes are registry values, so a shared singleton crashes with "Adding duplicate value"); extra JSON fields such as `category`
   are ignored.
 
 ## Datagen
