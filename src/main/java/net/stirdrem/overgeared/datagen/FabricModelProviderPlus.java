@@ -1,561 +1,86 @@
 package net.stirdrem.overgeared.datagen;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.model.ItemModelUtils;
+import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.properties.select.TrimMaterialProperty;
+import net.minecraft.client.renderer.item.SelectItemModel;
+import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
-import java.util.*;
+import net.minecraft.world.item.equipment.trim.TrimMaterial;
 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Small helper layer over Fabric's {@link FabricModelProvider} for 26.3 item model definitions.
+ *
+ * <p>26.3 port: the old JSON "overrides"/predicate helpers are gone (item model overrides no longer
+ * exist - variants are selected by the item model definition under assets/&lt;ns&gt;/items/).
+ * The equivalent here is building {@link ItemModel.Unbaked} trees with {@link ItemModelUtils}.
+ */
 public abstract class FabricModelProviderPlus extends FabricModelProvider {
 
-    public FabricModelProviderPlus(FabricDataOutput output) {
+    public FabricModelProviderPlus(FabricPackOutput output) {
         super(output);
     }
 
-    // =========================================================================
-    // ITEM WITH CONDITIONS
-    // =========================================================================
-
-    protected void registerItemWConditions(
-            Item item,
-            ModelTemplate model,
-            ItemModelGenerators itemModelGenerator,
-            OverrideCondition... conditions) {
-
-        registerItemWConditions(
-                item,
-                model,
-                itemModelGenerator,
-                true,
-                conditions
-        );
+    protected static Identifier itemId(Item item) {
+        return BuiltInRegistries.ITEM.getKey(item);
     }
 
-    protected void registerItemWConditions(
-            Item item,
-            ModelTemplate model,
-            ItemModelGenerators itemModelGenerator,
-            boolean joinConditions,
-            OverrideCondition... conditions) {
-
-        Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
-
-        String namespace = itemId.getNamespace();
-        String path = itemId.getPath();
-
-        Set<String> generatedModels = new HashSet<>();
-        JsonArray overrides = new JsonArray();
-
-        // ---------------------------------------------------------------------
-        // Generate individual condition models
-        // ---------------------------------------------------------------------
-
-        for (OverrideCondition condition : conditions) {
-
-            String modelName = condition.getModelName(path);
-
-            generateOverrideModel(
-                    item,
-                    ModelTemplates.FLAT_ITEM,
-                    modelName,
-                    itemModelGenerator
-            );
-
-            generatedModels.add(modelName);
-
-            addOverride(
-                    overrides,
-                    namespace,
-                    condition.predicateKey(),
-                    condition.predicateValue(),
-                    modelName
-            );
-        }
-
-        // ---------------------------------------------------------------------
-        // Generate combined conditions
-        // ---------------------------------------------------------------------
-
-        if (joinConditions && conditions.length > 1) {
-
-            List<List<OverrideCondition>> allCombinations =
-                    generateAllCombinations(conditions);
-
-            for (List<OverrideCondition> combination : allCombinations) {
-
-                if (combination.size() <= 1) {
-                    continue;
-                }
-
-                JsonObject combinedPredicate = new JsonObject();
-                List<String> modelNames = new ArrayList<>();
-
-                for (OverrideCondition condition : combination) {
-
-                    combinedPredicate.addProperty(
-                            condition.predicateKey().toString(),
-                            condition.predicateValue()
-                    );
-
-                    modelNames.add(
-                            condition.getModelName(path)
-                    );
-                }
-
-                String combinedModelName =
-                        combineMultipleModelNames(modelNames);
-
-                if (!generatedModels.contains(combinedModelName)) {
-
-                    generateOverrideModel(
-                            item,
-                            ModelTemplates.FLAT_ITEM,
-                            combinedModelName,
-                            itemModelGenerator
-                    );
-
-                    generatedModels.add(combinedModelName);
-                }
-
-                addOverride(
-                        overrides,
-                        namespace,
-                        combinedPredicate,
-                        combinedModelName
-                );
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Main model
-        // ---------------------------------------------------------------------
-
-        Identifier modelId =
-                Identifier.fromNamespaceAndPath(
-                        namespace,
-                        "item/" + path
-                );
-
-        /*
-         * Normal item:
-         *
-         * layer0 = item/<path>
-         *
-         * Dyeable leather:
-         *
-         * layer0 = item/<path>
-         * layer1 = item/<path>_overlay
-         */
-
-        TextureMapping textures;
-
-        if (item instanceof DyeableLeatherItem) {
-
-            textures = TextureMapping.layered(
-                    Identifier.fromNamespaceAndPath(
-                            namespace,
-                            "item/" + path
-                    ),
-                    Identifier.fromNamespaceAndPath(
-                            namespace,
-                            "item/" + path + "_overlay"
-                    )
-            );
-
-        } else {
-
-            textures = TextureMapping.layer0(
-                    Identifier.fromNamespaceAndPath(
-                            namespace,
-                            "item/" + path
-                    )
-            );
-        }
-
-        /*
-         * Model.upload() is the Yarn 1.20.1 equivalent of the low-level
-         * model creation used here.
-         */
-        model.create(
-                modelId,
-                textures,
-                itemModelGenerator.output,
-                (id, textureMap) -> {
-
-                    JsonObject json =
-                            model.createBaseTemplate(id, textureMap);
-
-                    json.add(
-                            "overrides",
-                            overrides
-                    );
-
-                    return json;
-                }
-        );
+    /** Creates {@code <ns>:item/<modelName>} with layer0 = {@code <ns>:item/<texture>} and returns its id. */
+    protected static Identifier flatModel(ItemModelGenerators generator, Identifier modelId, Identifier texture, ModelTemplate template) {
+        return template.create(modelId, TextureMapping.layer0(new Material(texture)), generator.modelOutput);
     }
 
-    // =========================================================================
-    // ALL COMBINATIONS
-    // =========================================================================
-
-    private List<List<OverrideCondition>> generateAllCombinations(
-            OverrideCondition[] conditions) {
-
-        List<List<OverrideCondition>> allCombinations =
-                new ArrayList<>();
-
-        int n = conditions.length;
-
-        for (int i = 1; i < (1 << n); i++) {
-
-            List<OverrideCondition> combination =
-                    new ArrayList<>();
-
-            for (int j = 0; j < n; j++) {
-
-                if ((i & (1 << j)) != 0) {
-                    combination.add(conditions[j]);
-                }
-            }
-
-            allCombinations.add(combination);
-        }
-
-        return allCombinations;
+    /** Two-layer generated item model. */
+    protected static Identifier layeredModel(ItemModelGenerators generator, Identifier modelId, Identifier layer0, Identifier layer1) {
+        return ModelTemplates.TWO_LAYERED_ITEM.create(modelId,
+                TextureMapping.layered(new Material(layer0), new Material(layer1)), generator.modelOutput);
     }
 
-    // =========================================================================
-    // COMBINED MODEL NAME
-    // =========================================================================
-
-    private String combineMultipleModelNames(
-            List<String> modelNames) {
-
-        if (modelNames.isEmpty()) {
-            return "";
-        }
-
-        if (modelNames.size() == 1) {
-            return modelNames.get(0);
-        }
-
-        String[] firstParts =
-                modelNames.get(0).split("_");
-
-        String baseName =
-                firstParts[0];
-
-        for (int i = 1; i < firstParts.length; i++) {
-
-            String potentialBase =
-                    baseName + "_" + firstParts[i];
-
-            boolean allStartWith = true;
-
-            for (String modelName : modelNames) {
-
-                if (!modelName.startsWith(
-                        potentialBase + "_")) {
-
-                    allStartWith = false;
-                    break;
-                }
-            }
-
-            if (allStartWith) {
-                baseName = potentialBase;
-            } else {
-                break;
-            }
-        }
-
-        Set<String> conditions =
-                new HashSet<>();
-
-        for (String modelName : modelNames) {
-
-            String conditionPart =
-                    modelName.substring(
-                            baseName.length()
-                    );
-
-            if (conditionPart.startsWith("_")) {
-                conditionPart =
-                        conditionPart.substring(1);
-            }
-
-            if (!conditionPart.isEmpty()) {
-                conditions.add(conditionPart);
-            }
-        }
-
-        List<String> sortedConditions =
-                new ArrayList<>(conditions);
-
-        sortedConditions.sort(String::compareTo);
-
-        return baseName + "_" +
-                String.join("_", sortedConditions);
+    /** Three-layer generated item model. */
+    protected static Identifier layeredModel(ItemModelGenerators generator, Identifier modelId,
+                                             Identifier layer0, Identifier layer1, Identifier layer2) {
+        return ModelTemplates.THREE_LAYERED_ITEM.create(modelId,
+                TextureMapping.layered(new Material(layer0), new Material(layer1), new Material(layer2)), generator.modelOutput);
     }
 
-    // =========================================================================
-    // OVERRIDE MODEL
-    // =========================================================================
+    /**
+     * Trimmable armor piece with an extra untinted overlay layer drawn above the base (and above
+     * the trim), e.g. the copper leggings' skirt. Layers: base, [trim], overlay.
+     */
+    protected static void trimmableItemWithOverlay(ItemModelGenerators generator, Item armor, Identifier slotTrimPrefix) {
+        Identifier modelLocation = ModelLocationUtils.getModelLocation(armor);
+        Identifier base = TextureMapping.getItemTexture(armor).sprite();
+        Identifier overlay = TextureMapping.getItemTexture(armor, "_overlay").sprite();
 
-    private void generateOverrideModel(
-            Item item,
-            ModelTemplate model,
-            String modelName,
-            ItemModelGenerators itemModelGenerator) {
-
-        Identifier itemId =
-                BuiltInRegistries.ITEM.getKey(item);
-
-        String namespace =
-                itemId.getNamespace();
-
-        Identifier modelId =
-                Identifier.fromNamespaceAndPath(
-                        namespace,
-                        "item/" + modelName
-                );
-
-        if (item instanceof DyeableLeatherItem) {
-
-            TextureMapping textures =
-                    TextureMapping.layered(
-                            Identifier.fromNamespaceAndPath(
-                                    namespace,
-                                    "item/" + modelName
-                            ),
-                            Identifier.fromNamespaceAndPath(
-                                    namespace,
-                                    "item/" + modelName + "_overlay"
-                            )
-                    );
-
-            /*
-             * Fabric/Yarn 1.20.1 doesn't have the Forge
-             * ModelTemplate/TextureSlot API you're using.
-             *
-             * Generate the layered model directly.
-             */
-
-            ModelTemplate layeredModel =
-                    new ModelTemplate(
-                            Optional.of(
-                                    Identifier.fromNamespaceAndPath(
-                                            "minecraft",
-                                            "item/handheld"
-                                    )
-                            ),
-                            Optional.empty()
-                    );
-
-            layeredModel.create(
-                    modelId,
-                    textures,
-                    itemModelGenerator.output
-            );
-
-        } else {
-
-            TextureMapping textures =
-                    TextureMapping.layer0(
-                            Identifier.fromNamespaceAndPath(
-                                    namespace,
-                                    "item/" + modelName
-                            )
-                    );
-
-            model.create(
-                    modelId,
-                    textures,
-                    itemModelGenerator.output
-            );
-        }
-    }
-
-    // =========================================================================
-    // OVERRIDES
-    // =========================================================================
-
-    private void addOverride(
-            JsonArray overrides,
-            String namespace,
-            Identifier predicateKey,
-            Number predicateValue,
-            String modelName) {
-
-        JsonObject predicate =
-                new JsonObject();
-
-        predicate.addProperty(
-                predicateKey.toString(),
-                predicateValue
-        );
-
-        addOverride(
-                overrides,
-                namespace,
-                predicate,
-                modelName
-        );
-    }
-
-    private void addOverride(
-            JsonArray overrides,
-            String namespace,
-            JsonObject predicate,
-            String modelName) {
-
-        JsonObject override =
-                new JsonObject();
-
-        override.add(
-                "predicate",
-                predicate
-        );
-
-        override.addProperty(
-                "model",
-                namespace + ":item/" + modelName
-        );
-
-        overrides.add(override);
-    }
-
-    // =========================================================================
-    // BANNER PATTERNS
-    // =========================================================================
-
-    protected void generateBannerPatternModels(
-            Item item,
-            ModelTemplate model,
-            ItemModelGenerators itemModelGenerator) {
-
-        Identifier itemId =
-                BuiltInRegistries.ITEM.getKey(item);
-
-        String[] bannerPatternNames = {
-                "bl", "bo", "br", "bri", "bs", "bt",
-                "bts", "cbo", "cr", "cre", "cs", "dls",
-                "drs", "flo", "glb", "gra", "gru", "hh",
-                "hhb", "ld", "ls", "lud", "mc", "moj",
-                "mr", "ms", "pig", "rd", "rs", "rud",
-                "sc", "sku", "ss", "tl", "tr", "ts",
-                "tt", "tts", "vh", "vhr"
-        };
-
-        for (String pattern : bannerPatternNames) {
-
-            Identifier modelId =
-                    Identifier.fromNamespaceAndPath(
-                            itemId.getNamespace(),
-                            "item/" +
-                                    itemId.getPath() +
-                                    "/" +
-                                    pattern
-                    );
-
-            TextureMapping textures =
-                    TextureMapping.layer0(
-                            Identifier.fromNamespaceAndPath(
-                                    itemId.getNamespace(),
-                                    "item/" +
-                                            itemId.getPath() +
-                                            "/" +
-                                            pattern
-                            )
-                    );
-
-            model.create(
-                    modelId,
-                    textures,
-                    itemModelGenerator.output
-            );
-        }
-    }
-
-    // =========================================================================
-    // CUSTOM MODEL NAME
-    // =========================================================================
-
-    protected void registerWCustomName(
-            Item item,
-            ModelTemplate model,
-            ItemModelGenerators itemModelGenerator,
-            String modelName,
-            Identifier texturePath) {
-
-        Identifier itemId =
-                BuiltInRegistries.ITEM.getKey(item);
-
-        Identifier modelId;
-
-        if (modelName.isEmpty()) {
-
-            modelId =
-                    Identifier.fromNamespaceAndPath(
-                            itemId.getNamespace(),
-                            "item/" + itemId.getPath()
-                    );
-
-        } else {
-
-            modelId =
-                    Identifier.fromNamespaceAndPath(
-                            itemId.getNamespace(),
-                            "item/" + modelName
-                    );
+        List<SelectItemModel.SwitchCase<ResourceKey<TrimMaterial>>> cases = new ArrayList<>();
+        for (ItemModelGenerators.TrimMaterialData material : ItemModelGenerators.TRIM_MATERIAL_MODELS) {
+            Identifier trimModel = modelLocation.withSuffix("_" + material.palette().suffix() + "_trim");
+            Identifier trimTexture = slotTrimPrefix.withSuffix("_" + material.palette().suffix());
+            layeredModel(generator, trimModel, base, trimTexture, overlay);
+            cases.add(ItemModelUtils.when(material.materialKey(), ItemModelUtils.plainModel(trimModel)));
         }
 
-        TextureMapping texture;
-
-        if (texturePath != null) {
-
-            texture =
-                    TextureMapping.layer0(texturePath);
-
-        } else {
-
-            texture =
-                    TextureMapping.layer0(
-                            Identifier.fromNamespaceAndPath(
-                                    itemId.getNamespace(),
-                                    "item/" + itemId.getPath()
-                            )
-                    );
-        }
-
-        model.create(
-                modelId,
-                texture,
-                itemModelGenerator.output
-        );
+        layeredModel(generator, modelLocation, base, overlay);
+        generator.itemModelOutput.accept(armor,
+                ItemModelUtils.select(new TrimMaterialProperty(), ItemModelUtils.plainModel(modelLocation), cases));
     }
 
-    // =========================================================================
-    // OVERRIDE CONDITION
-    // =========================================================================
-
-    public record OverrideCondition(
-            Identifier predicateKey,
-            Number predicateValue) {
-
-        String getModelName(String basePath) {
-            return basePath +
-                    "_" +
-                    predicateKey.getPath();
-        }
+    /** Block item that simply shows the given block model. */
+    protected static void blockItem(BlockModelGenerators generator, net.minecraft.world.level.block.Block block, Identifier model) {
+        generator.registerSimpleItemModel(block, model);
     }
 }

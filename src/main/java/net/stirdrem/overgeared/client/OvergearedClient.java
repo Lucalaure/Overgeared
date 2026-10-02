@@ -6,10 +6,12 @@ import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.stirdrem.overgeared.block.entity.AbstractSmithingAnvilBlockEntity;
 import net.stirdrem.overgeared.block.entity.ModBlockEntities;
 import net.stirdrem.overgeared.client.renderer.SmithingAnvilBlockEntityRenderer;
+import net.stirdrem.overgeared.client.renderer.SmithingAnvilRenderState;
 import net.stirdrem.overgeared.entity.ModEntities;
 import net.stirdrem.overgeared.entity.renderer.LingeringArrowEntityRenderer;
 import net.stirdrem.overgeared.entity.renderer.UpgradeArrowEntityRenderer;
@@ -62,6 +64,8 @@ public class OvergearedClient implements ClientModInitializer {
      * All four anvil tiers share one renderer targeting the abstract base type.
      */
     private static <E extends AbstractSmithingAnvilBlockEntity> void registerAnvilRenderer(BlockEntityType<E> type) {
-        BlockEntityRendererRegistry.register(type, SmithingAnvilBlockEntityRenderer::new);
+        BlockEntityRendererProvider<AbstractSmithingAnvilBlockEntity, SmithingAnvilRenderState> provider =
+                SmithingAnvilBlockEntityRenderer::new;
+        BlockEntityRendererRegistry.<E, SmithingAnvilRenderState>register(type, provider);
     }
 }

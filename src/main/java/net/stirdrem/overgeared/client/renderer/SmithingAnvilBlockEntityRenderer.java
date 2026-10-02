@@ -175,9 +175,9 @@ public class SmithingAnvilBlockEntityRenderer
             float rotatedZ = (float) (e.xOffset() * sin + e.zOffset() * cos);
 
             poseStack.translate(0.5f - rotatedX, e.yOffset() - (0.01f * (1 - e.heightScale())), 0.5f + rotatedZ);
-            poseStack.mulPose(Axis.YP.rotationDegrees(facingRotationDegrees));
-            poseStack.mulPose(Axis.YP.rotationDegrees(e.rotationDegrees()));
-            poseStack.mulPose(Axis.XP.rotationDegrees(e.isBlockItem() ? 0 : 90));
+            poseStack.rotateDegrees(Axis.YP, facingRotationDegrees);
+            poseStack.rotateDegrees(Axis.YP, e.rotationDegrees());
+            poseStack.rotateDegrees(Axis.XP, e.isBlockItem() ? 0 : 90);
             poseStack.scale(e.scale(), e.scale(), e.scale() * e.heightScale());
 
             e.item().submit(poseStack, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
