@@ -6,6 +6,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
@@ -62,7 +63,7 @@ public class ToolCastItem extends Item {
         if (data.hasOutput()) {
             ItemStack output = data.outputStack();
             if (!player.getInventory().add(output.copy())) {
-                player.drop(output.copy(), false);
+                player.drop(output.copy(), false, Prediction.SERVER_ONLY);
             }
 
             castStack.set(ModComponents.CAST_DATA, data.cleared());
@@ -86,7 +87,7 @@ public class ToolCastItem extends Item {
 
         for (ItemStack inputItem : inputItems) {
             if (!player.getInventory().add(inputItem.copy())) {
-                player.drop(inputItem.copy(), false);
+                player.drop(inputItem.copy(), false, Prediction.SERVER_ONLY);
             }
         }
 
