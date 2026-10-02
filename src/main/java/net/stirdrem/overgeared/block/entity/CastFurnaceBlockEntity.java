@@ -1,11 +1,10 @@
 package net.stirdrem.overgeared.block.entity;
 
-import net.fabricmc.fabric.api.registry.FuelRegistry;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -17,14 +16,12 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -37,13 +34,20 @@ import net.stirdrem.overgeared.screen.CastFurnaceScreenHandler;
 import net.stirdrem.overgeared.util.ConfigHelper;
 import net.stirdrem.overgeared.util.ItemStackHandler;
 import net.stirdrem.overgeared.util.ModTags;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.stirdrem.overgeared.ForgingQuality;
+import net.stirdrem.overgeared.components.CastData;
+import net.stirdrem.overgeared.components.ModComponents;
+import net.stirdrem.overgeared.recipe.ItemListInput;
+import net.stirdrem.overgeared.recipe.RecipeLookup;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
-public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, Container, WorldlyContainer {
+public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedMenuProvider<BlockPos>, Container, WorldlyContainer {
 
     public static final int SLOT_INPUT = 0;
     public static final int SLOT_FUEL = 1;
@@ -96,8 +100,8 @@ public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedScree
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Override
@@ -113,14 +117,13 @@ public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedScree
 
         ItemStack fuel = be.itemHandler.getStackInSlot(SLOT_FUEL);
 
-        if (be.burnTime == 0 && be.canSmelt()) {
-            Integer fuelTime = FuelRegistry.INSTANCE.get(fuel.getItem());
-            be.maxBurnTime = be.burnTime = fuelTime == null ? 0 : fuelTime;
+        if (be.burnTime == 0 && be.canSmelt() && world instanceof ServerLevel serverLevel) {
+            be.maxBurnTime = be.burnTime = fuel.isEmpty() ? 0 : BlockEntityHelper.getBurnDuration(serverLevel, be, fuel);
             if (be.burnTime > 0 && !fuel.isEmpty()) {
-                Item remainder = fuel.getItem().getCraftingRemainingItem();
+                ItemStack remainder = BlockEntityHelper.remainder(fuel);
                 fuel.shrink(1);
-                if (fuel.isEmpty() && remainder != null)
-                    be.itemHandler.setStackInSlot(SLOT_FUEL, new ItemStack(remainder));
+                if (fuel.isEmpty() && !remainder.isEmpty())
+                    be.itemHandler.setStackInSlot(SLOT_FUEL, remainder);
                 dirty = true;
             }
         }
@@ -148,16 +151,20 @@ public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedScree
         return burnTime > 0;
     }
 
+    /** Casting recipes are matched against [material input, tool cast]. */
+    private ItemListInput castingInput() {
+        return ItemListInput.of(itemHandler.getStackInSlot(SLOT_INPUT), itemHandler.getStackInSlot(SLOT_CAST));
+    }
+
+    private Optional<CastingRecipe> findRecipe() {
+        if (level == null) return Optional.empty();
+        return RecipeLookup.firstMatchValue(level, ModRecipeTypes.CASTING, castingInput());
+    }
+
     private boolean canSmelt() {
         if (level == null) return false;
 
-        SimpleContainer inv = new SimpleContainer(2);
-        inv.setItem(0, itemHandler.getStackInSlot(SLOT_INPUT));
-        inv.setItem(1, itemHandler.getStackInSlot(SLOT_CAST));
-
-        Optional<CastingRecipe> recipeOpt =
-                level.getRecipeManager().getRecipeFor(ModRecipeTypes.CASTING, inv, level);
-
+        Optional<CastingRecipe> recipeOpt = findRecipe();
         if (recipeOpt.isEmpty()) return false;
 
         CastingRecipe recipe = recipeOpt.get();
@@ -173,7 +180,7 @@ public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedScree
             return true;
         }
 
-        if (!ItemStack.isSameItemSameTags(outputSlot, previewOutput)) {
+        if (!ItemStack.isSameItemSameComponents(outputSlot, previewOutput)) {
             return false;
         }
 
@@ -181,71 +188,33 @@ public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedScree
                 <= outputSlot.getMaxStackSize();
     }
 
+    /** Recipe result plus the cast's quality, the polishing flag and the heated flag. */
     private ItemStack buildResultStack(CastingRecipe recipe) {
-        ItemStack output = recipe.getResultItem(level.registryAccess()).copy();
+        // 26.3 port: assumes the recipe agent keeps a no-arg getResultItem() accessor.
+        ItemStack output = recipe.getResultItem().copy();
 
-        ItemStack cast = itemHandler.getStackInSlot(SLOT_CAST);
-        CompoundTag castTag = cast.getTag();
-        CompoundTag outTag = output.getTag();
-
-        if (castTag != null && castTag.contains("Quality")) {
-            String q = castTag.getString("Quality");
-            if (!"none".equals(q)) {
-                if (outTag == null) outTag = new CompoundTag();
-                outTag.putString("ForgingQuality", q);
-            }
+        CastData castData = itemHandler.getStackInSlot(SLOT_CAST).get(ModComponents.CAST_DATA);
+        if (castData != null && !castData.quality().isEmpty() && !"none".equals(castData.quality())) {
+            output.set(ModComponents.FORGING_QUALITY, ForgingQuality.fromString(castData.quality()));
         }
 
         if (recipe.requiresPolishing()) {
-            if (outTag == null) outTag = new CompoundTag();
-            outTag.putBoolean("Polished", false);
+            output.set(ModComponents.POLISHED, false);
         }
 
-        if (outTag == null) outTag = new CompoundTag();
-        outTag.putBoolean("Heated", true);
-        output.setTag(outTag);
-
+        output.set(ModComponents.HEATED, true);
         return output;
     }
 
     private void smelt() {
         if (!canSmelt()) return;
 
-        SimpleContainer inv = new SimpleContainer(2);
-        inv.setItem(0, itemHandler.getStackInSlot(SLOT_INPUT));
-        inv.setItem(1, itemHandler.getStackInSlot(SLOT_CAST));
         ItemStack cast = itemHandler.getStackInSlot(SLOT_CAST);
-        CompoundTag castTag = cast.getOrCreateTag();
-
-        CastingRecipe recipe =
-                level.getRecipeManager()
-                        .getRecipeFor(ModRecipeTypes.CASTING, inv, level)
-                        .orElse(null);
-
+        CastingRecipe recipe = findRecipe().orElse(null);
         if (recipe == null) return;
 
-        ItemStack result = recipe.getResultItem(level.registryAccess());
         float xp = recipe.getExperience();
-        boolean needPolishing = recipe.requiresPolishing();
-
-        ItemStack output = result.copy();
-        CompoundTag outTag = output.getTag();
-
-        if (castTag.contains("Quality")) {
-            String q = castTag.getString("Quality");
-            if (!q.equals("none")) {
-                if (outTag == null) outTag = new CompoundTag();
-                outTag.putString("ForgingQuality", q);
-            }
-        }
-        if (needPolishing) {
-            if (outTag == null) outTag = new CompoundTag();
-            outTag.putBoolean("Polished", false);
-        }
-
-        if (outTag == null) outTag = new CompoundTag();
-        outTag.putBoolean("Heated", true);
-        output.setTag(outTag);
+        ItemStack output = buildResultStack(recipe);
 
         if (itemHandler.getStackInSlot(SLOT_OUTPUT).isEmpty()) {
             itemHandler.setStackInSlot(SLOT_OUTPUT, output);
@@ -267,20 +236,21 @@ public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedScree
 
         itemHandler.getStackInSlot(SLOT_INPUT).shrink(itemConsumeAmount);
 
-        // Damage cast
-        if (cast.isDamageableItem()) {
-            cast.hurt(1, level.random, null);
+        // Damage cast (respects Unbreaking like the old hurt(..) call)
+        if (cast.isDamageableItem() && level instanceof ServerLevel serverLevel) {
+            cast.hurtAndBreak(1, serverLevel, null, broken -> {
+            });
 
-            if (cast.getDamageValue() >= cast.getMaxDamage()) {
+            if (cast.isEmpty() || cast.getDamageValue() >= cast.getMaxDamage()) {
                 itemHandler.setStackInSlot(SLOT_CAST, ItemStack.EMPTY);
             }
         }
-        if (!level.isClientSide && xp > 0)
+        if (!level.isClientSide() && xp > 0)
             storedExperience += xp;
     }
 
     private void spawnExperience(float xp) {
-        if (level == null || level.isClientSide) return;
+        if (level == null || level.isClientSide()) return;
         if (!(level instanceof ServerLevel serverWorld)) return;
 
         int i = Mth.floor(xp);
@@ -305,14 +275,14 @@ public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedScree
     }
 
     @Override
-    public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
-        buf.writeBlockPos(worldPosition);
+    public BlockPos getScreenOpeningData(ServerPlayer player) {
+        return worldPosition;
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
+    protected void saveAdditional(ValueOutput tag) {
         super.saveAdditional(tag);
-        tag.put("inventory", itemHandler.serializeNBT());
+        BlockEntityHelper.saveInventory(tag, "inventory", itemHandler);
         tag.putInt("burnTime", burnTime);
         tag.putInt("maxBurnTime", maxBurnTime);
         tag.putInt("cookTime", cookTime);
@@ -321,26 +291,31 @@ public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedScree
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        itemHandler.deserializeNBT(tag.getCompound("inventory"));
-        burnTime = tag.getInt("burnTime");
-        maxBurnTime = tag.getInt("maxBurnTime");
-        cookTime = tag.getInt("cookTime");
-        cookTimeTotal = tag.getInt("cookTimeTotal");
-        storedExperience = tag.getFloat("storedXp");
+    protected void loadAdditional(ValueInput tag) {
+        super.loadAdditional(tag);
+        BlockEntityHelper.loadInventory(tag, "inventory", itemHandler);
+        burnTime = tag.getIntOr("burnTime", 0);
+        maxBurnTime = tag.getIntOr("maxBurnTime", 0);
+        cookTime = tag.getIntOr("cookTime", 0);
+        cookTimeTotal = tag.getIntOr("cookTimeTotal", 0);
+        storedExperience = tag.getFloatOr("storedXp", 0.0F);
+    }
+
+    /** 26.x: contents are dropped by the vanilla Container handling in super; this also pops stored XP. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        spawnExperience(storedExperience);
+        storedExperience = 0;
     }
 
     public void drops() {
-        SimpleContainer inv = new SimpleContainer(itemHandler.getSlots());
-        for (int i = 0; i < itemHandler.getSlots(); i++)
-            inv.setItem(i, itemHandler.getStackInSlot(i));
-        Containers.dropContents(level, worldPosition, inv);
+        if (level != null) Containers.dropContents(level, worldPosition, this);
         spawnExperience(storedExperience);
     }
 
     public void awardStoredExperience(Player player) {
-        if (this.level == null || this.level.isClientSide) return;
+        if (this.level == null || this.level.isClientSide()) return;
         if (storedExperience > 0 && player != null) {
             int total = (int) storedExperience;
             float fractional = storedExperience - total;
@@ -373,8 +348,7 @@ public class CastFurnaceBlockEntity extends BlockEntity implements ExtendedScree
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction dir) {
         if (slot == SLOT_OUTPUT) return false;
         if (slot == SLOT_FUEL) {
-            Integer fuelTime = FuelRegistry.INSTANCE.get(stack.getItem());
-            return fuelTime != null && fuelTime > 0;
+            return BlockEntityHelper.isFuel(stack);
         }
         if (slot == SLOT_CAST) return stack.is(ModTags.Items.TOOL_CAST);
         return ConfigHelper.isValidMaterial(stack);
