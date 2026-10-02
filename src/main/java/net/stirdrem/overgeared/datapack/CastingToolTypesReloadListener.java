@@ -1,17 +1,15 @@
 package net.stirdrem.overgeared.datapack;
 
 import com.google.gson.*;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.stirdrem.overgeared.Overgeared;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CastingToolTypesReloadListener extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
+public class CastingToolTypesReloadListener extends OvergearedJsonReloadListener {
 
     public static class CastingToolEntry {
         private final String toolType;
@@ -36,10 +34,8 @@ public class CastingToolTypesReloadListener extends SimpleJsonResourceReloadList
     private static final Gson GSON = new Gson();
 
     public CastingToolTypesReloadListener() {
-        super(GSON, "casting_tooltypes");
+        super("casting_tooltypes");
     }
-
-    @Override
     public Identifier getFabricId() {
         return Overgeared.id("casting_tooltypes_listener");
     }

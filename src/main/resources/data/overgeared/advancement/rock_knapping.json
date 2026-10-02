@@ -1,7 +1,7 @@
 {
   "display": {
     "icon": {
-      "item": "overgeared:knappable_rock"
+      "id": "overgeared:knappable_rock"
     },
     "title": "Stone Age Artisan",
     "description": "Use rock knapping to make stone tool heads",

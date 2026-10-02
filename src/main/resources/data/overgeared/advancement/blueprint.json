@@ -1,7 +1,7 @@
 {
   "display": {
     "icon": {
-      "item": "overgeared:blueprint"
+      "id": "overgeared:blueprint"
     },
     "title": "Drafted To Forge",
     "description": "Obtain your first smithing blueprint",
@@ -17,9 +17,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "overgeared:blueprint"
-            ]
+            "items": "overgeared:blueprint"
           }
         ]
       }

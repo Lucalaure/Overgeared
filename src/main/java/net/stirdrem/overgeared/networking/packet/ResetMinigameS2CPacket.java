@@ -2,28 +2,27 @@ package net.stirdrem.overgeared.networking.packet;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.stirdrem.overgeared.Overgeared;
 import net.stirdrem.overgeared.block.entity.AbstractSmithingAnvilBlockEntity;
 import net.stirdrem.overgeared.client.AnvilMinigameEvents;
 import net.stirdrem.overgeared.event.ModItemInteractEvents;
 
-public class ResetMinigameS2CPacket {
-    private final BlockPos anvilPos;
+/** S2C: reset the minigame for the anvil at {@code anvilPos} if it is the player's tracked anvil. */
+public record ResetMinigameS2CPacket(BlockPos anvilPos) implements CustomPacketPayload {
+    public static final Type<ResetMinigameS2CPacket> TYPE = new Type<>(Overgeared.id("reset_minigame"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, ResetMinigameS2CPacket> STREAM_CODEC =
+            BlockPos.STREAM_CODEC.<ResetMinigameS2CPacket>map(ResetMinigameS2CPacket::new, ResetMinigameS2CPacket::anvilPos).cast();
 
-    public ResetMinigameS2CPacket(BlockPos anvilPos) {
-        this.anvilPos = anvilPos;
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 
-    public static void encode(ResetMinigameS2CPacket msg, FriendlyByteBuf buf) {
-        buf.writeBlockPos(msg.anvilPos);
-    }
-
-    public static ResetMinigameS2CPacket decode(FriendlyByteBuf buf) {
-        return new ResetMinigameS2CPacket(buf.readBlockPos());
-    }
-
+    /** Client thread only. */
     public static void handle(ResetMinigameS2CPacket msg) {
         try {
             var player = Minecraft.getInstance().player;
@@ -47,10 +46,7 @@ public class ResetMinigameS2CPacket {
                 }
             }
         } catch (Exception e) {
-            Overgeared.LOGGER.error(
-                    "Failed to process ResetMinigameS2CPacket for anvil at {}",
-                    msg.anvilPos, e
-            );
+            Overgeared.LOGGER.error("Failed to process ResetMinigameS2CPacket for anvil at {}", msg.anvilPos, e);
         }
     }
 

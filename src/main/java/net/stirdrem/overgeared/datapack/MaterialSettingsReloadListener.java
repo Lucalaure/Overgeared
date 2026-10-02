@@ -1,17 +1,15 @@
 package net.stirdrem.overgeared.datapack;
 
 import com.google.gson.*;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.stirdrem.overgeared.Overgeared;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MaterialSettingsReloadListener extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
+public class MaterialSettingsReloadListener extends OvergearedJsonReloadListener {
 
     public static class MaterialEntry {
         private final String itemOrTag;
@@ -52,10 +50,8 @@ public class MaterialSettingsReloadListener extends SimpleJsonResourceReloadList
     private static final Gson GSON = new Gson();
 
     public MaterialSettingsReloadListener() {
-        super(GSON, "material_settings");
+        super("material_settings");
     }
-
-    @Override
     public Identifier getFabricId() {
         return Overgeared.id("material_settings_listener");
     }

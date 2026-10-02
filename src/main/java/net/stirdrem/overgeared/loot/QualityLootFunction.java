@@ -1,13 +1,12 @@
 package net.stirdrem.overgeared.loot;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
-import net.minecraft.world.level.storage.loot.Serializer;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
-import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.stirdrem.overgeared.ForgingQuality;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.config.ServerConfig;
 import net.stirdrem.overgeared.util.ModTags;
 
@@ -16,20 +15,11 @@ import net.stirdrem.overgeared.util.ModTags;
  * Fabric has no direct equivalent of Forge's global loot modifiers, but applying a LootFunction
  * to every table's builder runs it against every stack that table generates, which is the same
  * per-stack post-process semantics as the original QualityLootModifier.
+ * Its codec is registered as {@code overgeared:quality} in BuiltInRegistries.LOOT_FUNCTION_TYPE.
  */
 public class QualityLootFunction implements LootItemFunction {
     public static final QualityLootFunction INSTANCE = new QualityLootFunction();
-
-    private static final LootItemFunctionType TYPE = new LootItemFunctionType(new Serializer<>() {
-        @Override
-        public void serialize(com.google.gson.JsonObject json, LootItemFunction object, com.google.gson.JsonSerializationContext context) {
-        }
-
-        @Override
-        public LootItemFunction deserialize(com.google.gson.JsonObject json, com.google.gson.JsonDeserializationContext context) {
-            return INSTANCE;
-        }
-    });
+    public static final MapCodec<QualityLootFunction> MAP_CODEC = MapCodec.unit(() -> INSTANCE);
 
     @Override
     public ItemStack apply(ItemStack generated, LootContext context) {
@@ -50,7 +40,7 @@ public class QualityLootFunction implements LootItemFunction {
         if (wMaster > 0) total += wMaster;
 
         if (total == 0) {
-            generated.getOrCreateTag().putString("ForgingQuality", ForgingQuality.POOR.getDisplayName());
+            generated.set(ModComponents.FORGING_QUALITY, ForgingQuality.POOR);
             return generated;
         }
 
@@ -80,20 +70,18 @@ public class QualityLootFunction implements LootItemFunction {
             }
         }
 
-        generated.getOrCreateTag().putString("ForgingQuality", chosen.getDisplayName());
+        generated.set(ModComponents.FORGING_QUALITY, chosen);
         return generated;
     }
 
     private static boolean isEligibleItem(ItemStack stack) {
-        Item item = stack.getItem();
-
-        if (!item.canBeDepleted()) return false;
+        if (!stack.isDamageableItem()) return false;
 
         return !stack.is(ModTags.Items.QUALITY_BLACKLIST);
     }
 
     @Override
-    public LootItemFunctionType getType() {
-        return TYPE;
+    public MapCodec<QualityLootFunction> codec() {
+        return MAP_CODEC;
     }
 }

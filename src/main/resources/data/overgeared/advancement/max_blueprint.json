@@ -1,7 +1,7 @@
 {
   "display": {
     "icon": {
-      "item": "overgeared:blueprint"
+      "id": "overgeared:blueprint"
     },
     "title": "Forged to Draft",
     "description": "Max out a smithing blueprint",

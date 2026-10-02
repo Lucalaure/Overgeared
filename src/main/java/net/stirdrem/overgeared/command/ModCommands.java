@@ -4,10 +4,13 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.nbt.CompoundTag;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.stirdrem.overgeared.ForgingQuality;
+import net.stirdrem.overgeared.components.CastData;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.item.ModItems;
 import net.stirdrem.overgeared.util.ConfigHelper;
 
@@ -22,14 +25,14 @@ public class ModCommands {
         // /setforgingquality <quality>
         dispatcher.register(
                 Commands.literal("setforgingquality")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.argument("quality", StringArgumentType.string())
                                 .suggests((c, b) -> {
                                     for (String q : QUALITIES) b.suggest(q);
                                     return b.buildFuture();
                                 })
                                 .executes(ctx -> {
-                                    ServerPlayer player = ctx.getSource().getPlayer();
+                                    ServerPlayer player = ctx.getSource().getPlayerOrException();
                                     String quality = StringArgumentType.getString(ctx, "quality").toLowerCase(Locale.ROOT);
 
                                     ItemStack inHand = player.getMainHandItem();
@@ -38,8 +41,7 @@ public class ModCommands {
                                         return 0;
                                     }
 
-                                    CompoundTag tag = inHand.getOrCreateTag();
-                                    tag.putString("ForgingQuality", quality);
+                                    inHand.set(ModComponents.FORGING_QUALITY, ForgingQuality.fromString(quality));
 
                                     ctx.getSource().sendSuccess(
                                             () -> Component.literal("Set ForgingQuality to " + quality), false);
@@ -52,7 +54,7 @@ public class ModCommands {
         // /givecast <toolType> [quality] [material]
         dispatcher.register(
                 Commands.literal("givecast")
-                        .requires(source -> source.hasPermission(2))
+                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.argument("toolType", StringArgumentType.string())
                                 .then(Commands.argument("quality", StringArgumentType.string())
                                         .suggests((c, b) -> {
@@ -90,21 +92,21 @@ public class ModCommands {
         );
     }
 
-    private static int giveCast(CommandSourceStack source, String toolType, String quality, String material) {
-        ServerPlayer player = source.getPlayer();
+    private static int giveCast(CommandSourceStack source, String toolType, String quality, String material) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
 
         ItemStack stack = material.equalsIgnoreCase("nether") ?
                 new ItemStack(ModItems.NETHER_TOOL_CAST) :
                 new ItemStack(ModItems.CLAY_TOOL_CAST);
 
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putString("ToolType", toolType.toLowerCase(Locale.ROOT));
-        tag.putInt("Amount", 0);
-        tag.putInt("MaxAmount", ConfigHelper.getMaxMaterialAmount(toolType));
-        tag.put("Materials", new CompoundTag());
+        CastData data = CastData.EMPTY
+                .withToolType(toolType.toLowerCase(Locale.ROOT))
+                .withAmount(0)
+                .withMaxAmount(ConfigHelper.getMaxMaterialAmount(toolType));
 
         if (!quality.equalsIgnoreCase("none"))
-            tag.putString("Quality", quality.toLowerCase(Locale.ROOT));
+            data = data.withQuality(quality.toLowerCase(Locale.ROOT));
+        stack.set(ModComponents.CAST_DATA, data);
 
         player.addItem(stack);
 

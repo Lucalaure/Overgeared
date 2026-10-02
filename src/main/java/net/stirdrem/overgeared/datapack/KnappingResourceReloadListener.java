@@ -4,12 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
@@ -21,7 +19,7 @@ import net.stirdrem.overgeared.Overgeared;
 import java.util.HashMap;
 import java.util.Map;
 
-public class KnappingResourceReloadListener extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
+public class KnappingResourceReloadListener extends OvergearedJsonReloadListener {
 
     private static final Gson GSON = new Gson();
 
@@ -41,10 +39,8 @@ public class KnappingResourceReloadListener extends SimpleJsonResourceReloadList
             SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath("minecraft", "block.stone.break"));
 
     public KnappingResourceReloadListener() {
-        super(GSON, "knapping_resources");
+        super("knapping_resources");
     }
-
-    @Override
     public Identifier getFabricId() {
         return Overgeared.id("knapping_resources_listener");
     }
@@ -80,7 +76,7 @@ public class KnappingResourceReloadListener extends SimpleJsonResourceReloadList
                     Identifier soundId =
                             Identifier.tryParse(GsonHelper.getAsString(obj, "sound"));
 
-                    sound = BuiltInRegistries.SOUND_EVENT.get(soundId);
+                    sound = BuiltInRegistries.SOUND_EVENT.getValue(soundId);
 
                     if (sound == null) {
                         Overgeared.LOGGER.warn(
@@ -96,7 +92,7 @@ public class KnappingResourceReloadListener extends SimpleJsonResourceReloadList
                     Identifier itemId =
                             Identifier.tryParse(GsonHelper.getAsString(obj, "item"));
 
-                    Item item = BuiltInRegistries.ITEM.get(itemId);
+                    Item item = BuiltInRegistries.ITEM.getOptional(itemId).orElse(null);
 
                     if (item == null) {
                         Overgeared.LOGGER.warn(
