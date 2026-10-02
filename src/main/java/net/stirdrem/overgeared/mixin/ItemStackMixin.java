@@ -1,21 +1,15 @@
 package net.stirdrem.overgeared.mixin;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -24,9 +18,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.stirdrem.overgeared.ForgingQuality;
 import net.stirdrem.overgeared.Overgeared;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.config.ServerConfig;
 import net.stirdrem.overgeared.util.ModTags;
 import net.stirdrem.overgeared.util.QualityHelper;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -43,11 +39,10 @@ import static net.stirdrem.overgeared.Overgeared.getCooledItem;
 import static net.stirdrem.overgeared.util.BrokenHelper.isBroken;
 
 /**
- * Priority 2000 (default is 1000) so this mixin's getAttributeModifiers RETURN injection runs
- * after ItemStackAttributeMixin's - broken tools should discard the quality attribute bonus
- * along with everything else, not have it computed and left in place.
+ * Quality / durability / heated-item behaviour on ItemStack. The attribute-modifier part lives in
+ * ItemStackAttributeMixin.
  */
-@Mixin(value = ItemStack.class, priority = 2000)
+@Mixin(ItemStack.class)
 public abstract class ItemStackMixin {
 
     @Inject(method = "getDestroySpeed", at = @At("RETURN"), cancellable = true)
@@ -60,9 +55,8 @@ public abstract class ItemStackMixin {
         if (!stack.isCorrectToolForDrops(state)) {
             return;
         }
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.contains("ForgingQuality")) {
-            float baseSpeed = cir.getReturnValue();
+        if (stack.has(ModComponents.FORGING_QUALITY)) {
+            float baseSpeed = cir.getReturnValueF();
             float multiplier = QualityHelper.getMiningSpeedMultiplier(stack);
             cir.setReturnValue(baseSpeed * multiplier);
         }
@@ -71,7 +65,7 @@ public abstract class ItemStackMixin {
     @Inject(method = "getMaxDamage", at = @At("RETURN"), cancellable = true)
     private void overgeared$modifyDurabilityBasedOnQuality(CallbackInfoReturnable<Integer> cir) {
         ItemStack stack = (ItemStack) (Object) this;
-        int originalDurability = cir.getReturnValue();
+        int originalDurability = cir.getReturnValueI();
 
         if (originalDurability <= 0) {
             return;
@@ -82,14 +76,13 @@ public abstract class ItemStackMixin {
         float baseMultiplier = ServerConfig.BASE_DURABILITY_MULTIPLIER.get().floatValue();
         int newBaseDurability = blacklisted ? originalDurability : (int) (originalDurability * baseMultiplier);
 
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.contains("ForgingQuality")) {
+        if (stack.has(ModComponents.FORGING_QUALITY)) {
             float multiplier = QualityHelper.getDurabilityMultiplier(stack);
             newBaseDurability = (int) (newBaseDurability * multiplier);
         }
 
-        if (tag != null && tag.contains("ReducedMaxDurability")) {
-            int reductions = tag.getInt("ReducedMaxDurability");
+        Integer reductions = stack.get(ModComponents.REDUCED_GRIND_COUNT);
+        if (reductions != null) {
             float durabilityPenaltyMultiplier = 1.0f - (reductions * ServerConfig.DURABILITY_REDUCE_PER_GRIND.get().floatValue());
             durabilityPenaltyMultiplier = Math.max(0.1f, durabilityPenaltyMultiplier);
             newBaseDurability = (int) (newBaseDurability * durabilityPenaltyMultiplier);
@@ -101,13 +94,13 @@ public abstract class ItemStackMixin {
     private static final Map<UUID, Long> overgeared$lastTongsHit = new WeakHashMap<>();
 
     @Unique
-    private static final String HEATED_TIME_TAG = "HeatedSince";
-    @Unique
-    private static final String HEATED_TAG = "Heated";
+    private static boolean overgeared$isHeated(ItemStack stack) {
+        return stack.is(ModTags.Items.HEATED_METALS) || stack.has(ModComponents.HEATED);
+    }
 
     @Inject(method = "inventoryTick", at = @At("HEAD"))
-    private void overgeared$onInventoryTick(Level world, Entity entity, int slot, boolean selected, CallbackInfo ci) {
-        if (world.isClientSide()) return;
+    private void overgeared$onInventoryTick(Level world, Entity entity, @Nullable EquipmentSlot slot, CallbackInfo ci) {
+        if (!(world instanceof ServerLevel serverLevel)) return;
         if (!(entity instanceof Player player)) return;
         if (player.hasEffect(MobEffects.FIRE_RESISTANCE)) {
             return;
@@ -116,29 +109,23 @@ public abstract class ItemStackMixin {
         long tick = world.getGameTime();
         int cooldownTicks = ServerConfig.HEATED_ITEM_COOLDOWN_TICKS.get();
 
-        for (ItemStack stack : player.getInventory().items) {
+        var inventory = player.getInventory();
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack stack = inventory.getItem(i);
             if (stack.isEmpty()) continue;
-            CompoundTag stackTag = stack.getTag();
-            if (!stack.is(ModTags.Items.HEATED_METALS) && !(stackTag != null && stackTag.contains(HEATED_TAG)))
-                continue;
+            if (!overgeared$isHeated(stack)) continue;
 
-            CompoundTag tag = stack.getOrCreateTag();
-            long heatedSince = tag.getLong(HEATED_TIME_TAG);
+            long heatedSince = stack.getOrDefault(ModComponents.HEATED_TIME, 0L);
             if (heatedSince == 0L) {
-                tag.putLong(HEATED_TIME_TAG, tick);
+                stack.set(ModComponents.HEATED_TIME, tick);
             } else if (tick - heatedSince >= cooldownTicks) {
                 Item cooled = getCooledItem(stack.getItem(), world);
                 if (cooled != null) {
-                    ItemStack newStack = new ItemStack(cooled, stack.getCount());
-                    CompoundTag currentTag = stack.getTag();
-                    if (currentTag != null) {
-                        CompoundTag newTag = currentTag.copy();
-                        newTag.remove(HEATED_TAG);
-                        newTag.remove(HEATED_TIME_TAG);
-                        if (!newTag.isEmpty()) {
-                            newStack.setTag(newTag);
-                        }
-                    }
+                    // transmuteCopy keeps every other component (quality, creator, ...)
+                    ItemStack newStack = stack.transmuteCopy(cooled, stack.getCount());
+                    newStack.remove(ModComponents.HEATED);
+                    newStack.remove(ModComponents.HEATED_TIME);
+
                     boolean isMain = stack == player.getMainHandItem();
                     boolean isOff = stack == player.getOffhandItem();
 
@@ -158,19 +145,14 @@ public abstract class ItemStackMixin {
         }
 
         boolean hasHotItem = false;
-        for (ItemStack s : player.getInventory().items) {
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack s = inventory.getItem(i);
             if (s.isEmpty()) continue;
-            CompoundTag sTag = s.getTag();
-            if (s.is(ModTags.Items.HEATED_METALS) || s.is(ModTags.Items.HOT_ITEMS) || (sTag != null && sTag.contains(HEATED_TAG))) {
+            if (overgeared$isHeated(s) || s.is(ModTags.Items.HOT_ITEMS)) {
                 hasHotItem = true;
                 break;
             }
         }
-        ItemStack mainCheck = player.getMainHandItem();
-        ItemStack offCheck = player.getOffhandItem();
-        hasHotItem = hasHotItem
-                || mainCheck.is(ModTags.Items.HEATED_METALS) || mainCheck.is(ModTags.Items.HOT_ITEMS)
-                || offCheck.is(ModTags.Items.HEATED_METALS) || offCheck.is(ModTags.Items.HOT_ITEMS);
 
         if (!hasHotItem) return;
 
@@ -187,21 +169,17 @@ public abstract class ItemStackMixin {
             tongsStack = ItemStack.EMPTY;
         }
 
-        if (player.hasEffect(MobEffects.FIRE_RESISTANCE)) {
-            return;
-        }
-
         if (!tongsStack.isEmpty()) {
             if (tick % 40 != 0) return;
             long last = overgeared$lastTongsHit.getOrDefault(uuid, -1L);
             if (last != tick) {
                 InteractionHand hand = tongsStack == player.getMainHandItem() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-                tongsStack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(hand));
+                tongsStack.hurtAndBreak(1, player, hand);
                 overgeared$lastTongsHit.put(uuid, tick);
             }
         } else {
             if (tick % 10 != 0) return;
-            player.hurt(world.damageSources().hotFloor(), 1.0f);
+            player.hurtServer(serverLevel, world.damageSources().hotFloor(), 1.0f);
         }
     }
 
@@ -245,9 +223,18 @@ public abstract class ItemStackMixin {
         cir.setReturnValue(color);
     }
 
-    @Inject(method = "hurtAndBreak(ILnet/minecraft/world/entity/LivingEntity;Ljava/util/function/Consumer;)V", at = @At("HEAD"), cancellable = true)
-    private void overgeared$qualityBasedBreak(int amount, LivingEntity entity, Consumer<LivingEntity> onBreak, CallbackInfo ci) {
+    /**
+     * 26.3: every durability loss funnels into hurtAndBreak(int, ServerLevel, ServerPlayer, Consumer).
+     * With the quality break system the item stays at max damage ("broken") instead of being destroyed,
+     * unless the quality-based break chance roll says it really breaks.
+     */
+    @Inject(method = "hurtAndBreak(ILnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerPlayer;Ljava/util/function/Consumer;)V",
+            at = @At("HEAD"), cancellable = true)
+    private void overgeared$qualityBasedBreak(int amount, ServerLevel level, @Nullable ServerPlayer player, Consumer<ItemStack> onBreak, CallbackInfo ci) {
         ItemStack stack = (ItemStack) (Object) this;
+        if (!stack.isDamageableItem()) return;
+        if (player != null && player.hasInfiniteMaterials()) return;
+
         int currentDamage = stack.getDamageValue();
         int newDamage = currentDamage + amount;
         int max = stack.getMaxDamage();
@@ -259,7 +246,7 @@ public abstract class ItemStackMixin {
 
             float breakChance = overgeared$getBreakChance(stack);
 
-            if (entity.getRandom().nextFloat() < breakChance) {
+            if (level.getRandom().nextFloat() < breakChance) {
                 return;
             }
 
@@ -272,32 +259,36 @@ public abstract class ItemStackMixin {
                 stack.setDamageValue(stack.getMaxDamage());
             }
 
-            if (entity instanceof Player player) {
-                InteractionHand hand = player.getMainHandItem() == stack ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
-                player.broadcastBreakEvent(hand);
-            } else {
-                entity.level().playSound(
-                        null,
-                        entity.getX(), entity.getY(), entity.getZ(),
-                        SoundEvents.ITEM_BREAK,
-                        SoundSource.PLAYERS,
-                        0.8F,
-                        0.8F + entity.level().random.nextFloat() * 0.4F
-                );
+            if (player != null) {
+                EquipmentSlot slot = overgeared$findSlot(player, stack);
+                if (slot != null) {
+                    // entity event -> client plays the break sound/particles (was broadcastBreakEvent)
+                    player.onEquippedItemBroken(stack, slot);
+                } else {
+                    level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                            SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 0.8F, 0.8F + level.getRandom().nextFloat() * 0.4F);
+                }
             }
+            // 26.3 port: non-player owners are not passed to this overload, so no break sound for mobs.
 
             ci.cancel();
         }
     }
 
     @Unique
+    private static @Nullable EquipmentSlot overgeared$findSlot(Player player, ItemStack stack) {
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            if (player.getItemBySlot(slot) == stack) return slot;
+        }
+        return null;
+    }
+
+    @Unique
     private static float overgeared$getBreakChance(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains("ForgingQuality")) {
+        ForgingQuality quality = ForgingQuality.get(stack);
+        if (quality == null) {
             return ServerConfig.BREAK_CHANCE_WELL.get().floatValue();
         }
-
-        ForgingQuality quality = ForgingQuality.fromString(tag.getString("ForgingQuality"));
 
         return switch (quality) {
             case POOR -> ServerConfig.BREAK_CHANCE_POOR.get().floatValue();
@@ -306,32 +297,6 @@ public abstract class ItemStackMixin {
             case MASTER -> ServerConfig.BREAK_CHANCE_MASTER.get().floatValue();
             default -> ServerConfig.BREAK_CHANCE_WELL.get().floatValue();
         };
-    }
-
-    /**
-     * Runs after ItemStackAttributeMixin's RETURN injection (see the priority=2000 class
-     * annotation) so a broken tool's quality attribute bonus gets discarded along with
-     * everything else, keeping only attack speed - matching a vanilla broken tool.
-     */
-    @Inject(method = "getAttributeModifiers", at = @At("RETURN"), cancellable = true)
-    private void overgeared$brokenToolAttributes(EquipmentSlot slot, CallbackInfoReturnable<Multimap<Attribute, AttributeModifier>> cir) {
-        ItemStack stack = (ItemStack) (Object) this;
-
-        if (!stack.isDamageableItem() || stack.getDamageValue() < stack.getMaxDamage()) {
-            return;
-        }
-
-        Multimap<Attribute, AttributeModifier> original = cir.getReturnValue();
-
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-
-        if (original.containsKey(Attributes.ATTACK_SPEED)) {
-            for (AttributeModifier mod : original.get(Attributes.ATTACK_SPEED)) {
-                builder.put(Attributes.ATTACK_SPEED, mod);
-            }
-        }
-
-        cir.setReturnValue(builder.build());
     }
 
     @Inject(method = "useOn", at = @At("HEAD"), cancellable = true)
@@ -345,11 +310,11 @@ public abstract class ItemStackMixin {
 
     @Inject(method = "use", at = @At("HEAD"), cancellable = true)
     private void overgeared$disableUse(Level world, Player player, InteractionHand hand,
-                                        CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir) {
+                                       CallbackInfoReturnable<InteractionResult> cir) {
         ItemStack stack = (ItemStack) (Object) this;
 
         if (isBroken(stack)) {
-            cir.setReturnValue(InteractionResultHolder.fail(stack));
+            cir.setReturnValue(InteractionResult.FAIL);
         }
     }
 }
