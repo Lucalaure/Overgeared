@@ -36,7 +36,7 @@ import java.util.List;
  */
 public abstract class OvergearedJsonReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
 
-    protected @Nullable HolderLookup.Provider registries;
+    protected HolderLookup.@Nullable Provider registries;
 
     protected OvergearedJsonReloadListener(String directory) {
         super(ExtraCodecs.JSON, FileToIdConverter.json(directory));

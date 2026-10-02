@@ -22,6 +22,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.util.Prediction;
+import net.minecraft.world.item.component.SwingAnimation;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -434,7 +436,7 @@ public class ModItemInteractEvents {
         }
 
         if (resultItem != stack && !player.getInventory().add(resultItem)) {
-            player.drop(resultItem, false);
+            player.drop(resultItem, false, Prediction.SERVER_ONLY);
         }
 
         playGrindEffects(world, pos);
@@ -606,11 +608,11 @@ public class ModItemInteractEvents {
             } else if (player.getOffhandItem() == stack) {
                 player.setItemInHand(InteractionHand.OFF_HAND, cooledStack);
             } else if (!player.getInventory().add(cooledStack)) {
-                player.drop(cooledStack, false);
+                player.drop(cooledStack, false, Prediction.SERVER_ONLY);
             }
         } else {
             if (!player.getInventory().add(cooledStack)) {
-                player.drop(cooledStack, false);
+                player.drop(cooledStack, false, Prediction.SERVER_ONLY);
             }
         }
 
@@ -642,7 +644,7 @@ public class ModItemInteractEvents {
                 player.setItemInHand(player.getUsedItemHand(), cooledIngot);
             } else {
                 if (!player.getInventory().add(cooledIngot)) {
-                    player.drop(cooledIngot, false);
+                    player.drop(cooledIngot, false, Prediction.SERVER_ONLY);
                 }
             }
 
@@ -858,7 +860,7 @@ public class ModItemInteractEvents {
 
             ServerLevel serverWorld = (ServerLevel) world;
 
-            if (world.random.nextFloat() < tool.dropChance()) {
+            if (world.getRandom().nextFloat() < tool.dropChance()) {
                 ItemStack dropStack = tool.dropItem().copy();
 
                 double sx = pos.getX() + 0.5;
@@ -884,7 +886,7 @@ public class ModItemInteractEvents {
                 world.setBlockAndUpdate(pos, data.getResultBlock().defaultBlockState());
             }
 
-            if (world.random.nextFloat() < tool.breakChance()) {
+            if (world.getRandom().nextFloat() < tool.breakChance()) {
 
                 if (heldItem.isDamageableItem()) {
                     heldItem.hurtAndBreak(1, player, hand);
@@ -893,7 +895,7 @@ public class ModItemInteractEvents {
                 }
 
                 world.playSound(null, player.blockPosition(),
-                        SoundEvents.ITEM_BREAK, SoundSource.PLAYERS,
+                        SoundEvents.ITEM_BREAK.value(), SoundSource.PLAYERS,
                         0.8F, 1.0F);
             } else {
                 world.playSound(null, pos,
@@ -901,7 +903,7 @@ public class ModItemInteractEvents {
                         1.0F, 1.0F);
             }
 
-            player.swing(hand);
+            player.swing(hand, SwingAnimation.DEFAULT, true);
             return InteractionResult.SUCCESS;
         }
 
@@ -951,7 +953,7 @@ public class ModItemInteractEvents {
             usedHand.shrink(1);
             player.setItemInHand(hand, usedHand);
             if (!player.getInventory().add(resultArrow)) {
-                player.drop(resultArrow, false);
+                player.drop(resultArrow, false, Prediction.SERVER_ONLY);
             }
         }
 

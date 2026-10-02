@@ -1,7 +1,9 @@
 package net.stirdrem.overgeared.datagen;
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
+import net.minecraft.data.tags.TagAppender;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
@@ -12,11 +14,12 @@ import net.stirdrem.overgeared.item.ModItems;
 import net.stirdrem.overgeared.util.ModTags;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
-public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
+public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
 
     public ModItemTagProvider(
-            FabricDataOutput output,
+            FabricPackOutput output,
             CompletableFuture<HolderLookup.Provider> registriesFuture
     ) {
         super(output, registriesFuture);
@@ -24,6 +27,15 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider wrapperLookup) {
+
+        // ---------------------------------------------------------------------
+        // Repair materials for ModToolTiers.STEEL / ModArmorMaterials.STEEL
+        // ---------------------------------------------------------------------
+
+        getOrCreateTagBuilder(ModTags.Items.STEEL_TOOL_MATERIALS)
+                .add(ModItems.STEEL_INGOT);
+        getOrCreateTagBuilder(ModTags.Items.REPAIRS_STEEL_ARMOR)
+                .add(ModItems.STEEL_INGOT);
 
         // ---------------------------------------------------------------------
         // Tongs
@@ -100,7 +112,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // Tools
         // ---------------------------------------------------------------------
 
-        getOrCreateTagBuilder(ItemTags.TOOLS)
+        getOrCreateTagBuilder(commonTag("tools")) // 26.3: vanilla minecraft:tools is gone; c:tools is the convention tag
                 .add(
                         ModItems.WOODEN_TONGS,
                         ModItems.IRON_TONGS,
@@ -217,7 +229,7 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
         // Tools
         // ---------------------------------------------------------------------
 
-        getOrCreateTagBuilder(ItemTags.TOOLS)
+        getOrCreateTagBuilder(commonTag("tools")) // 26.3: vanilla minecraft:tools is gone; c:tools is the convention tag
                 .add(
                         ModItems.STEEL_AXE,
                         ModItems.STEEL_PICKAXE,
@@ -375,5 +387,42 @@ public class ModItemTagProvider extends FabricTagProvider.ItemTagProvider {
                 net.minecraft.core.registries.Registries.ITEM,
                 Identifier.tryBuild("c", path)
         );
+    }
+
+    /** 26.3 port: Fabric's tag builders are ResourceKey based now; this keeps the old value-based call sites. */
+    private ValueTagAppender<Item> getOrCreateTagBuilder(TagKey<Item> tag) {
+        return new ValueTagAppender<>(builder(tag), item -> item.builtInRegistryHolder().key());
+    }
+
+    /** Value-based wrapper around a key-based {@link TagAppender} (shared with ModBlockTagProvider). */
+    public static final class ValueTagAppender<T> {
+        private final TagAppender<T> delegate;
+        private final Function<T, ResourceKey<T>> keyGetter;
+
+        public ValueTagAppender(TagAppender<T> delegate, Function<T, ResourceKey<T>> keyGetter) {
+            this.delegate = delegate;
+            this.keyGetter = keyGetter;
+        }
+
+        @SafeVarargs
+        public final ValueTagAppender<T> add(T... values) {
+            for (T value : values) delegate.add(keyGetter.apply(value));
+            return this;
+        }
+
+        public ValueTagAppender<T> addTag(TagKey<T> tag) {
+            delegate.addTag(tag);
+            return this;
+        }
+
+        public ValueTagAppender<T> addOptionalTag(TagKey<T> tag) {
+            delegate.addOptionalTag(tag);
+            return this;
+        }
+
+        public ValueTagAppender<T> addOptional(ResourceKey<T> key) {
+            delegate.addOptional(key);
+            return this;
+        }
     }
 }

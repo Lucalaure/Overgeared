@@ -1,8 +1,7 @@
 package net.stirdrem.overgeared.datagen;
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
-import net.fabricmc.fabric.api.mininglevel.v1.MiningLevelManager;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -15,8 +14,8 @@ import net.stirdrem.overgeared.util.ModTags;
 
 import java.util.concurrent.CompletableFuture;
 
-public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
-    public ModBlockTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
+    public ModBlockTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, registriesFuture);
     }
 
@@ -59,8 +58,9 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         getOrCreateTagBuilder(ModTags.Blocks.IRON_ANVIL_BASES)
                 .add(Blocks.ANVIL);
 
+        // 26.3 port: Fabric's MiningLevelManager is gone; level 2 = vanilla needs_iron_tool, 3 = needs_diamond_tool.
         getOrCreateTagBuilder(
-                MiningLevelManager.getBlockTag(2)
+                BlockTags.NEEDS_IRON_TOOL
         ).add(
                 Blocks.IRON_ORE,
                 Blocks.DEEPSLATE_IRON_ORE,
@@ -69,7 +69,7 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         );
 
         getOrCreateTagBuilder(
-                MiningLevelManager.getBlockTag(3)
+                BlockTags.NEEDS_DIAMOND_TOOL
         ).add(
                 Blocks.OBSIDIAN,
                 Blocks.CRYING_OBSIDIAN,
@@ -93,4 +93,8 @@ public class ModBlockTagProvider extends FabricTagProvider.BlockTagProvider {
     }
 
 
+
+    private ModItemTagProvider.ValueTagAppender<Block> getOrCreateTagBuilder(TagKey<Block> tag) {
+        return new ModItemTagProvider.ValueTagAppender<>(builder(tag), block -> block.builtInRegistryHolder().key());
+    }
 }

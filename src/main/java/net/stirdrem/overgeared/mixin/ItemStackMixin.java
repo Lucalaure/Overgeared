@@ -7,6 +7,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -136,7 +137,7 @@ public abstract class ItemStackMixin {
                     } else if (isOff) {
                         player.setItemInHand(InteractionHand.OFF_HAND, newStack);
                     } else if (!player.getInventory().add(newStack)) {
-                        player.drop(newStack, false);
+                        player.drop(newStack, false, Prediction.SERVER_ONLY);
                     }
 
                     world.playSound(null, player.blockPosition(), SoundEvents.FIRE_EXTINGUISH, SoundSource.PLAYERS, 0.7f, 1.0f);
