@@ -1,42 +1,53 @@
 package net.stirdrem.overgeared.block.entity;
 
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShieldItem;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.stirdrem.overgeared.AnvilTier;
 import net.stirdrem.overgeared.BlueprintQuality;
 import net.stirdrem.overgeared.ForgingQuality;
 import net.stirdrem.overgeared.Overgeared;
 import net.stirdrem.overgeared.advancement.ModAdvancementTriggers;
 import net.stirdrem.overgeared.block.custom.AbstractSmithingAnvil;
+import net.stirdrem.overgeared.components.BlueprintData;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.config.ServerConfig;
 import net.stirdrem.overgeared.event.ModEvents;
 import net.stirdrem.overgeared.item.custom.BlueprintItem;
 import net.stirdrem.overgeared.recipe.ForgingRecipe;
+import net.stirdrem.overgeared.recipe.ItemListInput;
+import net.stirdrem.overgeared.recipe.ModRecipeTypes;
+import net.stirdrem.overgeared.recipe.RecipeLookup;
 import net.stirdrem.overgeared.util.ItemStackHandler;
 import net.stirdrem.overgeared.util.ModTags;
 import org.jetbrains.annotations.Nullable;
@@ -48,22 +59,22 @@ import static net.stirdrem.overgeared.Overgeared.getCooledItem;
 /**
  * Fabric has no equivalent of Forge's IItemHandler capability system, so hopper/automation
  * interaction is implemented directly via Inventory/SidedInventory instead of a separate
- * capability object. Block entity sync also relies on the default full-NBT
- * toInitialChunkDataNbt()/toUpdatePacket() implementation rather than porting the original's
- * smaller custom update tag - functionally equivalent, just a little more data per sync packet.
+ * capability object. Block entity sync sends the full saved data (getUpdateTag) rather than
+ * porting the original's smaller custom update tag - functionally equivalent, just a little more
+ * data per sync packet. Recipes are looked up through RecipeLookup (works on both sides).
  */
-public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, Container, WorldlyContainer {
+public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity implements ExtendedMenuProvider<BlockPos>, Container, WorldlyContainer {
     protected static final int INPUT_SLOT = 0;
     protected static final int OUTPUT_SLOT = 10;
     protected static final int BLUEPRINT_SLOT = 11;
 
     protected boolean needsRecipeUpdate = true;
-    protected Optional<ForgingRecipe> cachedRecipe = Optional.empty();
+    protected Optional<RecipeHolder<ForgingRecipe>> cachedRecipe = Optional.empty();
     protected final ItemStackHandler itemHandler = new ItemStackHandler(12) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
-            if (!level.isClientSide) {
+            if (level != null && !level.isClientSide()) {
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
             }
             needsRecipeUpdate = true;
@@ -81,7 +92,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
     protected long sessionStartTime = 0L; // optional, for timeout logic
     protected ItemStack failedResult;
     protected Player player;
-    protected ForgingRecipe lastRecipe = null;
+    protected RecipeHolder<ForgingRecipe> lastRecipe = null;
     protected ItemStack lastBlueprint = ItemStack.EMPTY;
     private boolean minigameOn = false;
     protected AbstractSmithingAnvil anvilBlock;
@@ -121,11 +132,19 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
     }
 
     public void drops() {
-        SimpleContainer inventory = new SimpleContainer(itemHandler.getSlots());
-        for (int i = 0; i < itemHandler.getSlots(); i++) {
-            inventory.setItem(i, itemHandler.getStackInSlot(i));
+        if (this.level != null) Containers.dropContents(this.level, this.worldPosition, this);
+    }
+
+    /**
+     * 26.x replacement for the block's onRemove: super drops the contents (vanilla handles any
+     * BlockEntity that is a Container), then the minigame is reset for whoever was using it.
+     */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (this.level != null && !this.level.isClientSide()) {
+            ModEvents.resetMinigameForAnvil(this.level, pos);
         }
-        Containers.dropContents(this.level, this.worldPosition, inventory);
     }
 
     @Override
@@ -134,43 +153,36 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
     }
 
     @Override
-    public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
-        buf.writeBlockPos(worldPosition);
+    public BlockPos getScreenOpeningData(ServerPlayer player) {
+        return worldPosition;
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
+    protected void saveAdditional(ValueOutput tag) {
         super.saveAdditional(tag);
         tag.putInt("hitRemains", hitRemains);
         tag.putInt("progress", progress);
         tag.putInt("maxProgress", maxProgress);
-        tag.put("inventory", itemHandler.serializeNBT());
+        BlockEntityHelper.saveInventory(tag, "inventory", itemHandler);
 
         if (ownerUUID != null) {
-            tag.putUUID("ownerUUID", ownerUUID);
+            tag.store("ownerUUID", UUIDUtil.CODEC, ownerUUID);
             tag.putLong("sessionStartTime", sessionStartTime);
         }
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(ValueInput tag) {
+        super.loadAdditional(tag);
 
-        if (tag.contains("inventory")) {
-            itemHandler.deserializeNBT(tag.getCompound("inventory"));
-        }
+        BlockEntityHelper.loadInventory(tag, "inventory", itemHandler);
 
-        hitRemains = tag.getInt("hitRemains");
-        progress = tag.getInt("progress");
-        maxProgress = tag.getInt("maxProgress");
+        hitRemains = tag.getIntOr("hitRemains", 0);
+        progress = tag.getIntOr("progress", 0);
+        maxProgress = tag.getIntOr("maxProgress", 0);
 
-        if (tag.hasUUID("ownerUUID")) {
-            ownerUUID = tag.getUUID("ownerUUID");
-            sessionStartTime = tag.getLong("sessionStartTime");
-        } else {
-            ownerUUID = null;
-            sessionStartTime = 0L;
-        }
+        ownerUUID = tag.read("ownerUUID", UUIDUtil.CODEC).orElse(null);
+        sessionStartTime = ownerUUID != null ? tag.getLongOr("sessionStartTime", 0L) : 0L;
 
         // The cached recipe must be recalculated after loading.
         needsRecipeUpdate = true;
@@ -178,8 +190,8 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
     
     @Override
@@ -216,7 +228,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
         progress = 0;
         maxProgress = 0;
         lastRecipe = null;
-        if (!level.isClientSide) {
+        if (level != null && !level.isClientSide() && player instanceof ServerPlayer) {
             ModEvents.resetMinigameForPlayer((ServerPlayer) player);
             AbstractSmithingAnvil.setQuality(null);
         }
@@ -228,22 +240,15 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
         if (opt.isEmpty()) return;
 
         ForgingRecipe recipe = opt.get();
-        ItemStack result = recipe.getResultItem(level.registryAccess());
-        failedResult = recipe.getFailedResultItem(level.registryAccess());
+        // 26.3 port: assumes the recipe agent keeps no-arg getResultItem()/getFailedResultItem().
+        ItemStack result = recipe.getResultItem().copy();
+        failedResult = recipe.getFailedResultItem();
 
         // Collect max ingredient quality
         ForgingQuality maxIngredientQuality = null;
 
         for (int i = 0; i < 9; i++) {
-            ItemStack stack = itemHandler.getStackInSlot(i);
-            if (!stack.hasTag()) continue;
-
-            CompoundTag tag = stack.getTag();
-            if (tag == null || !tag.contains("ForgingQuality", Tag.TAG_STRING)) {
-                continue;
-            }
-
-            ForgingQuality q = ForgingQuality.fromString(tag.getString("ForgingQuality"));
+            ForgingQuality q = ForgingQuality.get(itemHandler.getStackInSlot(i));
             if (q == null) continue;
 
             if (maxIngredientQuality == null || q.ordinal() > maxIngredientQuality.ordinal()) {
@@ -251,19 +256,17 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
             }
         }
 
-        CompoundTag resultTag = result.getTag();
-        if (resultTag == null) resultTag = new CompoundTag();
-        // Base result NBT
+        // Base result components
         if (recipe.hasQuality()
                 && player != null
                 && ServerConfig.PLAYER_AUTHOR_TOOLTIPS.get()) {
-            resultTag.putString("Creator", player.getName().getString());
+            result.set(ModComponents.CREATOR, player.getName().getString());
         }
 
         if (recipe.needQuenching()
                 && !result.is(ModTags.Items.HEATED_METALS)
                 && !result.is(ModTags.Items.HOT_ITEMS)) {
-            resultTag.putBoolean("Heated", true);
+            result.set(ModComponents.HEATED, true);
         }
 
         // Quality & minigame resolution
@@ -291,22 +294,22 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
                 // PERFECT -> MASTER roll
                 if (quality == ForgingQuality.PERFECT
                         && ServerConfig.MASTER_QUALITY_CHANCE.get() > 0
-                        && level.random.nextFloat() < ServerConfig.MASTER_QUALITY_CHANCE.get()) {
+                        && level.getRandom().nextFloat() < ServerConfig.MASTER_QUALITY_CHANCE.get()) {
                     quality = ForgingQuality.MASTER;
                 }
 
-                // Apply quality NBT
+                // Apply quality
                 if (recipe.hasQuality()) {
-                    resultTag.putString("ForgingQuality", quality.getDisplayName());
+                    result.set(ModComponents.FORGING_QUALITY, quality);
 
                     if (player instanceof ServerPlayer serverPlayer) {
                         ModAdvancementTriggers.FORGING_QUALITY
                                 .trigger(serverPlayer, quality.getDisplayName());
                     }
-                    if (!(result.getItem() instanceof ArmorItem)
+                    if (!isArmor(result)
                             && !(result.getItem() instanceof ShieldItem)
                             && recipe.hasPolishing()) {
-                        resultTag.putBoolean("Polished", false);
+                        result.set(ModComponents.POLISHED, false);
                     }
                 }
                 if (!failedResult.isEmpty() & rollFailure(quality)) {
@@ -314,10 +317,8 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
                 }
             }
         }
-        if (!resultTag.isEmpty())
-            result.setTag(resultTag);
 
-        transferIngredientNBT(result, recipe);
+        transferIngredientComponents(result, recipe);
 
 
         for (int i = 0; i < 9; i++) {
@@ -332,7 +333,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
             return;
         }
 
-        if (!ItemStack.isSameItemSameTags(existing, result)) return;
+        if (!ItemStack.isSameItemSameComponents(existing, result)) return;
 
         int total = existing.getCount() + result.getCount();
         int max = Math.min(existing.getMaxStackSize(),
@@ -356,12 +357,18 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
         itemHandler.setStackInSlot(OUTPUT_SLOT, existing);
     }
 
+    /** ArmorItem no longer exists: armor is anything equippable in a humanoid armor slot. */
+    private static boolean isArmor(ItemStack stack) {
+        Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+        return equippable != null && equippable.slot().getType() == EquipmentSlot.Type.HUMANOID_ARMOR;
+    }
+
     private boolean rollFailure(ForgingQuality quality) {
         return switch (quality) {
             case POOR -> true;
-            case WELL -> level.random.nextFloat()
+            case WELL -> level.getRandom().nextFloat()
                     < ServerConfig.FAIL_ON_WELL_QUALITY_CHANCE.get();
-            case EXPERT -> level.random.nextFloat()
+            case EXPERT -> level.getRandom().nextFloat()
                     < ServerConfig.FAIL_ON_EXPERT_QUALITY_CHANCE.get();
             default -> false;
         };
@@ -377,62 +384,53 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
 
         // Handle blueprint progression (slot 11)
         ItemStack blueprint = this.itemHandler.getStackInSlot(BLUEPRINT_SLOT);
-        if (!blueprint.isEmpty() && blueprint.hasTag()) {
-            CompoundTag tag = blueprint.getOrCreateTag();
+        BlueprintData blueprintData = blueprint.get(ModComponents.BLUEPRINT_DATA);
+        if (blueprint.isEmpty() || blueprintData == null) return;
 
-            if (tag.contains("Quality") && tag.contains("Uses")) {
-                String currentQualityStr = tag.getString("Quality");
-                int uses = tag.getInt("Uses");
-                int usesToLevel = BlueprintItem.getUsesToNextLevel(blueprint);
+        int uses = blueprintData.uses();
+        int usesToLevel = BlueprintItem.getUsesToNextLevel(blueprint);
 
-                BlueprintQuality currentQuality = BlueprintQuality.fromString(currentQualityStr);
+        BlueprintQuality currentQuality = blueprintData.getQualityEnum();
 
-                // Attempt to read the ForgingQuality from result
-                String forgingQualityStr = anvilBlock.getQuality();
-                ForgingQuality resultQuality = ForgingQuality.fromString(forgingQualityStr);
+        // Attempt to read the ForgingQuality from the minigame result
+        ForgingQuality resultQuality = ForgingQuality.fromString(anvilBlock.getQuality());
 
-                if (currentQuality != null && currentQuality != BlueprintQuality.PERFECT && currentQuality != BlueprintQuality.MASTER) {
-                    if (!ServerConfig.EXPERT_ABOVE_INCREASE_BLUEPRINT.get() || resultQuality.ordinal() >= ForgingQuality.EXPERT.ordinal()) {
-                        uses += switch (resultQuality) {
-                            case PERFECT -> 2;
-                            case MASTER -> 3;
-                            default -> 1;
-                        };
-                    }
+        if (currentQuality == BlueprintQuality.PERFECT || currentQuality == BlueprintQuality.MASTER) return;
 
-
-                    // Level up if threshold reached
-                    if (uses >= usesToLevel) {
-                        BlueprintQuality nextQuality = BlueprintQuality.getNext(currentQuality);
-                        if (nextQuality != null) {
-                            tag.putString("Quality", nextQuality.getDisplayName());
-                            tag.putInt("Uses", 0);
-                            if (player instanceof ServerPlayer serverPlayer) {
-                                if (nextQuality.equals(BlueprintQuality.PERFECT) || nextQuality.equals(BlueprintQuality.MASTER))
-                                    ModAdvancementTriggers.MAX_LEVEL_BLUEPRINT.trigger(serverPlayer);
-                                ModAdvancementTriggers.BLUEPRINT_QUALITY.trigger(serverPlayer, nextQuality.getDisplayName());
-                            }
-                        } else {
-                            tag.putInt("Uses", usesToLevel); // Clamp
-                        }
-
-
-                    } else {
-                        tag.putInt("Uses", uses); // Just increment
-                    }
-
-                    blueprint.setTag(tag);
-                    this.itemHandler.setStackInSlot(BLUEPRINT_SLOT, blueprint);
-                }
-            }
+        if (!ServerConfig.EXPERT_ABOVE_INCREASE_BLUEPRINT.get() || resultQuality.ordinal() >= ForgingQuality.EXPERT.ordinal()) {
+            uses += switch (resultQuality) {
+                case PERFECT -> 2;
+                case MASTER -> 3;
+                default -> 1;
+            };
         }
+
+        // Level up if threshold reached
+        if (uses >= usesToLevel) {
+            BlueprintQuality nextQuality = BlueprintQuality.getNext(currentQuality);
+            if (nextQuality != null) {
+                blueprint.set(ModComponents.BLUEPRINT_DATA,
+                        blueprintData.withQuality(nextQuality.getDisplayName()).withUses(0));
+                if (player instanceof ServerPlayer serverPlayer) {
+                    if (nextQuality.equals(BlueprintQuality.PERFECT) || nextQuality.equals(BlueprintQuality.MASTER))
+                        ModAdvancementTriggers.MAX_LEVEL_BLUEPRINT.trigger(serverPlayer);
+                    ModAdvancementTriggers.BLUEPRINT_QUALITY.trigger(serverPlayer, nextQuality.getDisplayName());
+                }
+            } else {
+                blueprint.set(ModComponents.BLUEPRINT_DATA, blueprintData.withUses(usesToLevel)); // Clamp
+            }
+        } else {
+            blueprint.set(ModComponents.BLUEPRINT_DATA, blueprintData.withUses(uses)); // Just increment
+        }
+
+        this.itemHandler.setStackInSlot(BLUEPRINT_SLOT, blueprint);
     }
 
-    private void transferIngredientNBT(ItemStack result, ForgingRecipe recipe) {
-        CompoundTag resultTag = result.getTag();
-        if (resultTag == null)
-            resultTag = new CompoundTag();
-
+    /**
+     * Copies the components of ingredients flagged transferNbt onto the result (was a raw NBT key
+     * copy). Quality, creator, heated and damage are never transferred; damage is handled below.
+     */
+    private void transferIngredientComponents(ItemStack result, ForgingRecipe recipe) {
         List<ForgingRecipe.ForgingIngredient> ingredients =
                 recipe.getForgingIngredients();
 
@@ -459,21 +457,13 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
                 foundDamage = true;
             }
 
-            // NBT transfer
-            if (!ingredientStack.hasTag()) continue;
-
-            CompoundTag ingredientTag = ingredientStack.getTag();
-            if (ingredientTag == null) continue;
-
-            for (String key : ingredientTag.getAllKeys()) {
-                if (key.equals("ForgingQuality")
-                        || key.equals("Creator")
-                        || key.equals("Heated")
-                        || key.equals("Damage")) {
-                    continue;
-                }
-
-                resultTag.put(key, ingredientTag.get(key).copy());
+            DataComponentPatch patch = ingredientStack.getComponentsPatch().forget(type ->
+                    type == ModComponents.FORGING_QUALITY
+                            || type == ModComponents.CREATOR
+                            || type == ModComponents.HEATED
+                            || type == DataComponents.DAMAGE);
+            if (!patch.isEmpty()) {
+                result.applyComponents(patch);
             }
         }
 
@@ -481,10 +471,6 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
             result.setDamageValue(
                     Math.min(transferredDamage, result.getMaxDamage() - 1)
             );
-        }
-
-        if (!resultTag.isEmpty()) {
-            result.setTag(resultTag);
         }
     }
 
@@ -507,7 +493,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
             return false;
         }
 
-        ItemStack resultStack = recipe.getResultItem(level.registryAccess());
+        ItemStack resultStack = recipe.getResultItem();
 
         return canInsertItemIntoOutputSlot(resultStack, recipe)
                 && canInsertAmountIntoOutputSlot(resultStack.getCount());
@@ -527,48 +513,77 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
 
         ItemStack blueprint = this.itemHandler.getStackInSlot(BLUEPRINT_SLOT);
 
+        BlueprintData blueprintData = blueprint.isEmpty() ? null : blueprint.get(ModComponents.BLUEPRINT_DATA);
+
         if (recipe.requiresBlueprint()) {
             // Must have a valid matching blueprint
-            if (blueprint.isEmpty() || !blueprint.hasTag() || !blueprint.getTag().contains("ToolType")) {
+            if (blueprintData == null) {
                 return false;
             }
 
-            String blueprintToolType = blueprint.getTag().getString("ToolType").toLowerCase(Locale.ROOT);
+            String blueprintToolType = blueprintData.toolType().toLowerCase(Locale.ROOT);
             if (!recipe.getBlueprintTypes().contains(blueprintToolType)) {
                 return false;
             }
         } else {
             // Optional blueprint: if present, it must match
-            if (!blueprint.isEmpty() && blueprint.hasTag() && blueprint.getTag().contains("ToolType")) {
-                String blueprintToolType = blueprint.getTag().getString("ToolType").toLowerCase(Locale.ROOT);
+            if (blueprintData != null) {
+                String blueprintToolType = blueprintData.toolType().toLowerCase(Locale.ROOT);
                 if (!recipe.getBlueprintTypes().contains(blueprintToolType)) {
                     return false;
                 }
             }
         }
 
-        ItemStack resultStack = recipe.getResultItem(level.registryAccess());
+        ItemStack resultStack = recipe.getResultItem();
         return canInsertItemIntoOutputSlot(resultStack, recipe)
                 && canInsertAmountIntoOutputSlot(resultStack.getCount());
     }
 
     public Optional<ForgingRecipe> getCurrentRecipe() {
+        return getCurrentRecipeHolder().map(RecipeHolder::value);
+    }
+
+    public Optional<RecipeHolder<ForgingRecipe>> getCurrentRecipeHolder() {
         if (level == null) return Optional.empty();
 
         if (needsRecipeUpdate) {
-            SimpleContainer inventory = new SimpleContainer(this.itemHandler.getSlots());
-            for (int i = 0; i < 9; i++) {
-                inventory.setItem(i, itemHandler.getStackInSlot(i));
-            }
-            inventory.setItem(11, itemHandler.getStackInSlot(11));
+            ItemListInput input = recipeInput();
 
-            cachedRecipe = ForgingRecipe.findBestMatch(level, inventory)
-                    .filter(this::matchesRecipeExactly);
+            cachedRecipe = findBestMatch(input)
+                    .filter(holder -> holder.value().matches(input, level));
 
             needsRecipeUpdate = false;
         }
 
         return cachedRecipe;
+    }
+
+    /** Recipe input indexed like the anvil inventory: grid 0-8, output 9-10 empty, blueprint 11. */
+    protected ItemListInput recipeInput() {
+        List<ItemStack> stacks = new ArrayList<>(12);
+        for (int i = 0; i < 12; i++) {
+            stacks.add(i < 9 || i == BLUEPRINT_SLOT ? itemHandler.getStackInSlot(i) : ItemStack.EMPTY);
+        }
+        return new ItemListInput(stacks);
+    }
+
+    /** Port of ForgingRecipe.findBestMatch: the largest matching recipe containing the first grid item. */
+    private Optional<RecipeHolder<ForgingRecipe>> findBestMatch(ItemListInput input) {
+        ItemStack keyStack = ItemStack.EMPTY;
+        for (int i = 0; i < 9; i++) {
+            if (!input.getItem(i).isEmpty()) {
+                keyStack = input.getItem(i);
+                break;
+            }
+        }
+        if (keyStack.isEmpty()) return Optional.empty();
+
+        final ItemStack key = keyStack;
+        return RecipeLookup.<ItemListInput, ForgingRecipe>all(level, ModRecipeTypes.FORGING).stream()
+                .filter(holder -> holder.value().containsIngredient(key))
+                .filter(holder -> holder.value().matches(input, level))
+                .max(Comparator.comparingInt(holder -> holder.value().getWidth() * holder.value().getHeight()));
     }
 
     protected boolean canInsertItemIntoOutputSlot(ItemStack stackToInsert, ForgingRecipe currentRecipe) {
@@ -579,7 +594,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
         }
 
         return existing.isEmpty()
-                || ItemStack.isSameItemSameTags(existing, stackToInsert);
+                || ItemStack.isSameItemSameComponents(existing, stackToInsert);
     }
 
     protected boolean canInsertAmountIntoOutputSlot(int count) {
@@ -599,7 +614,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
 
         setChanged();
 
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
 
@@ -627,7 +642,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
         try {
             // Check if blueprint changed mid-forging
             ItemStack currentBlueprint = this.itemHandler.getStackInSlot(11);
-            if (!ItemStack.isSameItemSameTags(currentBlueprint, lastBlueprint)) {
+            if (!ItemStack.isSameItemSameComponents(currentBlueprint, lastBlueprint)) {
                 if (progress > 0 || lastRecipe != null || isMinigameOn()) {
                     resetProgress();
                     setMinigameOn(false);
@@ -636,7 +651,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
             }
             lastBlueprint = currentBlueprint.copy();
 
-            Optional<ForgingRecipe> currentRecipeOpt = getCurrentRecipe();
+            Optional<RecipeHolder<ForgingRecipe>> currentRecipeOpt = getCurrentRecipeHolder();
             if (currentRecipeOpt.isEmpty()) {
                 if (progress > 0 || lastRecipe != null) {
                     resetProgress();
@@ -644,22 +659,23 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
                 return;
             }
 
-            ForgingRecipe currentRecipe = currentRecipeOpt.get();
+            RecipeHolder<ForgingRecipe> currentHolder = currentRecipeOpt.get();
+            ForgingRecipe currentRecipe = currentHolder.value();
 
             boolean recipeChanged = false;
             if (lastRecipe != null) {
-                recipeChanged = !currentRecipe.getId().equals(lastRecipe.getId());
+                recipeChanged = !currentHolder.id().equals(lastRecipe.id());
             } else if (maxProgress > 0) {
                 recipeChanged = true;
             }
 
             if (recipeChanged) {
                 resetProgress();
-                lastRecipe = currentRecipe;
+                lastRecipe = currentHolder;
                 return;
             }
 
-            lastRecipe = currentRecipe;
+            lastRecipe = currentHolder;
 
             if (hasRecipe()) {
                 maxProgress = currentRecipe.getHammeringRequired();
@@ -691,13 +707,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
     }
 
     protected boolean matchesRecipeExactly(ForgingRecipe recipe) {
-        SimpleContainer inventory = new SimpleContainer(this.itemHandler.getSlots()); // 3x3 grid
-        // Copy items from input slots (0-8) to our 3x3 grid
-        for (int i = 0; i < 9; i++) {
-            inventory.setItem(i, this.itemHandler.getStackInSlot(i));
-        }
-        inventory.setItem(11, this.itemHandler.getStackInSlot(11));
-        return recipe.matches(inventory, level);
+        return recipe.matches(recipeInput(), level);
     }
 
     protected String determineForgingQuality() {
@@ -713,22 +723,15 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
             List<String> qualityTiers = List.of("poor", "well", "expert", "perfect", "master");
 
             // If blueprint is missing or invalid, fallback logic
-            if (blueprint.isEmpty() || !blueprint.hasTag()) {
+            BlueprintData blueprintData = blueprint.isEmpty() ? null : blueprint.get(ModComponents.BLUEPRINT_DATA);
+            if (blueprintData == null) {
                 return switch (quality.toLowerCase(Locale.ROOT)) {
                     case "poor" -> ForgingQuality.POOR.getDisplayName();
                     default -> "well"; // Cap quality at 'well' without blueprint
                 };
             }
 
-            CompoundTag nbt = blueprint.getTag();
-            if (nbt == null || !nbt.contains("Quality")) {
-                return switch (quality.toLowerCase(Locale.ROOT)) {
-                    case "poor" -> ForgingQuality.POOR.getDisplayName();
-                    default -> "well"; // Cap quality at 'well' without ToolType
-                };
-            }
-
-            String blueprintToolType = nbt.getString("Quality").toLowerCase(Locale.ROOT);
+            String blueprintToolType = blueprintData.quality().toLowerCase(Locale.ROOT);
 
             // Determine capped quality
             int anvilTierIndex = qualityTiers.indexOf(quality.toLowerCase(Locale.ROOT));
@@ -754,9 +757,8 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
                     for (int i = 0; i < this.itemHandler.getSlots(); i++) {
                         if (i == OUTPUT_SLOT || i == BLUEPRINT_SLOT) continue; // skip output + blueprint
                         ItemStack stack = this.itemHandler.getStackInSlot(i);
-                        if (!stack.isEmpty() && stack.hasTag() && stack.getTag().contains("ForgingQuality")) {
-                            String ingQuality = stack.getTag().getString("ForgingQuality").toLowerCase(Locale.ROOT);
-                            if ("master".equals(ingQuality)) {
+                        if (ForgingQuality.get(stack) != null) {
+                            if (ForgingQuality.get(stack) == ForgingQuality.MASTER) {
                                 hasMasterIngredient = true;
                                 break;
                             }
@@ -799,9 +801,8 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
             for (int i = 0; i < this.itemHandler.getSlots(); i++) {
                 if (i == OUTPUT_SLOT || i == BLUEPRINT_SLOT) continue; // skip output + blueprint
                 ItemStack stack = this.itemHandler.getStackInSlot(i);
-                if (!stack.isEmpty() && stack.hasTag() && stack.getTag().contains("ForgingQuality")) {
-                    String ingQuality = stack.getTag().getString("ForgingQuality").toLowerCase(Locale.ROOT);
-                    if ("master".equals(ingQuality)) {
+                if (ForgingQuality.get(stack) != null) {
+                    if (ForgingQuality.get(stack) == ForgingQuality.MASTER) {
                         hasMasterIngredient = true;
                         break;
                     }
@@ -863,16 +864,12 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
             String poor = quality.equalsIgnoreCase("poor")
                     ? ForgingQuality.POOR.getDisplayName()
                     : ForgingQuality.NONE.getDisplayName();
-            if (blueprint.isEmpty() || !blueprint.hasTag()) {
+            BlueprintData blueprintData = blueprint.isEmpty() ? null : blueprint.get(ModComponents.BLUEPRINT_DATA);
+            if (blueprintData == null) {
                 return poor;
             }
 
-            CompoundTag nbt = blueprint.getTag();
-            if (nbt == null || !nbt.contains("Quality")) {
-                return poor;
-            }
-
-            String bpQuality = nbt.getString("Quality").toLowerCase(Locale.ROOT);
+            String bpQuality = blueprintData.quality().toLowerCase(Locale.ROOT);
             // ensure it's in our tier list, otherwise default
             return qualityTiers.contains(bpQuality) ? bpQuality : ForgingQuality.NONE.getDisplayName();
         }
@@ -885,7 +882,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
         this.setChanged();
 
         // Force sync to client
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
 
@@ -901,7 +898,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
     }
 
     public int getProgress() {
-        if (level != null && level.isClientSide && data != null) {
+        if (level != null && level.isClientSide() && data != null) {
             // On client, get from synced container data
             return data.get(0);
         }
@@ -965,10 +962,8 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
         setChanged(); // mark dirty for save
     }
 
-    private static final String HEATED_TIME_TAG = "HeatedSince";
-
     public void tickHeatedIngredients(Level world) {
-        if (world.isClientSide) return;
+        if (world.isClientSide()) return;
         long tick = world.getGameTime();
         int cooldownTicks = ServerConfig.HEATED_ITEM_COOLDOWN_TICKS.get();
 
@@ -977,13 +972,11 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
             if (stack.isEmpty()) continue;
             if (!stack.is(ModTags.Items.HEATED_METALS)) continue;
 
-            CompoundTag tag = stack.getTag();
-            if (tag == null) tag = new CompoundTag();
-            long heatedSince = tag.getLong(HEATED_TIME_TAG);
+            long heatedSince = stack.getOrDefault(ModComponents.HEATED_TIME, 0L);
 
             // Initialize timestamp if not present
             if (heatedSince == 0L) {
-                tag.putLong(HEATED_TIME_TAG, tick);
+                stack.set(ModComponents.HEATED_TIME, tick);
                 continue;
             }
 
@@ -992,21 +985,14 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
                 Item cooled = getCooledItem(stack.getItem(), world);
                 if (cooled != null) {
                     ItemStack newStack = new ItemStack(cooled, stack.getCount());
-                    // Preserve quality or other metadata if needed
-                    if (stack.hasTag()) {
-                        CompoundTag oldTag = stack.getTag().copy();
-                        oldTag.remove(HEATED_TIME_TAG);
-                        if (oldTag.isEmpty()) {
-                            newStack.setTag(null); // fully clear
-                        } else {
-                            newStack.setTag(oldTag);
-                        }
-                    }
+                    // Preserve quality or other metadata
+                    newStack.applyComponents(stack.getComponentsPatch()
+                            .forget(type -> type == ModComponents.HEATED_TIME));
                     world.playSound(
                             null,                              // no player (broadcast to all nearby)
-                            worldPosition,                                // block position
-                            SoundEvents.FIRE_EXTINGUISH, // extinguish sound
-                            SoundSource.BLOCKS,               // sound category
+                            worldPosition,                     // block position
+                            SoundEvents.FIRE_EXTINGUISH,       // extinguish sound
+                            SoundSource.BLOCKS,                // sound category
                             1.0F,                              // volume
                             1.0F                               // pitch
                     );
