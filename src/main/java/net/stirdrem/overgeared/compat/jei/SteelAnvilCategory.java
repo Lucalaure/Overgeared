@@ -6,14 +6,11 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.ChatFormatting;
+import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.core.Holder;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
@@ -34,31 +31,23 @@ public class SteelAnvilCategory implements IRecipeCategory<ExplanationRecipe> {
 
     public static final Identifier UID = Overgeared.id("steel_anvil");
 
-    public static final RecipeType<ExplanationRecipe> STEEL_ANVIL_GET =
-            new RecipeType<>(UID, ExplanationRecipe.class);
+    public static final IRecipeType<ExplanationRecipe> STEEL_ANVIL_GET =
+            IRecipeType.create(UID, ExplanationRecipe.class);
 
     private final IDrawable background;
     private final IDrawable icon;
     private final Component title;
-    private final List<ItemStack> hammerItems;
 
-    public SteelAnvilCategory(IGuiHelper guiHelper, RegistryAccess registryManager) {
+    public SteelAnvilCategory(IGuiHelper guiHelper) {
         this.background = guiHelper.drawableBuilder(BACKGROUND_LOCATION, 0, 0, 150, 120)
                 .setTextureSize(150, 120)
                 .build();
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(ModBlocks.SMITHING_ANVIL));
         this.title = Component.translatable("jei.overgeared.category.steel_anvil");
-
-        TagKey<Item> hammerTag = ModTags.Items.SMITHING_HAMMERS;
-        this.hammerItems = StreamSupport.stream(
-                        registryManager.registryOrThrow(Registries.ITEM).getTagOrEmpty(hammerTag).spliterator(), false)
-                .map(Holder::value)
-                .map(ItemStack::new)
-                .collect(Collectors.toList());
     }
 
     @Override
-    public RecipeType<ExplanationRecipe> getRecipeType() {
+    public IRecipeType<ExplanationRecipe> getRecipeType() {
         return STEEL_ANVIL_GET;
     }
 
@@ -68,8 +57,13 @@ public class SteelAnvilCategory implements IRecipeCategory<ExplanationRecipe> {
     }
 
     @Override
-    public IDrawable getBackground() {
-        return background;
+    public int getWidth() {
+        return background.getWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return background.getHeight();
     }
 
     @Override
@@ -80,14 +74,23 @@ public class SteelAnvilCategory implements IRecipeCategory<ExplanationRecipe> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ExplanationRecipe recipe, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.INPUT, 21, 18)
-                .addItemStacks(hammerItems);
+                .addItemStacks(hammerItems());
 
         builder.addSlot(RecipeIngredientRole.OUTPUT, 113, 18)
-                .addItemStack(recipe.getResultItem());
+                .add(recipe.getResultItem());
+    }
+
+    // Resolved lazily: item tags are only bound once the client has received them.
+    private static List<ItemStack> hammerItems() {
+        TagKey<Item> hammerTag = ModTags.Items.SMITHING_HAMMERS;
+        return StreamSupport.stream(BuiltInRegistries.ITEM.getTagOrEmpty(hammerTag).spliterator(), false)
+                .map(ItemStack::new)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public void draw(ExplanationRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(ExplanationRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
+        background.draw(guiGraphics);
         int textWidth = 140;
         int textX = 5;
         int textY = 43;
@@ -97,17 +100,17 @@ public class SteelAnvilCategory implements IRecipeCategory<ExplanationRecipe> {
                 Component.translatable("jei.overgeared.steel_anvil.description"),
                 textX, textY,
                 textWidth,
-                ChatFormatting.DARK_GRAY.getColor(),
+                0xFF555555, // ChatFormatting.DARK_GRAY
                 false
         );
     }
 
-    public static void renderWrappedText(GuiGraphics guiGraphics, Component text, int x, int y, int width, int color, boolean shadow) {
+    public static void renderWrappedText(GuiGraphicsExtractor guiGraphics, Component text, int x, int y, int width, int color, boolean shadow) {
         var font = Minecraft.getInstance().font;
         List<FormattedCharSequence> lines = font.split(text, width);
 
         for (int i = 0; i < lines.size(); i++) {
-            guiGraphics.drawString(font, lines.get(i), x, y + (i * font.lineHeight), color, shadow);
+            guiGraphics.text(font, lines.get(i), x, y + (i * font.lineHeight), color, shadow);
         }
     }
 }
