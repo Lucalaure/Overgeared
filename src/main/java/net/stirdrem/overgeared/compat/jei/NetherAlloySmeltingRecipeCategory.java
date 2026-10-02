@@ -9,8 +9,8 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
@@ -22,6 +22,7 @@ import net.stirdrem.overgeared.block.ModBlocks;
 import net.stirdrem.overgeared.recipe.INetherAlloyRecipe;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public class NetherAlloySmeltingRecipeCategory implements IRecipeCategory<INetherAlloyRecipe> {
@@ -29,8 +30,8 @@ public class NetherAlloySmeltingRecipeCategory implements IRecipeCategory<INethe
     public static final Identifier UID = Overgeared.id("nether_alloy_smelting");
     public static final Identifier TEXTURE = Overgeared.id("textures/gui/nether_furnace_jei.png");
 
-    public static final RecipeType<INetherAlloyRecipe> ALLOY_SMELTING_TYPE =
-            new RecipeType<>(UID, INetherAlloyRecipe.class);
+    public static final IRecipeType<INetherAlloyRecipe> ALLOY_SMELTING_TYPE =
+            IRecipeType.create(UID, INetherAlloyRecipe.class);
 
     private final IDrawable background;
     private final IDrawable icon;
@@ -63,7 +64,7 @@ public class NetherAlloySmeltingRecipeCategory implements IRecipeCategory<INethe
     }
 
     @Override
-    public RecipeType<INetherAlloyRecipe> getRecipeType() {
+    public IRecipeType<INetherAlloyRecipe> getRecipeType() {
         return ALLOY_SMELTING_TYPE;
     }
 
@@ -73,8 +74,13 @@ public class NetherAlloySmeltingRecipeCategory implements IRecipeCategory<INethe
     }
 
     @Override
-    public IDrawable getBackground() {
-        return this.background;
+    public int getWidth() {
+        return this.background.getWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return this.background.getHeight();
     }
 
     @Override
@@ -83,14 +89,15 @@ public class NetherAlloySmeltingRecipeCategory implements IRecipeCategory<INethe
     }
 
     @Override
-    public void draw(INetherAlloyRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
-        Float exp = recipe.getExperience();
+    public void draw(INetherAlloyRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
+        background.draw(guiGraphics);
+        float exp = recipe.getExperience();
         arrowAnimated.draw(guiGraphics, 60, 19);
         flameAnimated.draw(guiGraphics, 64, 39);
 
         String expText;
-        if (exp == exp.intValue()) {
-            expText = exp.intValue() + " XP";
+        if (exp == (int) exp) {
+            expText = (int) exp + " XP";
         } else {
             expText = String.format("%.1f XP", exp);
         }
@@ -98,12 +105,12 @@ public class NetherAlloySmeltingRecipeCategory implements IRecipeCategory<INethe
         int textWidth = Minecraft.getInstance().font.width(expText);
         int xPos = this.background.getWidth() - textWidth;
 
-        guiGraphics.drawString(Minecraft.getInstance().font, expText, xPos, textureHeight - 9, 0xFFFFFFFF, true);
+        guiGraphics.text(Minecraft.getInstance().font, expText, xPos, textureHeight - 9, 0xFFFFFFFF, true);
     }
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, INetherAlloyRecipe recipe, IFocusGroup focuses) {
-        List<Ingredient> ingredients = recipe.getIngredientsList();
+        List<Optional<Ingredient>> ingredients = recipe.getIngredientsList();
         boolean isShaped = recipe.isShaped();
 
         if (isShaped) {
@@ -137,10 +144,7 @@ public class NetherAlloySmeltingRecipeCategory implements IRecipeCategory<INethe
                         int index = patternRow * width + patternCol;
 
                         if (index < ingredients.size()) {
-                            Ingredient ingredient = ingredients.get(index);
-                            if (!ingredient.isEmpty()) {
-                                slot.addIngredients(ingredient);
-                            }
+                            ingredients.get(index).ifPresent(slot::add);
                         }
                     }
                 }
@@ -151,9 +155,9 @@ public class NetherAlloySmeltingRecipeCategory implements IRecipeCategory<INethe
                 for (int col = 0; col < 3; col++) {
 
                     int index = row * 3 + col;
-                    Ingredient ingredient = index < ingredients.size()
+                    Optional<Ingredient> ingredient = index < ingredients.size()
                             ? ingredients.get(index)
-                            : Ingredient.EMPTY;
+                            : Optional.empty();
 
                     var slot = builder.addSlot(
                             RecipeIngredientRole.INPUT,
@@ -161,15 +165,13 @@ public class NetherAlloySmeltingRecipeCategory implements IRecipeCategory<INethe
                             1 + row * 18
                     );
 
-                    if (!ingredient.isEmpty()) {
-                        slot.addIngredients(ingredient);
-                    }
+                    ingredient.ifPresent(slot::add);
                 }
             }
         }
 
         builder.addSlot(RecipeIngredientRole.OUTPUT, 99, 20)
-                .addItemStack(recipe.getResultItem(null));
+                .add(recipe.getResultItem());
     }
 
     private static int getOffsetY(int gridHeight, int gridWidth, int recipeHeight, int recipeWidth) {
