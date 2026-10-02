@@ -8,6 +8,7 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
@@ -122,7 +123,7 @@ public class RockInteractionReloadListener extends OvergearedJsonReloadListener 
             float dropChance = GsonHelper.getAsFloat(toolObj, "drop_chance");
             float breakChance = GsonHelper.getAsFloat(toolObj, "break_chance");
 
-            tools.add(new RockInteractionData.ToolEntry(ingredient, new ItemStack(dropItem), dropChance, breakChance));
+            tools.add(new RockInteractionData.ToolEntry(ingredient, new ItemStackTemplate(dropItem), dropChance, breakChance));
         }
 
         RockInteractionData data = new RockInteractionData(inputBlock, tools, resultBlock);
@@ -145,7 +146,7 @@ public class RockInteractionReloadListener extends OvergearedJsonReloadListener 
 
         Ingredient flint = Ingredient.of(Items.FLINT);
 
-        ItemStack drop = new ItemStack(ModItems.ROCK);
+        ItemStackTemplate drop = new ItemStackTemplate(ModItems.ROCK);
 
         float dropChance = ServerConfig.ROCK_DROPPING_CHANCE.get().floatValue();
         float breakChance = ServerConfig.FLINT_BREAKING_CHANCE.get().floatValue();

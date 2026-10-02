@@ -37,6 +37,9 @@ public class QualityAttributeReloadListener extends OvergearedJsonReloadListener
     }
 
     private static final Set<Item> cachedItems = new HashSet<>();
+    // 26.3: item default components are bound only after reload listeners finish, so the WEAPON /
+    // ARMOR targets (which inspect components) are resolved lazily on first use after a reload.
+    private static boolean cacheDirty = true;
     public Identifier getFabricId() {
         return Overgeared.id("quality_attributes_listener");
     }
@@ -54,8 +57,7 @@ public class QualityAttributeReloadListener extends OvergearedJsonReloadListener
             definitions.add(def);
         }
 
-        // build cache
-        cachedItems.addAll(resolveItems());
+        cacheDirty = true;
 
         Overgeared.LOGGER.info("Loaded {} quality attribute files", jsons.size());
     }
@@ -182,7 +184,12 @@ public class QualityAttributeReloadListener extends OvergearedJsonReloadListener
         return items;
     }
 
-    public Set<Item> getAllItems() {
+    public synchronized Set<Item> getAllItems() {
+        if (cacheDirty) {
+            cachedItems.clear();
+            cachedItems.addAll(resolveItems());
+            cacheDirty = false;
+        }
         return cachedItems;
     }
 

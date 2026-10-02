@@ -35,6 +35,15 @@ dependencies {
 }
 
 fabricApi {
+    // Headless game test server (./gradlew runGameTest): boots a world and loads every datapack
+    // registry without needing a client or eula.txt - catches data/registry errors early.
+    configureTests {
+        createSourceSet = false
+        modId = "overgeared"
+        enableGameTests = true
+        enableClientGameTests = false
+        eula = false
+    }
     configureDataGeneration {
         // Model providers live in the client-only net.minecraft.client.data package in 26.x.
         client = true
