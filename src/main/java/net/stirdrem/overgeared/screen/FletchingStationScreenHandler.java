@@ -1,6 +1,7 @@
 package net.stirdrem.overgeared.screen;
 
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -391,7 +392,7 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
                 ItemStack stack = input.removeItemNoUpdate(i);
                 if (!stack.isEmpty()) {
                     if (!player.getInventory().add(stack)) {
-                        player.drop(stack, false);
+                        player.drop(stack, false, Prediction.SERVER_ONLY);
                     }
                 }
             }

@@ -3,6 +3,7 @@ package net.stirdrem.overgeared.screen;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -301,7 +302,7 @@ public class RockKnappingScreenHandler extends AbstractContainerMenu {
                 }
 
                 if (!player.getInventory().add(result.copy())) {
-                    player.drop(result.copy(), false);
+                    player.drop(result.copy(), false, Prediction.SERVER_ONLY);
                 }
 
                 resultContainer.setItem(0, ItemStack.EMPTY);
