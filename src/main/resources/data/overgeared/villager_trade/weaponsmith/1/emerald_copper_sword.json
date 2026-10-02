@@ -1,6 +1,6 @@
 {
   "gives": {
-    "id": "overgeared:copper_sword"
+    "id": "minecraft:copper_sword"
   },
   "max_uses": 12,
   "reputation_discount": 0.05,

@@ -55,8 +55,7 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         getOrCreateTagBuilder(commonTag("ingots"))
                 .add(ModItems.STEEL_INGOT);
         getOrCreateTagBuilder(commonTag("nuggets"))
-                .add(ModItems.STEEL_NUGGET)
-                .add(ModItems.COPPER_NUGGET);
+                .add(ModItems.STEEL_NUGGET);
 
         // ---------------------------------------------------------------------
         // Tool parts
@@ -178,10 +177,6 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         ).add(ModItems.STEEL_NUGGET);
 
         getOrCreateTagBuilder(
-                commonTag("nuggets/copper")
-        ).add(ModItems.COPPER_NUGGET);
-
-        getOrCreateTagBuilder(
                 commonTag("plates/copper")
         ).add(ModItems.COPPER_PLATE);
 
@@ -200,29 +195,29 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         getOrCreateTagBuilder(
                 commonTag("armors/helmets")
         ).add(
-                ModItems.STEEL_HELMET,
-                ModItems.COPPER_HELMET
+                ModItems.STEEL_HELMET
+                
         );
 
         getOrCreateTagBuilder(
                 commonTag("armors/chestplates")
         ).add(
-                ModItems.STEEL_CHESTPLATE,
-                ModItems.COPPER_CHESTPLATE
+                ModItems.STEEL_CHESTPLATE
+                
         );
 
         getOrCreateTagBuilder(
                 commonTag("armors/leggings")
         ).add(
-                ModItems.STEEL_LEGGINGS,
-                ModItems.COPPER_LEGGINGS
+                ModItems.STEEL_LEGGINGS
+                
         );
 
         getOrCreateTagBuilder(
                 commonTag("armors/boots")
         ).add(
-                ModItems.STEEL_BOOTS,
-                ModItems.COPPER_BOOTS
+                ModItems.STEEL_BOOTS
+                
         );
 
         // ---------------------------------------------------------------------
@@ -235,41 +230,32 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                         ModItems.STEEL_PICKAXE,
                         ModItems.STEEL_HOE,
                         ModItems.STEEL_SHOVEL,
-                        ModItems.STEEL_SWORD,
-                        ModItems.COPPER_AXE,
-                        ModItems.COPPER_PICKAXE,
-                        ModItems.COPPER_HOE,
-                        ModItems.COPPER_SHOVEL,
-                        ModItems.COPPER_SWORD
+                        ModItems.STEEL_SWORD
+                        
                 );
 
         getOrCreateTagBuilder(ItemTags.HOES)
                 .add(
-                        ModItems.COPPER_HOE,
                         ModItems.STEEL_HOE
                 );
 
         getOrCreateTagBuilder(ItemTags.AXES)
                 .add(
-                        ModItems.COPPER_AXE,
                         ModItems.STEEL_AXE
                 );
 
         getOrCreateTagBuilder(ItemTags.PICKAXES)
                 .add(
-                        ModItems.COPPER_PICKAXE,
                         ModItems.STEEL_PICKAXE
                 );
 
         getOrCreateTagBuilder(ItemTags.SHOVELS)
                 .add(
-                        ModItems.COPPER_SHOVEL,
                         ModItems.STEEL_SHOVEL
                 );
 
         getOrCreateTagBuilder(ItemTags.SWORDS)
                 .add(
-                        ModItems.COPPER_SWORD,
                         ModItems.STEEL_SWORD
                 );
 
@@ -280,36 +266,34 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         getOrCreateTagBuilder(
                 commonTag("tools/hoes")
         ).add(
-                ModItems.STEEL_HOE,
-                ModItems.COPPER_HOE
+                ModItems.STEEL_HOE
+                
         );
 
         getOrCreateTagBuilder(
                 commonTag("tools/axes")
         ).add(
-                ModItems.COPPER_AXE,
                 ModItems.STEEL_AXE
         );
 
         getOrCreateTagBuilder(
                 commonTag("tools/pickaxes")
         ).add(
-                ModItems.COPPER_PICKAXE,
                 ModItems.STEEL_PICKAXE
         );
 
         getOrCreateTagBuilder(
                 commonTag("tools/shovels")
         ).add(
-                ModItems.STEEL_SHOVEL,
-                ModItems.COPPER_SHOVEL
+                ModItems.STEEL_SHOVEL
+                
         );
 
         getOrCreateTagBuilder(
                 commonTag("tools/swords")
         ).add(
-                ModItems.STEEL_SWORD,
-                ModItems.COPPER_SWORD
+                ModItems.STEEL_SWORD
+                
         );
 
         // ---------------------------------------------------------------------
@@ -321,12 +305,8 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                         ModItems.STEEL_HELMET,
                         ModItems.STEEL_CHESTPLATE,
                         ModItems.STEEL_LEGGINGS,
-                        ModItems.STEEL_BOOTS,
-
-                        ModItems.COPPER_HELMET,
-                        ModItems.COPPER_CHESTPLATE,
-                        ModItems.COPPER_LEGGINGS,
-                        ModItems.COPPER_BOOTS
+                        ModItems.STEEL_BOOTS
+                        
                 );
 
         // ---------------------------------------------------------------------

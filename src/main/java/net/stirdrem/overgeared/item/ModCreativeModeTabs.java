@@ -31,7 +31,6 @@ public class ModCreativeModeTabs {
                         entries.accept(ModItems.CRUDE_STEEL);
                         entries.accept(ModItems.HEATED_CRUDE_STEEL);
                         entries.accept(ModItems.ROCK);
-                        entries.accept(ModItems.COPPER_NUGGET);
                         entries.accept(ModItems.STEEL_INGOT);
                         entries.accept(ModItems.STEEL_NUGGET);
                         entries.accept(ModItems.IRON_ARROW_HEAD);
@@ -65,21 +64,11 @@ public class ModCreativeModeTabs {
                         entries.accept(ModItems.UNFIRED_TOOL_CAST);
                         entries.accept(ModItems.CLAY_TOOL_CAST);
                         entries.accept(ModItems.NETHER_TOOL_CAST);
-                        entries.accept(ModItems.COPPER_HELMET);
-                        entries.accept(ModItems.COPPER_CHESTPLATE);
-                        entries.accept(ModItems.COPPER_LEGGINGS);
-                        entries.accept(ModItems.COPPER_BOOTS);
 
                         entries.accept(ModItems.STEEL_HELMET);
                         entries.accept(ModItems.STEEL_CHESTPLATE);
                         entries.accept(ModItems.STEEL_LEGGINGS);
                         entries.accept(ModItems.STEEL_BOOTS);
-
-                        entries.accept(ModItems.COPPER_SWORD);
-                        entries.accept(ModItems.COPPER_PICKAXE);
-                        entries.accept(ModItems.COPPER_AXE);
-                        entries.accept(ModItems.COPPER_SHOVEL);
-                        entries.accept(ModItems.COPPER_HOE);
 
                         entries.accept(ModItems.STEEL_SWORD);
                         entries.accept(ModItems.STEEL_PICKAXE);

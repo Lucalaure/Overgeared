@@ -51,33 +51,6 @@ public abstract class FabricModelProviderPlus extends FabricModelProvider {
     }
 
     /** Three-layer generated item model. */
-    protected static Identifier layeredModel(ItemModelGenerators generator, Identifier modelId,
-                                             Identifier layer0, Identifier layer1, Identifier layer2) {
-        return ModelTemplates.THREE_LAYERED_ITEM.create(modelId,
-                TextureMapping.layered(new Material(layer0), new Material(layer1), new Material(layer2)), generator.modelOutput);
-    }
-
-    /**
-     * Trimmable armor piece with an extra untinted overlay layer drawn above the base (and above
-     * the trim), e.g. the copper leggings' skirt. Layers: base, [trim], overlay.
-     */
-    protected static void trimmableItemWithOverlay(ItemModelGenerators generator, Item armor, Identifier slotTrimPrefix) {
-        Identifier modelLocation = ModelLocationUtils.getModelLocation(armor);
-        Identifier base = TextureMapping.getItemTexture(armor).sprite();
-        Identifier overlay = TextureMapping.getItemTexture(armor, "_overlay").sprite();
-
-        List<SelectItemModel.SwitchCase<ResourceKey<TrimMaterial>>> cases = new ArrayList<>();
-        for (ItemModelGenerators.TrimMaterialData material : ItemModelGenerators.TRIM_MATERIAL_MODELS) {
-            Identifier trimModel = modelLocation.withSuffix("_" + material.palette().suffix() + "_trim");
-            Identifier trimTexture = slotTrimPrefix.withSuffix("_" + material.palette().suffix());
-            layeredModel(generator, trimModel, base, trimTexture, overlay);
-            cases.add(ItemModelUtils.when(material.materialKey(), ItemModelUtils.plainModel(trimModel)));
-        }
-
-        layeredModel(generator, modelLocation, base, overlay);
-        generator.itemModelOutput.accept(armor,
-                ItemModelUtils.select(new TrimMaterialProperty(), ItemModelUtils.plainModel(modelLocation), cases));
-    }
 
     /** Block item that simply shows the given block model. */
     protected static void blockItem(BlockModelGenerators generator, net.minecraft.world.level.block.Block block, Identifier model) {

@@ -1,10 +1,8 @@
 package net.stirdrem.overgeared.client;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -16,8 +14,6 @@ import net.stirdrem.overgeared.entity.ModEntities;
 import net.stirdrem.overgeared.entity.renderer.LingeringArrowEntityRenderer;
 import net.stirdrem.overgeared.entity.renderer.UpgradeArrowEntityRenderer;
 import net.stirdrem.overgeared.item.ModItems;
-import net.stirdrem.overgeared.item.armor.model.CustomCopperHelmet;
-import net.stirdrem.overgeared.item.armor.model.CustomCopperLeggings;
 import net.stirdrem.overgeared.screen.*;
 
 /**
@@ -51,10 +47,6 @@ public class OvergearedClient implements ClientModInitializer {
         registerAnvilRenderer(ModBlockEntities.TIER_A_SMITHING_ANVIL_BE);
         registerAnvilRenderer(ModBlockEntities.TIER_B_SMITHING_ANVIL_BE);
         registerAnvilRenderer(ModBlockEntities.STONE_SMITHING_ANVIL_BE);
-
-        ModelLayerRegistry.registerModelLayer(CustomCopperHelmet.LAYER_LOCATION, CustomCopperHelmet::createBodyLayer);
-        ModelLayerRegistry.registerModelLayer(CustomCopperLeggings.LAYER_LOCATION, CustomCopperLeggings::createBodyLayer);
-        ArmorRenderer.register(CopperArmorRenderer::new, ModItems.COPPER_HELMET, ModItems.COPPER_LEGGINGS);
 
         EntityRendererRegistry.register(ModEntities.LINGERING_ARROW, LingeringArrowEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.UPGRADE_ARROW, UpgradeArrowEntityRenderer::new);

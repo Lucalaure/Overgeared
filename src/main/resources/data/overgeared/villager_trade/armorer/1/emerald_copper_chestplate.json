@@ -1,6 +1,6 @@
 {
   "gives": {
-    "id": "overgeared:copper_chestplate"
+    "id": "minecraft:copper_chestplate"
   },
   "max_uses": 12,
   "reputation_discount": 0.05,

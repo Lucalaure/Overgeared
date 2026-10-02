@@ -10,14 +10,16 @@ import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.stirdrem.overgeared.Overgeared;
 import net.stirdrem.overgeared.entity.ArrowTier;
-import net.stirdrem.overgeared.item.armor.CopperHelmet;
-import net.stirdrem.overgeared.item.armor.CopperLeggings;
 import net.stirdrem.overgeared.item.custom.*;
 import net.stirdrem.overgeared.util.ModTags;
 
 import java.util.function.Function;
 
 public class ModItems {
+    // Copper tools, copper armor and the copper nugget are vanilla items since 26.x; Overgeared's
+    // old copies were removed (see registerLegacyAliases) and its copper forging recipes now
+    // produce the vanilla items.
+
 
     public static final Item CRUDE_STEEL = register("crude_steel", Item::new, new Item.Properties());
 
@@ -40,7 +42,6 @@ public class ModItems {
 
     public static final Item STEEL_NUGGET = register("steel_nugget", Item::new, new Item.Properties());
 
-    public static final Item COPPER_NUGGET = register("copper_nugget", Item::new, new Item.Properties());
 
     public static final Item IRON_ARROW_HEAD = register("iron_arrow_head", Item::new, new Item.Properties());
 
@@ -84,7 +85,7 @@ public class ModItems {
             SmithingHammer::new, new Item.Properties().tool(ModToolTiers.STEEL, ModTags.Blocks.SMITHING, -1, -2.8f, 0));
 
     public static final Item COPPER_SMITHING_HAMMER = register("copper_smithing_hammer",
-            SmithingHammer::new, new Item.Properties().tool(ModToolTiers.COPPER, ModTags.Blocks.SMITHING, -1, -2.8f, 0));
+            SmithingHammer::new, new Item.Properties().tool(ToolMaterial.COPPER, ModTags.Blocks.SMITHING, -1, -2.8f, 0));
 
     public static final Item DIAMOND_UPGRADE_SMITHING_TEMPLATE = register("diamond_upgrade_smithing_template",
             DiamondUpgradeTemplateItem::createDiamondUpgradeTemplate, new Item.Properties());
@@ -148,25 +149,7 @@ public class ModItems {
     public static final Item STEEL_BOOTS = register("steel_boots",
             Item::new, new Item.Properties().humanoidArmor(ModArmorMaterials.STEEL, ArmorType.BOOTS));
 
-    public static final Item COPPER_HELMET = register("copper_helmet",
-            CopperHelmet::new, new Item.Properties().humanoidArmor(ModArmorMaterials.COPPER, ArmorType.HELMET));
-    public static final Item COPPER_CHESTPLATE = register("copper_chestplate",
-            Item::new, new Item.Properties().humanoidArmor(ModArmorMaterials.COPPER, ArmorType.CHESTPLATE));
-    public static final Item COPPER_LEGGINGS = register("copper_leggings",
-            CopperLeggings::new, new Item.Properties().humanoidArmor(ModArmorMaterials.COPPER, ArmorType.LEGGINGS));
-    public static final Item COPPER_BOOTS = register("copper_boots",
-            Item::new, new Item.Properties().humanoidArmor(ModArmorMaterials.COPPER, ArmorType.BOOTS));
 
-    public static final Item COPPER_SWORD = register("copper_sword",
-            Item::new, new Item.Properties().sword(ModToolTiers.COPPER, 3f, -2.4f));
-    public static final Item COPPER_PICKAXE = register("copper_pickaxe",
-            Item::new, new Item.Properties().pickaxe(ModToolTiers.COPPER, 1f, -2.8f));
-    public static final Item COPPER_AXE = register("copper_axe",
-            Item::new, new Item.Properties().axe(ModToolTiers.COPPER, 5f, -3f));
-    public static final Item COPPER_HOE = register("copper_hoe",
-            Item::new, new Item.Properties().hoe(ModToolTiers.COPPER, -1f, -1.5f));
-    public static final Item COPPER_SHOVEL = register("copper_shovel",
-            Item::new, new Item.Properties().shovel(ModToolTiers.COPPER, 1.5f, -3));
 
     public static final Item LINGERING_ARROW = register("lingering_arrow",
             p -> new LingeringArrowItem(p, ArrowTier.FLINT), arrowProperties());
@@ -190,5 +173,14 @@ public class ModItems {
     }
 
     public static void register() {
+        registerLegacyAliases();
+    }
+
+    /** Maps the removed overgeared:copper_* ids to vanilla so items in existing worlds convert instead of vanishing. */
+    private static void registerLegacyAliases() {
+        for (String name : new String[]{"copper_nugget", "copper_helmet", "copper_chestplate", "copper_leggings",
+                "copper_boots", "copper_sword", "copper_pickaxe", "copper_axe", "copper_hoe", "copper_shovel"}) {
+            BuiltInRegistries.ITEM.addAlias(Overgeared.id(name), net.minecraft.resources.Identifier.withDefaultNamespace(name));
+        }
     }
 }

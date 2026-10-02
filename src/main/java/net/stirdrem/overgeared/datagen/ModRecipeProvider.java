@@ -79,17 +79,9 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             ModItems.COPPER_PICKAXE_HEAD,
             ModItems.COPPER_SWORD_BLADE,
             ModItems.COPPER_AXE_HEAD,
-            ModItems.COPPER_SHOVEL_HEAD,
-            ModItems.COPPER_HOE,
-            ModItems.COPPER_PICKAXE,
-            ModItems.COPPER_SWORD,
-            ModItems.COPPER_AXE,
-            ModItems.COPPER_SHOVEL,
-            ModItems.COPPER_HELMET,
-            ModItems.COPPER_CHESTPLATE,
-            ModItems.COPPER_LEGGINGS,
-            ModItems.COPPER_BOOTS
-
+            ModItems.COPPER_SHOVEL_HEAD
+            // Copper tools/armor are vanilla items since 26.x - vanilla's own
+            // copper_nugget_from_smelting/blasting recipes already cover them.
     );
     private static final List<ItemLike> GOLDEN_HEADS = List.of(
             ModItems.GOLDEN_HOE_HEAD,
@@ -145,8 +137,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             oreSmelting(GOLDEN_HEADS, RecipeCategory.MISC, CookingBookCategory.MISC, Items.GOLD_NUGGET, 0.1f, 200, null);
             oreBlasting(GOLDEN_HEADS, RecipeCategory.MISC, CookingBookCategory.MISC, Items.GOLD_NUGGET, 0.1f, 100, null);
             oreBlasting(STEEL_HEADS, RecipeCategory.MISC, CookingBookCategory.MISC, ModItems.STEEL_NUGGET, 0.1f, 200, null);
-            oreSmelting(COPPER_HEADS, RecipeCategory.MISC, CookingBookCategory.MISC, ModItems.COPPER_NUGGET, 0.1f, 200, null);
-            oreBlasting(COPPER_HEADS, RecipeCategory.MISC, CookingBookCategory.MISC, ModItems.COPPER_NUGGET, 0.1f, 100, null);
+            oreSmelting(COPPER_HEADS, RecipeCategory.MISC, CookingBookCategory.MISC, Items.COPPER_NUGGET, 0.1f, 200, null);
+            oreBlasting(COPPER_HEADS, RecipeCategory.MISC, CookingBookCategory.MISC, Items.COPPER_NUGGET, 0.1f, 100, null);
             /*offerSmelting(output, RUBY_SMELTABLES, RecipeCategory.MISC, ModItems.RUBY,
                     0.7f, 200, "ruby");
             offerBlasting(output, RUBY_SMELTABLES, RecipeCategory.MISC, ModItems.RUBY,
@@ -178,15 +170,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .unlockedBy(getHasName(ModItems.STEEL_NUGGET), has(ModItems.STEEL_NUGGET))
                     .save(output, Overgeared.MOD_ID + ":steel_ingot_from_nuggets");
 
-            shaped(RecipeCategory.MISC, Items.COPPER_INGOT)
-                    .pattern("###")
-                    .pattern("###")
-                    .pattern("###")
-                    .define('#', ModItems.COPPER_NUGGET)
-                    .unlockedBy("has_copper_ingot",
-                            has(Items.COPPER_INGOT))
-                    .unlockedBy(getHasName(ModItems.COPPER_NUGGET), has(ModItems.COPPER_NUGGET))
-                    .save(output, Overgeared.MOD_ID + ":copper_ingot_from_nuggets");
+            // Copper ingot <-> nugget recipes are vanilla (copper_ingot_from_nuggets / copper_nugget) since 26.x.
 
             shaped(RecipeCategory.MISC, ModItems.WOODEN_TONGS)
                     .pattern(" # ")
@@ -316,35 +300,35 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                             has(ModItems.STEEL_SWORD_BLADE))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.COPPER_AXE)
+            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_AXE)
                     .input(ModItems.COPPER_AXE_HEAD)
                     .input(Items.STICK)
                     .unlockedBy(getHasName(ModItems.COPPER_AXE_HEAD),
                             has(ModItems.COPPER_AXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.COPPER_PICKAXE)
+            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_PICKAXE)
                     .input(ModItems.COPPER_PICKAXE_HEAD)
                     .input(Items.STICK)
                     .unlockedBy(getHasName(ModItems.COPPER_PICKAXE_HEAD),
                             has(ModItems.COPPER_PICKAXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.COPPER_SHOVEL)
+            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_SHOVEL)
                     .input(ModItems.COPPER_SHOVEL_HEAD)
                     .input(Items.STICK)
                     .unlockedBy(getHasName(ModItems.COPPER_SHOVEL_HEAD),
                             has(ModItems.COPPER_SHOVEL_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.COPPER_HOE)
+            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_HOE)
                     .input(ModItems.COPPER_HOE_HEAD)
                     .input(Items.STICK)
                     .unlockedBy(getHasName(ModItems.COPPER_HOE_HEAD),
                             has(ModItems.COPPER_HOE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.COPPER_SWORD)
+            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_SWORD)
                     .input(ModItems.COPPER_SWORD_BLADE)
                     .input(Items.STICK)
                     .unlockedBy(getHasName(ModItems.COPPER_SWORD_BLADE),
@@ -849,7 +833,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion("has_steel_plate", has(ModItems.STEEL_PLATE))
                     .offerTo(output);
 
-            ShapedForgingRecipeBuilder.create(ForgingBookCategory.ARMORS, ModItems.COPPER_HELMET, 3)
+            ShapedForgingRecipeBuilder.create(ForgingBookCategory.ARMORS, Items.COPPER_HELMET, 3)
                     .tier(AnvilTier.STONE)
                     .setPolishing(false)
                     .setNeedQuenching(false)
@@ -859,7 +843,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion("has_copper_plate", has(ModItems.COPPER_PLATE))
                     .offerTo(output);
 
-            ShapedForgingRecipeBuilder.create(ForgingBookCategory.ARMORS, ModItems.COPPER_CHESTPLATE, 5)
+            ShapedForgingRecipeBuilder.create(ForgingBookCategory.ARMORS, Items.COPPER_CHESTPLATE, 5)
                     .tier(AnvilTier.STONE)
                     .setPolishing(false)
                     .setNeedQuenching(false)
@@ -870,7 +854,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion("has_copper_plate", has(ModItems.COPPER_PLATE))
                     .offerTo(output);
 
-            ShapedForgingRecipeBuilder.create(ForgingBookCategory.ARMORS, ModItems.COPPER_LEGGINGS, 4)
+            ShapedForgingRecipeBuilder.create(ForgingBookCategory.ARMORS, Items.COPPER_LEGGINGS, 4)
                     .tier(AnvilTier.STONE)
                     .setPolishing(false)
                     .setNeedQuenching(false)
@@ -881,7 +865,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion("has_copper_plate", has(ModItems.COPPER_PLATE))
                     .offerTo(output);
 
-            ShapedForgingRecipeBuilder.create(ForgingBookCategory.ARMORS, ModItems.COPPER_BOOTS, 3)
+            ShapedForgingRecipeBuilder.create(ForgingBookCategory.ARMORS, Items.COPPER_BOOTS, 3)
                     .tier(AnvilTier.STONE)
                     .setPolishing(false)
                     .setNeedQuenching(false)

@@ -1,6 +1,6 @@
 {
   "gives": {
-    "id": "overgeared:copper_shovel"
+    "id": "minecraft:copper_shovel"
   },
   "max_uses": 12,
   "reputation_discount": 0.05,

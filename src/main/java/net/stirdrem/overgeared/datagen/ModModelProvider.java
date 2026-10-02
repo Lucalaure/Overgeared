@@ -96,7 +96,6 @@ public class ModModelProvider extends FabricModelProviderPlus {
         simpleItem(generator, ModItems.STEEL_INGOT);
         simpleItem(generator, ModItems.STEEL_NUGGET);
         simpleItem(generator, ModItems.NETHERITE_ALLOY);
-        simpleItem(generator, ModItems.COPPER_NUGGET);
         simpleItem(generator, ModItems.DIAMOND_SHARD);
         simpleItem(generator, ModItems.IRON_ARROW_HEAD);
         simpleItem(generator, ModItems.STEEL_ARROW_HEAD);
@@ -134,10 +133,6 @@ public class ModModelProvider extends FabricModelProviderPlus {
         generator.generateTrimmableArmorSet(ModItems.STEEL_HELMET, ModItems.STEEL_CHESTPLATE,
                 ModItems.STEEL_LEGGINGS, ModItems.STEEL_BOOTS, false, noReplacements);
 
-        generator.generateTrimmableItem(ModItems.COPPER_HELMET, ItemModelGenerators.TRIM_PREFIX_HELMET, false, noReplacements);
-        generator.generateTrimmableItem(ModItems.COPPER_CHESTPLATE, ItemModelGenerators.TRIM_PREFIX_CHESTPLATE, false, noReplacements);
-        trimmableItemWithOverlay(generator, ModItems.COPPER_LEGGINGS, ItemModelGenerators.TRIM_PREFIX_LEGGINGS);
-        generator.generateTrimmableItem(ModItems.COPPER_BOOTS, ItemModelGenerators.TRIM_PREFIX_BOOTS, false, noReplacements);
 
         // Handheld items
         handheldItem(generator, ModItems.IRON_TONGS);
@@ -157,11 +152,6 @@ public class ModModelProvider extends FabricModelProviderPlus {
         handheldItem(generator, ModItems.STEEL_SHOVEL);
         handheldItem(generator, ModItems.STEEL_HOE);
 
-        handheldItem(generator, ModItems.COPPER_SWORD);
-        handheldItem(generator, ModItems.COPPER_PICKAXE);
-        handheldItem(generator, ModItems.COPPER_AXE);
-        handheldItem(generator, ModItems.COPPER_SHOVEL);
-        handheldItem(generator, ModItems.COPPER_HOE);
 
         // Tool parts
         simpleItem(generator, ModItems.STONE_SWORD_BLADE);

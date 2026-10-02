@@ -1,6 +1,6 @@
 {
   "gives": {
-    "id": "overgeared:copper_pickaxe"
+    "id": "minecraft:copper_pickaxe"
   },
   "max_uses": 12,
   "reputation_discount": 0.05,

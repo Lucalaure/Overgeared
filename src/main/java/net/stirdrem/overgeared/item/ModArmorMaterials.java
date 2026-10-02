@@ -4,7 +4,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.equipment.EquipmentAsset;
@@ -17,16 +16,11 @@ import java.util.Map;
 
 public class ModArmorMaterials {
     public static final ResourceKey<EquipmentAsset> STEEL_ASSET = asset("steel");
-    public static final ResourceKey<EquipmentAsset> COPPER_ASSET = asset("copper");
 
     // Durability is a multiplier on ArmorType's base durability, as in 1.20.1.
     public static final ArmorMaterial STEEL = new ArmorMaterial(
             26, defense(3, 7, 5, 2, 7), 12, SoundEvents.ARMOR_EQUIP_IRON, 1.0F, 0.0F,
             ModTags.Items.REPAIRS_STEEL_ARMOR, STEEL_ASSET);
-
-    public static final ArmorMaterial COPPER = new ArmorMaterial(
-            10, defense(1, 4, 3, 1, 4), 15, SoundEvents.ARMOR_EQUIP_IRON, 0.0F, 0.0F,
-            ItemTags.REPAIRS_COPPER_ARMOR, COPPER_ASSET);
 
     private static Map<ArmorType, Integer> defense(int helmet, int chestplate, int leggings, int boots, int body) {
         Map<ArmorType, Integer> map = new EnumMap<>(ArmorType.class);

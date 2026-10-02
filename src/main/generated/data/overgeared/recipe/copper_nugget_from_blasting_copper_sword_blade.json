@@ -4,6 +4,6 @@
   "experience": 0.1,
   "ingredient": "overgeared:copper_sword_blade",
   "result": {
-    "id": "overgeared:copper_nugget"
+    "id": "minecraft:copper_nugget"
   }
 }
