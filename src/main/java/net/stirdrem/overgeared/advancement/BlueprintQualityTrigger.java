@@ -1,16 +1,15 @@
 package net.stirdrem.overgeared.advancement;
 
-import com.google.gson.JsonObject;
-import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
-import net.minecraft.advancements.critereon.ContextAwarePredicate;
-import net.minecraft.advancements.critereon.DeserializationContext;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.GsonHelper;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.stirdrem.overgeared.Overgeared;
 
-import org.jetbrains.annotations.Nullable;
+import java.util.Optional;
 
 public class BlueprintQualityTrigger
         extends SimpleCriterionTrigger<BlueprintQualityTrigger.Conditions> {
@@ -18,51 +17,29 @@ public class BlueprintQualityTrigger
     public static final Identifier ID = Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "blueprint_quality");
 
     @Override
-    public Identifier getId() {
-        return ID;
-    }
-
-    @Override
-    protected Conditions createInstance(
-            JsonObject json,
-            ContextAwarePredicate playerPredicate,
-            DeserializationContext context
-    ) {
-        @Nullable String quality = null;
-
-        if (GsonHelper.isStringValue(json, "quality")) {
-            quality = GsonHelper.getAsString(json, "quality");
-        }
-
-        return new Conditions(playerPredicate, quality);
+    public Codec<Conditions> codec() {
+        return Conditions.CODEC;
     }
 
     /**
-     * Call when forging completes
+     * Call when a blueprint reaches a new quality
      */
-    public void trigger(ServerPlayer player, String forgedQuality) {
-        this.trigger(player, inst -> inst.matches(forgedQuality));
+    public void trigger(ServerPlayer player, String quality) {
+        this.trigger(player, inst -> inst.matches(quality));
     }
 
     // ─────────────────────────────────────────────────────────────
 
-    public static class Conditions extends AbstractCriterionTriggerInstance {
+    public record Conditions(Optional<Holder<LootItemCondition>> player,
+                             Optional<String> quality) implements SimpleCriterionTrigger.SimpleInstance {
+        public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(i -> i.group(
+                LootItemCondition.CODEC.optionalFieldOf("player").forGetter(Conditions::player),
+                Codec.STRING.optionalFieldOf("quality").forGetter(Conditions::quality)
+        ).apply(i, Conditions::new));
 
-        @Nullable
-        private final String requiredQuality;
-
-        public Conditions(ContextAwarePredicate playerPredicate,
-                           @Nullable String requiredQuality) {
-            super(ID, playerPredicate);
-            this.requiredQuality = requiredQuality;
-        }
-
-        public boolean matches(String forgedQuality) {
+        public boolean matches(String quality) {
             // No condition → always match
-            if (this.requiredQuality == null) {
-                return true;
-            }
-            return this.requiredQuality.equals(forgedQuality);
+            return this.quality.isEmpty() || this.quality.get().equals(quality);
         }
     }
 }

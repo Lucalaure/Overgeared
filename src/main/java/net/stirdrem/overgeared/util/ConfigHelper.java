@@ -11,7 +11,9 @@ import net.minecraft.world.level.Level;
 import net.stirdrem.overgeared.config.ServerConfig;
 import net.stirdrem.overgeared.datapack.CastingToolTypesReloadListener;
 import net.stirdrem.overgeared.datapack.MaterialSettingsReloadListener;
+import net.stirdrem.overgeared.recipe.ItemListInput;
 import net.stirdrem.overgeared.recipe.ItemToToolTypeRecipe;
+import net.stirdrem.overgeared.recipe.RecipeLookup;
 import net.stirdrem.overgeared.recipe.ModRecipeTypes;
 
 import java.util.List;
@@ -69,8 +71,7 @@ public class ConfigHelper {
     // Tool Head → Tool Type
     // -----------------------
     public static String getToolTypeForItem(Level world, ItemStack stack) {
-        return world.getRecipeManager()
-                .getAllRecipesFor(ModRecipeTypes.ITEM_TO_TOOLTYPE)
+        return RecipeLookup.<ItemListInput, ItemToToolTypeRecipe>allValues(world, ModRecipeTypes.ITEM_TO_TOOLTYPE)
                 .stream()
                 .filter(r -> r.getInput().test(stack))
                 .map(ItemToToolTypeRecipe::getToolType)
@@ -320,7 +321,7 @@ public class ConfigHelper {
         }
 
         // Direct item
-        Item item = BuiltInRegistries.ITEM.get(Identifier.parse(key));
+        Item item = BuiltInRegistries.ITEM.getValue(Identifier.parse(key));
         if (item != net.minecraft.world.item.Items.AIR) {
             out.add(item);
         }

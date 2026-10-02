@@ -1,11 +1,9 @@
 package net.stirdrem.overgeared.datapack;
 
 import com.google.gson.*;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
@@ -24,18 +22,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class RockInteractionReloadListener extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
+public class RockInteractionReloadListener extends OvergearedJsonReloadListener {
 
     public static final RockInteractionReloadListener INSTANCE = new RockInteractionReloadListener();
-    private static final Gson GSON = new Gson();
 
     private static final Map<Identifier, RockInteractionData> DATA = new ConcurrentHashMap<>();
 
     public RockInteractionReloadListener() {
-        super(GSON, "rock_interactions");
+        super("rock_interactions");
     }
-
-    @Override
     public Identifier getFabricId() {
         return Overgeared.id("rock_interactions_listener");
     }
@@ -86,12 +81,12 @@ public class RockInteractionReloadListener extends SimpleJsonResourceReloadListe
     private void parseAndAddRockInteraction(Identifier id, JsonObject obj) {
         // ---------- BLOCKS ----------
         Identifier inputId = Identifier.tryParse(GsonHelper.getAsString(obj, "input_block"));
-        Block inputBlock = BuiltInRegistries.BLOCK.get(inputId);
+        Block inputBlock = BuiltInRegistries.BLOCK.getValue(inputId);
         if (inputBlock == null || inputBlock == Blocks.AIR)
             throw new JsonParseException("Unknown input_block '" + inputId + "'");
 
         Identifier resultId = Identifier.tryParse(GsonHelper.getAsString(obj, "result_block"));
-        Block resultBlock = BuiltInRegistries.BLOCK.get(resultId);
+        Block resultBlock = BuiltInRegistries.BLOCK.getValue(resultId);
         if (resultBlock == null || resultBlock == Blocks.AIR)
             throw new JsonParseException("Unknown result_block '" + resultId + "'");
 
@@ -107,12 +102,12 @@ public class RockInteractionReloadListener extends SimpleJsonResourceReloadListe
             if (toolObj.has("item")) {
                 JsonObject ingObj = new JsonObject();
                 ingObj.addProperty("item", GsonHelper.getAsString(toolObj, "item"));
-                ingredient = Ingredient.fromJson(ingObj);
+                ingredient = parseIngredient(ingObj);
 
             } else if (toolObj.has("tag")) {
                 JsonObject ingObj = new JsonObject();
                 ingObj.addProperty("tag", GsonHelper.getAsString(toolObj, "tag"));
-                ingredient = Ingredient.fromJson(ingObj);
+                ingredient = parseIngredient(ingObj);
 
             } else {
                 throwMissing(id, "Tool must have 'item' or 'tag'");
@@ -120,7 +115,7 @@ public class RockInteractionReloadListener extends SimpleJsonResourceReloadListe
             }
 
             Identifier dropId = Identifier.tryParse(GsonHelper.getAsString(toolObj, "drop_item"));
-            Item dropItem = BuiltInRegistries.ITEM.get(dropId);
+            Item dropItem = BuiltInRegistries.ITEM.getValue(dropId);
             if (dropItem == null || dropItem == Items.AIR)
                 throw new JsonParseException("Unknown drop_item '" + dropId + "'");
 

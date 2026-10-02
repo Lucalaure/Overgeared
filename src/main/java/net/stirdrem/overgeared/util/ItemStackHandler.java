@@ -1,9 +1,16 @@
 package net.stirdrem.overgeared.util;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.ItemStackWithSlot;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,7 +82,7 @@ public class ItemStackHandler {
         int limit = getStackLimit(slot, stack);
 
         if (!existing.isEmpty()) {
-            if (!ItemStack.isSameItemSameTags(stack, existing)) {
+            if (!ItemStack.isSameItemSameComponents(stack, existing)) {
                 return stack;
             }
             limit -= existing.getCount();
@@ -128,14 +135,29 @@ public class ItemStackHandler {
         return 64;
     }
 
-    public CompoundTag serializeNBT() {
+    /**
+     * 26.3 port: block entities persist through ValueOutput/ValueInput now. Writes "Size" and the
+     * vanilla "Items" list (same layout as the old NBT) into {@code output}.
+     */
+    public void save(ValueOutput output) {
+        output.putInt("Size", stacks.size());
+        ContainerHelper.saveAllItems(output, stacks);
+    }
+
+    public void load(ValueInput input) {
+        setSize(input.getIntOr("Size", stacks.size()));
+        ContainerHelper.loadAllItems(input, stacks);
+        onLoad();
+    }
+
+    /** Standalone NBT form (e.g. for item components / packets); needs registries to encode components. */
+    public CompoundTag serializeNBT(HolderLookup.Provider registries) {
+        RegistryOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
         ListTag nbtTagList = new ListTag();
         for (int i = 0; i < stacks.size(); i++) {
             if (!stacks.get(i).isEmpty()) {
-                CompoundTag itemTag = new CompoundTag();
-                itemTag.putInt("Slot", i);
-                stacks.get(i).save(itemTag);
-                nbtTagList.add(itemTag);
+                ItemStackWithSlot.CODEC.encodeStart(ops, new ItemStackWithSlot(i, stacks.get(i)))
+                        .ifSuccess(nbtTagList::add);
             }
         }
         CompoundTag nbt = new CompoundTag();
@@ -144,16 +166,15 @@ public class ItemStackHandler {
         return nbt;
     }
 
-    public void deserializeNBT(CompoundTag nbt) {
-        int size = nbt.contains("Size") ? nbt.getInt("Size") : stacks.size();
-        setSize(size);
-        ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
-        for (int i = 0; i < tagList.size(); i++) {
-            CompoundTag itemTags = tagList.getCompound(i);
-            int slot = itemTags.getInt("Slot");
-            if (slot >= 0 && slot < stacks.size()) {
-                stacks.set(slot, ItemStack.of(itemTags));
-            }
+    public void deserializeNBT(HolderLookup.Provider registries, CompoundTag nbt) {
+        RegistryOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
+        setSize(nbt.getIntOr("Size", stacks.size()));
+        for (Tag tag : nbt.getListOrEmpty("Items")) {
+            ItemStackWithSlot.CODEC.parse(ops, tag).ifSuccess(item -> {
+                if (item.isValidInContainer(stacks.size())) {
+                    stacks.set(item.slot(), item.stack());
+                }
+            });
         }
         onLoad();
     }

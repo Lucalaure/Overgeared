@@ -5,6 +5,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.stirdrem.overgeared.ForgingQuality;
+import net.stirdrem.overgeared.components.ModComponents;
 
 public class ForgingQualityHelper {
 
@@ -68,7 +69,7 @@ public class ForgingQualityHelper {
     }
 
     public static void applyQuality(ItemStack stack, ForgingQuality quality) {
-        stack.getOrCreateTag().putString(QUALITY_TAG, quality.getDisplayName());
+        stack.set(ModComponents.FORGING_QUALITY, quality);
     }
 
     public static int priceForQuality(ForgingQuality quality) {

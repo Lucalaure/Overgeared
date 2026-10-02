@@ -8,7 +8,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -26,11 +25,14 @@ import net.stirdrem.overgeared.event.ModItemInteractEvents;
 import net.stirdrem.overgeared.item.ModItems;
 import net.stirdrem.overgeared.item.ToolTypeRegistry;
 import net.stirdrem.overgeared.networking.ModMessages;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.recipe.CoolingRecipe;
+import net.stirdrem.overgeared.recipe.ItemListInput;
+import net.stirdrem.overgeared.recipe.RecipeLookup;
 import net.stirdrem.overgeared.recipe.ModRecipeTypes;
 import net.stirdrem.overgeared.recipe.ModRecipes;
 import net.stirdrem.overgeared.sound.ModSounds;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +73,8 @@ public class Overgeared implements ModInitializer {
         ServerLifecycleEvents.SERVER_STOPPED.register(s -> server = null);
 
         // Force static init / registration for each registry class.
+        // Data components first: items, recipes and block entities reference them.
+        ModComponents.register();
         ModItems.register();
         ModBlocks.register();
         ModRecipes.register();
@@ -106,20 +110,15 @@ public class Overgeared implements ModInitializer {
     public static Item getCooledItem(@Nullable Item heatedItem, Level world) {
         if (heatedItem == null || world == null) return null;
 
-        SimpleContainer container = new SimpleContainer(new ItemStack(heatedItem));
+        ItemListInput input = ItemListInput.of(new ItemStack(heatedItem));
 
-        Optional<CoolingRecipe> recipeOpt = world.getRecipeManager()
-                .getAllRecipesFor(ModRecipeTypes.COOLING_RECIPE)
-                .stream()
-                .filter(r -> r.matches(container, world))
-                .findFirst();
+        Optional<CoolingRecipe> recipeOpt = RecipeLookup.firstMatchValue(world, ModRecipeTypes.COOLING_RECIPE, input);
 
         if (recipeOpt.isEmpty()) {
             return heatedItem;
         }
 
-        CoolingRecipe recipe = recipeOpt.get();
-        ItemStack result = recipe.getResultItem(world.registryAccess());
+        ItemStack result = recipeOpt.get().assemble(input);
         return result.isEmpty() ? heatedItem : result.getItem();
     }
 

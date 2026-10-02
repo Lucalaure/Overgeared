@@ -1,32 +1,43 @@
 package net.stirdrem.overgeared.util;
 
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.alchemy.PotionContents;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 /**
- * Pure NBT-based potion color math shared between common-side entity code (UpgradeArrowEntity)
- * and the client-side item color provider. Kept out of the client package specifically so
- * common code never has to touch a class that could later grow a real client dependency
- * (see FabricModding.md's client/server separation rule).
+ * Potion color/effect helpers shared between common-side entity code (UpgradeArrowEntity,
+ * LingeringArrowEntity) and the client-side item color provider.
+ *
+ * <p>26.3 port: potion data is the vanilla {@link DataComponents#POTION_CONTENTS} component now
+ * (the old "Potion" / "CustomPotionEffects" / "CustomPotionColor" / "LingeringPotion" NBT keys are gone),
+ * so every helper takes the {@link ItemStack} instead of its CompoundTag.
  */
 public class PotionColorHelper {
 
+    /** Legacy "no potion" color of the 1.20 PotionUtils. */
+    public static final int NO_POTION_COLOR = 16253176;
+
+    public static PotionContents getContents(ItemStack stack) {
+        return stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+    }
+
     public static int getColor(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag != null && tag.contains("CustomPotionColor", Tag.TAG_ANY_NUMERIC)) {
-            return tag.getInt("CustomPotionColor");
-        } else {
-            return getPotion(tag) == Potions.EMPTY ? 16253176 : getColor(getMobEffects(tag));
+        PotionContents contents = getContents(stack);
+        if (contents.customColor().isPresent()) {
+            return contents.customColor().get();
         }
+        if (contents.potion().isEmpty() && contents.customEffects().isEmpty()) {
+            return NO_POTION_COLOR;
+        }
+        return getColor(getAllEffects(stack));
     }
 
     public static int getColor(Collection<MobEffectInstance> effects) {
@@ -38,7 +49,7 @@ public class PotionColorHelper {
 
             for (MobEffectInstance effect : effects) {
                 if (effect.isVisible()) {
-                    int color = effect.getEffect().getColor();
+                    int color = effect.getEffect().value().getColor();
                     int amplifierWeight = effect.getAmplifier() + 1;
                     r += (float) (amplifierWeight * (color >> 16 & 255)) / 255.0F;
                     g += (float) (amplifierWeight * (color >> 8 & 255)) / 255.0F;
@@ -58,33 +69,23 @@ public class PotionColorHelper {
         }
     }
 
-    public static Potion getPotion(@Nullable CompoundTag tag) {
-        if (tag == null) return Potions.EMPTY;
-
-        if (tag.contains("LingeringPotion", Tag.TAG_STRING)) {
-            return Potion.byName(tag.getString("LingeringPotion"));
-        }
-        if (tag.contains("LingeringPotion") && tag.getBoolean("LingeringPotion")) {
-            return Potion.byName(tag.getString("Potion"));
-        }
-        if (tag.contains("Potion", Tag.TAG_STRING)) {
-            return Potion.byName(tag.getString("Potion"));
-        }
-
-        return Potions.EMPTY;
+    /** The base potion of the stack, if any. */
+    public static Optional<Holder<Potion>> getPotion(ItemStack stack) {
+        return getContents(stack).potion();
     }
 
-    public static List<MobEffectInstance> getMobEffects(@Nullable CompoundTag tag) {
-        return getAllEffects(tag);
+    public static List<MobEffectInstance> getMobEffects(ItemStack stack) {
+        return getAllEffects(stack);
     }
 
-    public static List<MobEffectInstance> getAllEffects(@Nullable CompoundTag tag) {
-        List<MobEffectInstance> list = new java.util.ArrayList<>(getPotion(tag).getEffects());
-        getCustomEffects(tag, list);
+    /** Base potion effects followed by custom effects (same order as the 1.20 PotionUtils). */
+    public static List<MobEffectInstance> getAllEffects(ItemStack stack) {
+        List<MobEffectInstance> list = new ArrayList<>();
+        getContents(stack).getAllEffects().forEach(list::add);
         return list;
     }
 
-    public static void getCustomEffects(@Nullable CompoundTag tag, List<MobEffectInstance> effectList) {
-        PotionUtils.getCustomEffects(tag, effectList);
+    public static List<MobEffectInstance> getCustomEffects(ItemStack stack) {
+        return new ArrayList<>(getContents(stack).customEffects());
     }
 }

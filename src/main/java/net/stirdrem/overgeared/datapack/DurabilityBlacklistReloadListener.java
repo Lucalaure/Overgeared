@@ -4,10 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -16,17 +14,15 @@ import net.stirdrem.overgeared.Overgeared;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DurabilityBlacklistReloadListener extends SimpleJsonResourceReloadListener implements IdentifiableResourceReloadListener {
+public class DurabilityBlacklistReloadListener extends OvergearedJsonReloadListener {
 
     private static final Map<Identifier, Ingredient> DATA = new ConcurrentHashMap<>();
     public static final DurabilityBlacklistReloadListener INSTANCE = new DurabilityBlacklistReloadListener();
     private static final Gson GSON = new Gson();
 
     public DurabilityBlacklistReloadListener() {
-        super(GSON, "durability_blacklist");
+        super("durability_blacklist");
     }
-
-    @Override
     public Identifier getFabricId() {
         return Overgeared.id("durability_blacklist_listener");
     }
@@ -61,7 +57,7 @@ public class DurabilityBlacklistReloadListener extends SimpleJsonResourceReloadL
         }
 
         JsonElement itemElement = json.get("item");
-        return Ingredient.fromJson(itemElement);
+        return parseIngredient(itemElement);
     }
 
     public static Map<Identifier, Ingredient> getData() {
@@ -75,7 +71,7 @@ public class DurabilityBlacklistReloadListener extends SimpleJsonResourceReloadL
     public static List<ItemStack> getAllBlacklistedItems() {
         List<ItemStack> allItems = new ArrayList<>();
         for (Ingredient ingredient : DATA.values()) {
-            ItemStack[] stacks = ingredient.getItems();
+            ItemStack[] stacks = stacksOf(ingredient);
             if (stacks.length > 0) {
                 allItems.addAll(Arrays.asList(stacks));
             }
