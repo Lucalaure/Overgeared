@@ -1,61 +1,41 @@
 package net.stirdrem.overgeared.datagen;
 
-import com.google.gson.JsonObject;
-import net.minecraft.advancements.Advancement;
-import net.minecraft.advancements.CriterionTriggerInstance;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.CraftingRecipeBuilder;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.advancements.triggers.Criterion;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ItemLike;
-import net.stirdrem.overgeared.recipe.ModRecipes;
+import net.stirdrem.overgeared.recipe.CastingRecipe;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
-import static net.minecraft.data.recipes.RecipeBuilder.ROOT_RECIPE_ADVANCEMENT;
-import static net.minecraft.data.recipes.RecipeBuilder.getDefaultRecipeId;
-
-public class CastingRecipeBuilder extends CraftingRecipeBuilder {
+/** Datagen builder for {@code overgeared:casting} (cast furnace) recipes. Ids get the suffix {@code _from_cast_furnace}. */
+public class CastingRecipeBuilder {
 
     private final ItemLike result;
     private final float experience;
     private final int cookTime;
 
-    private final Map<String, Integer> materialInput = new HashMap<>();
-    private final Advancement.Builder advancement =
-            Advancement.Builder.recipeAdvancement();
+    private final Map<String, Integer> materialInput = new LinkedHashMap<>();
+    private final RecipeBuilderSupport.Unlocks unlocks = new RecipeBuilderSupport.Unlocks();
 
     private String toolType;
-
-    @Nullable
-    private Boolean needPolishing = null;
-
+    private boolean needPolishing = false;
     @Nullable
     private String group = "";
 
-    @Nullable
-    private String category = "misc";
-
-    private CastingRecipeBuilder(
-            ItemLike result,
-            float xp,
-            int cookTime
-    ) {
+    private CastingRecipeBuilder(ItemLike result, float xp, int cookTime) {
         this.result = result;
         this.experience = xp;
         this.cookTime = cookTime;
     }
 
-    public static CastingRecipeBuilder casting(
-            ItemLike result,
-            float xp,
-            int cookTime
-    ) {
+    public static CastingRecipeBuilder casting(ItemLike result, float xp, int cookTime) {
         return new CastingRecipeBuilder(result, xp, cookTime);
     }
 
@@ -74,16 +54,9 @@ public class CastingRecipeBuilder extends CraftingRecipeBuilder {
         return this;
     }
 
-    public CastingRecipeBuilder criterion(
-            String name,
-            CriterionTriggerInstance conditions
-    ) {
-        this.advancementBuilder().addCriterion(name, conditions);
+    public CastingRecipeBuilder criterion(String name, Criterion<?> conditions) {
+        unlocks.add(name, conditions);
         return this;
-    }
-
-    private Advancement.Builder advancementBuilder() {
-        return this.advancement;
     }
 
     public CastingRecipeBuilder group(@Nullable String group) {
@@ -91,8 +64,8 @@ public class CastingRecipeBuilder extends CraftingRecipeBuilder {
         return this;
     }
 
+    /** 26.3 port: casting recipes always use the MISC cooking category; kept for source compatibility. */
     public CastingRecipeBuilder category(String category) {
-        this.category = category;
         return this;
     }
 
@@ -100,161 +73,25 @@ public class CastingRecipeBuilder extends CraftingRecipeBuilder {
         return result.asItem();
     }
 
-    public void offerTo(Consumer<FinishedRecipe> exporter) {
-        offerTo(exporter, getDefaultRecipeId(this.getOutputItem()));
+    public void offerTo(RecipeOutput output) {
+        offerTo(output, RecipeBuilderSupport.defaultId(result));
     }
 
-    public void offerTo(
-            Consumer<FinishedRecipe> exporter,
-            Identifier id
-    ) {
-        ensureValid(id);
-
-        Identifier recipeId = Identifier.fromNamespaceAndPath(
-                id.getNamespace(),
-                id.getPath() + "_from_cast_furnace"
-        );
-
-        this.advancement
-                .parent(ROOT_RECIPE_ADVANCEMENT)
-                .addCriterion(
-                        "has_the_recipe",
-                        net.minecraft.advancements.critereon.RecipeUnlockedTrigger.unlocked(id)
-                )
-                .rewards(
-                        net.minecraft.advancements.AdvancementRewards.Builder.recipe(id)
-                )
-                .requirements(
-                        net.minecraft.advancements.RequirementsStrategy.OR
-                );
-
-        exporter.accept(new Result(
-                recipeId,
-                result,
-                group,
-                category,
-                toolType,
-                materialInput,
-                experience,
-                cookTime,
-                needPolishing,
-                advancement,
-                recipeId.withPrefix("recipes/casting/")
-        ));
-    }
-
-    private void ensureValid(Identifier id) {
+    public void offerTo(RecipeOutput output, Identifier id) {
         if (toolType == null) {
-            throw new IllegalStateException(
-                    "Missing tool_type for casting recipe " + id
-            );
+            throw new IllegalStateException("Missing tool_type for casting recipe " + id);
         }
-
         if (materialInput.isEmpty()) {
-            throw new IllegalStateException(
-                    "No material input defined for " + id
-            );
+            throw new IllegalStateException("No material input defined for " + id);
         }
 
-        if (advancement.getCriteria().isEmpty()) {
-            throw new IllegalStateException(
-                    "No unlock criteria for " + id
-            );
-        }
-    }
+        Map<String, Double> materials = new LinkedHashMap<>();
+        materialInput.forEach((k, v) -> materials.put(k, v.doubleValue()));
 
-    public static class Result implements FinishedRecipe {
+        CastingRecipe recipe = new CastingRecipe(group == null ? "" : group, new ItemStackTemplate(result.asItem()),
+                experience, cookTime, materials, toolType, needPolishing);
 
-        private final Identifier id;
-        private final ItemLike result;
-        private final String group;
-        private final String category;
-        private final String toolType;
-        private final Map<String, Integer> input;
-        private final float xp;
-        private final int cookTime;
-        private final Boolean needPolishing;
-        private final Advancement.Builder advancement;
-        private final Identifier advancementId;
-
-        public Result(
-                Identifier id,
-                ItemLike result,
-                String group,
-                String category,
-                String toolType,
-                Map<String, Integer> input,
-                float xp,
-                int cookTime,
-                Boolean needPolishing,
-                Advancement.Builder advancement,
-                Identifier advancementId
-        ) {
-            this.id = id;
-            this.result = result;
-            this.group = group;
-            this.category = category;
-            this.toolType = toolType;
-            this.input = input;
-            this.xp = xp;
-            this.cookTime = cookTime;
-            this.needPolishing = needPolishing;
-            this.advancement = advancement;
-            this.advancementId = advancementId;
-        }
-
-        @Override
-        public void serializeRecipeData(JsonObject json) {
-
-            if (group != null && !group.isEmpty()) {
-                json.addProperty("group", group);
-            }
-
-            if (category != null) {
-                json.addProperty("category", category);
-            }
-
-            json.addProperty("tool_type", toolType);
-
-            JsonObject inputObj = new JsonObject();
-            input.forEach(inputObj::addProperty);
-            json.add("input", inputObj);
-
-            JsonObject resultObj = new JsonObject();
-            resultObj.addProperty(
-                    "item",
-                    BuiltInRegistries.ITEM.getKey(result.asItem()).toString()
-            );
-            json.add("result", resultObj);
-
-            if (needPolishing != null) {
-                json.addProperty("need_polishing", needPolishing);
-            }
-
-            json.addProperty("experience", xp);
-            json.addProperty("cookingtime", cookTime);
-        }
-
-        @Override
-        public RecipeSerializer<?> getType() {
-            return ModRecipes.CASTING;
-        }
-
-        @Override
-        public Identifier getId() {
-            return id;
-        }
-
-        @Nullable
-        @Override
-        public JsonObject serializeAdvancement() {
-            return advancement.serializeToJson();
-        }
-
-        @Nullable
-        @Override
-        public Identifier getAdvancementId() {
-            return advancementId;
-        }
+        ResourceKey<Recipe<?>> key = RecipeBuilderSupport.key(Identifier.fromNamespaceAndPath(id.getNamespace(), id.getPath() + "_from_cast_furnace"));
+        output.accept(key, recipe, unlocks.build(output, key, "casting"));
     }
 }

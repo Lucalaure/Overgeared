@@ -32,7 +32,7 @@ public class CastBlastingRecipe extends BlastingRecipe implements CastCookingLog
     public CastBlastingRecipe(String group, ItemStackTemplate result, float xp, int time,
                               Map<String, Double> reqMaterials, String toolType, boolean needPolishing) {
         super(CastCookingLogic.commonInfo(), CastCookingLogic.bookInfo(group), CastCookingLogic.castIngredient(), result, xp, time);
-        this.requiredMaterials = Map.copyOf(reqMaterials);
+        this.requiredMaterials = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(reqMaterials));
         this.toolType = toolType;
         this.needPolishing = needPolishing;
     }

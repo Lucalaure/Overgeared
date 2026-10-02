@@ -51,7 +51,7 @@ public class CastingRecipe implements Recipe<ItemListInput> {
         this.result = result;
         this.experience = experience;
         this.cookingTime = cookingTime;
-        this.requiredMaterials = Map.copyOf(requiredMaterials);
+        this.requiredMaterials = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(requiredMaterials));
         this.toolType = toolType.toLowerCase(Locale.ROOT);
         this.needPolishing = needPolishing;
     }
