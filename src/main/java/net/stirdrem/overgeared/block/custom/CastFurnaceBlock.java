@@ -6,7 +6,8 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -15,7 +16,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -33,7 +33,7 @@ import net.stirdrem.overgeared.block.entity.ModBlockEntities;
 import org.jetbrains.annotations.Nullable;
 
 public class CastFurnaceBlock extends BaseEntityBlock {
-    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
     public static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 16, 16);
@@ -45,12 +45,6 @@ public class CastFurnaceBlock extends BaseEntityBlock {
                 .setValue(LIT, false));
     }
 
-    // BlockWithEntity defaults to INVISIBLE - see AbstractSmithingAnvil.getRenderType for why.
-    @Override
-    public RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
-    }
-
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState()
@@ -59,12 +53,12 @@ public class CastFurnaceBlock extends BaseEntityBlock {
     }
 
     @Override
-    public BlockState rotate(BlockState state, Rotation rotation) {
+    protected BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    public BlockState mirror(BlockState state, Mirror mirror) {
+    protected BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
@@ -74,24 +68,18 @@ public class CastFurnaceBlock extends BaseEntityBlock {
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
+    // 26.x: contents/experience are dropped by the block entity's preRemoveSideEffects.
     @Override
-    public void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean moved) {
-        if (state.getBlock() != newState.getBlock()) {
-            BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof CastFurnaceBlockEntity be) {
-                be.drops();
-            }
-        }
-        super.onRemove(state, world, pos, newState, moved);
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean movedByPiston) {
+        Containers.updateNeighboursAfterDestroy(state, world, pos);
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level world, BlockPos pos,
-                               Player player, InteractionHand hand, BlockHitResult hit) {
+    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
         if (!world.isClientSide()) {
             BlockEntity entity = world.getBlockEntity(pos);
             if (entity instanceof CastFurnaceBlockEntity be) {
@@ -100,7 +88,7 @@ public class CastFurnaceBlock extends BaseEntityBlock {
                 throw new IllegalStateException("Container provider is missing!");
             }
         }
-        return InteractionResult.sidedSuccess(world.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     @Nullable

@@ -1,11 +1,10 @@
 package net.stirdrem.overgeared.block.entity;
 
-import net.fabricmc.fabric.api.registry.FuelRegistry;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -17,14 +16,12 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -35,11 +32,16 @@ import net.stirdrem.overgeared.recipe.AlloySmeltingRecipe;
 import net.stirdrem.overgeared.recipe.ShapedAlloySmeltingRecipe;
 import net.stirdrem.overgeared.screen.AlloySmelterScreenHandler;
 import net.stirdrem.overgeared.util.ItemStackHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.stirdrem.overgeared.recipe.ItemListInput;
+import net.stirdrem.overgeared.recipe.ModRecipeTypes;
+import net.stirdrem.overgeared.recipe.RecipeLookup;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScreenHandlerFactory, Container, WorldlyContainer {
+public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedMenuProvider<BlockPos>, Container, WorldlyContainer {
     private final ItemStackHandler itemHandler = new ItemStackHandler(6) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -85,8 +87,8 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Override
@@ -105,14 +107,13 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
 
         ItemStack fuel = be.itemHandler.getStackInSlot(4);
 
-        if (be.burnTime == 0 && be.canSmelt()) {
-            Integer fuelTime = FuelRegistry.INSTANCE.get(fuel.getItem());
-            be.maxBurnTime = be.burnTime = fuelTime == null ? 0 : fuelTime;
+        if (be.burnTime == 0 && be.canSmelt() && world instanceof ServerLevel serverLevel) {
+            be.maxBurnTime = be.burnTime = fuel.isEmpty() ? 0 : BlockEntityHelper.getBurnDuration(serverLevel, be, fuel);
             if (be.burnTime > 0 && !fuel.isEmpty()) {
-                Item fuelContainer = fuel.getItem().getCraftingRemainingItem();
+                ItemStack fuelContainer = BlockEntityHelper.remainder(fuel);
                 fuel.shrink(1);
-                if (fuel.isEmpty() && fuelContainer != null)
-                    be.itemHandler.setStackInSlot(4, new ItemStack(fuelContainer));
+                if (fuel.isEmpty() && !fuelContainer.isEmpty())
+                    be.itemHandler.setStackInSlot(4, fuelContainer);
                 dirty = true;
             }
         }
@@ -140,23 +141,24 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
     // --------------------------------------------------
     // Smelting logic
     // --------------------------------------------------
+    private ItemListInput inputs() {
+        return ItemListInput.of(this, 0, 4);
+    }
+
     private boolean canSmelt() {
-        SimpleContainer inv = new SimpleContainer(4);
-        for (int i = 0; i < 4; i++) inv.setItem(i, itemHandler.getStackInSlot(i));
-
+        ItemListInput inv = inputs();
         Optional<AlloySmeltingRecipe> shapelessRecipe =
-                level.getRecipeManager().getRecipeFor(AlloySmeltingRecipe.Type.INSTANCE, inv, level);
-
+                RecipeLookup.firstMatchValue(level, ModRecipeTypes.ALLOY_SMELTING, inv);
         Optional<ShapedAlloySmeltingRecipe> shapedRecipe =
-                level.getRecipeManager().getRecipeFor(ShapedAlloySmeltingRecipe.Type.INSTANCE, inv, level);
+                RecipeLookup.firstMatchValue(level, ModRecipeTypes.SHAPED_ALLOY_SMELTING, inv);
 
         if (shapelessRecipe.isEmpty() && shapedRecipe.isEmpty()) return false;
 
         cookTimeTotal = shapelessRecipe.map(AlloySmeltingRecipe::getCookingTime)
                 .orElseGet(() -> shapedRecipe.get().getCookingTime());
 
-        ItemStack result = shapelessRecipe.map(r -> r.getResultItem(level.registryAccess()))
-                .orElseGet(() -> shapedRecipe.get().getResultItem(level.registryAccess()));
+        ItemStack result = shapelessRecipe.map(r -> r.assemble(inv))
+                .orElseGet(() -> shapedRecipe.get().assemble(inv));
 
         ItemStack output = itemHandler.getStackInSlot(5);
         return !result.isEmpty() &&
@@ -167,24 +169,22 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
     private void smelt() {
         if (!canSmelt()) return;
 
-        SimpleContainer inv = new SimpleContainer(4);
-        for (int i = 0; i < 4; i++) inv.setItem(i, itemHandler.getStackInSlot(i));
-
+        ItemListInput inv = inputs();
         Optional<AlloySmeltingRecipe> shapelessRecipe =
-                level.getRecipeManager().getRecipeFor(AlloySmeltingRecipe.Type.INSTANCE, inv, level);
+                RecipeLookup.firstMatchValue(level, ModRecipeTypes.ALLOY_SMELTING, inv);
         Optional<ShapedAlloySmeltingRecipe> shapedRecipe =
-                level.getRecipeManager().getRecipeFor(ShapedAlloySmeltingRecipe.Type.INSTANCE, inv, level);
+                RecipeLookup.firstMatchValue(level, ModRecipeTypes.SHAPED_ALLOY_SMELTING, inv);
 
         ItemStack result;
         float xp;
 
         if (shapelessRecipe.isPresent()) {
             AlloySmeltingRecipe recipe = shapelessRecipe.get();
-            result = recipe.getResultItem(level.registryAccess());
+            result = recipe.assemble(inv);
             xp = recipe.getExperience();
         } else if (shapedRecipe.isPresent()) {
             ShapedAlloySmeltingRecipe recipe = shapedRecipe.get();
-            result = recipe.getResultItem(level.registryAccess());
+            result = recipe.assemble(inv);
             xp = recipe.getExperience();
         } else return;
 
@@ -203,7 +203,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
             }
 
             // Get the item's recipe remainder before consuming it.
-            ItemStack remainder = input.getRecipeRemainder();
+            ItemStack remainder = BlockEntityHelper.remainder(input);
 
             // Consume one item.
             input.shrink(1);
@@ -229,7 +229,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
                         break;
                     }
 
-                    if (ItemStack.isSameItemSameTags(target, remainder)
+                    if (ItemStack.isSameItemSameComponents(target, remainder)
                             && target.getCount() < target.getMaxStackSize()) {
 
                         int amount = Math.min(
@@ -247,7 +247,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
                 }
 
                 // No room inside the machine -> drop the remainder.
-                if (!remainder.isEmpty() && level != null && !level.isClientSide) {
+                if (!remainder.isEmpty() && level != null && !level.isClientSide()) {
                     Containers.dropItemStack(
                             level,
                             worldPosition.getX() + 0.5,
@@ -259,7 +259,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
             }
         }
 
-        if (!level.isClientSide && xp > 0.0F) {
+        if (!level.isClientSide() && xp > 0.0F) {
             storedExperience += xp;
         }
     }
@@ -268,7 +268,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
     // Experience logic (vanilla accurate)
     // --------------------------------------------------
     private void spawnExperience(float xp) {
-        if (this.level == null || this.level.isClientSide) return;
+        if (this.level == null || this.level.isClientSide()) return;
         if (!(this.level instanceof ServerLevel serverWorld)) return;
 
         int i = Mth.floor(xp);
@@ -300,12 +300,12 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
     }
 
     @Override
-    public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
-        buf.writeBlockPos(worldPosition);
+    public BlockPos getScreenOpeningData(ServerPlayer player) {
+        return worldPosition;
     }
 
     public void awardStoredExperience(Player player) {
-        if (this.level == null || this.level.isClientSide) return;
+        if (this.level == null || this.level.isClientSide()) return;
         if (storedExperience > 0 && player != null) {
             int total = (int) storedExperience;
             float fractional = storedExperience - total;
@@ -319,7 +319,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
                     SoundEvents.EXPERIENCE_ORB_PICKUP,
                     SoundSource.PLAYERS,
                     0.5F,
-                    this.level.random.nextFloat() * 0.1F + 0.9F
+                    this.level.getRandom().nextFloat() * 0.1F + 0.9F
             );
 
             storedExperience = 0;
@@ -331,9 +331,9 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
     // NBT
     // --------------------------------------------------
     @Override
-    protected void saveAdditional(CompoundTag tag) {
+    protected void saveAdditional(ValueOutput tag) {
         super.saveAdditional(tag);
-        tag.put("inventory", itemHandler.serializeNBT());
+        BlockEntityHelper.saveInventory(tag, "inventory", itemHandler);
         tag.putInt("burnTime", burnTime);
         tag.putInt("maxBurnTime", maxBurnTime);
         tag.putInt("cookTime", cookTime);
@@ -342,22 +342,26 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        itemHandler.deserializeNBT(tag.getCompound("inventory"));
-        burnTime = tag.getInt("burnTime");
-        maxBurnTime = tag.getInt("maxBurnTime");
-        cookTime = tag.getInt("cookTime");
-        cookTimeTotal = tag.getInt("cookTimeTotal");
-        storedExperience = tag.getFloat("storedXp");
+    protected void loadAdditional(ValueInput tag) {
+        super.loadAdditional(tag);
+        BlockEntityHelper.loadInventory(tag, "inventory", itemHandler);
+        burnTime = tag.getIntOr("burnTime", 0);
+        maxBurnTime = tag.getIntOr("maxBurnTime", 0);
+        cookTime = tag.getIntOr("cookTime", 0);
+        cookTimeTotal = tag.getIntOr("cookTimeTotal", 0);
+        storedExperience = tag.getFloatOr("storedXp", 0.0F);
+    }
+
+    /** 26.x: contents are dropped by the vanilla Container handling in super; this also pops stored XP. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        spawnExperience(storedExperience);
+        storedExperience = 0;
     }
 
     public void drops() {
-        SimpleContainer inventory = new SimpleContainer(itemHandler.getSlots());
-        for (int i = 0; i < itemHandler.getSlots(); i++) {
-            inventory.setItem(i, itemHandler.getStackInSlot(i));
-        }
-        Containers.dropContents(this.level, this.worldPosition, inventory);
+        if (this.level != null) Containers.dropContents(this.level, this.worldPosition, this);
         spawnExperience(storedExperience);
     }
 
@@ -375,8 +379,7 @@ public class AlloySmelterBlockEntity extends BlockEntity implements ExtendedScre
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction direction) {
         if (slot == 5) return false;
         if (slot == 4) {
-            Integer fuelTime = FuelRegistry.INSTANCE.get(stack.getItem());
-            return fuelTime != null && fuelTime > 0;
+            return BlockEntityHelper.isFuel(stack);
         }
         return true;
     }

@@ -2,6 +2,7 @@ package net.stirdrem.overgeared.screen;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -11,26 +12,18 @@ public class FletchingStationScreen extends AbstractContainerScreen<FletchingSta
     private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "textures/gui/fletching_table.png");
 
     public FletchingStationScreen(FletchingStationScreenHandler handler, Inventory playerInventory, Component title) {
-        super(handler, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        super(handler, playerInventory, title, 176, 166);
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float partialTick, int mouseX, int mouseY) {
-        context.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(context, mouseX, mouseY, partialTick);
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0.0F, 0.0F, imageWidth, imageHeight, 256, 256);
     }
 
     @Override
-    protected void renderLabels(GuiGraphics context, int mouseX, int mouseY) {
-        context.drawString(this.font, this.title, 8, 6, 0x404040, false);
-        context.drawString(this.font, this.playerInventoryTitle, 8, this.imageHeight - 94, 0x404040, false);
-    }
-
-    @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(context);
-        super.render(context, mouseX, mouseY, partialTick);
-        this.renderTooltip(context, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor context, int mouseX, int mouseY) {
+        context.text(this.font, this.title, 8, 6, 0xFF404040, false);
+        context.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 94, 0xFF404040, false);
     }
 }

@@ -1,17 +1,17 @@
 package net.stirdrem.overgeared.screen;
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.stirdrem.overgeared.Overgeared;
-import net.stirdrem.overgeared.client.ClientModMessages;
 import net.stirdrem.overgeared.item.ToolType;
 import net.stirdrem.overgeared.item.ToolTypeRegistry;
-import net.stirdrem.overgeared.networking.ModMessages;
 import net.stirdrem.overgeared.networking.packet.SelectToolTypeC2SPacket;
 
 import java.util.List;
@@ -28,9 +28,7 @@ public class BlueprintWorkbenchScreen extends AbstractContainerScreen<BlueprintW
     private Component currentToolName;
 
     public BlueprintWorkbenchScreen(BlueprintWorkbenchScreenHandler handler, Inventory inventory, Component title) {
-        super(handler, inventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        super(handler, inventory, title, 176, 166);
         this.toolTypes = ToolTypeRegistry.getRegisteredTypes();
     }
 
@@ -85,9 +83,7 @@ public class BlueprintWorkbenchScreen extends AbstractContainerScreen<BlueprintW
         int selectButtonY = y + 58;
         selectButton = Button.builder(Component.translatable("button.overgeared.select"), btn -> {
                     if (!toolTypes.isEmpty()) {
-                        var buf = ModMessages.buf();
-                        new SelectToolTypeC2SPacket(toolTypes.get(selectedIndex).getId(), menu.containerId).toBytes(buf);
-                        ClientModMessages.sendToServer(ModMessages.SELECT_TOOL_TYPE, buf);
+                        ClientPlayNetworking.send(new SelectToolTypeC2SPacket(toolTypes.get(selectedIndex).getId(), menu.containerId));
                     }
                 })
                 .pos(x + imageWidth / 2 - selectButtonWidth / 2, selectButtonY)
@@ -125,23 +121,17 @@ public class BlueprintWorkbenchScreen extends AbstractContainerScreen<BlueprintW
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float partialTicks, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTicks) {
+        super.extractBackground(context, mouseX, mouseY, partialTicks);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
-        context.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
 
         if (currentToolName != null) {
             int textWidth = this.font.width(currentToolName);
-            int textColor = toolTypes.isEmpty() ? 0xFF0000 : 0x404040;
-            context.drawString(this.font, currentToolName,
+            int textColor = toolTypes.isEmpty() ? 0xFFFF0000 : 0xFF404040;
+            context.text(this.font, currentToolName,
                     x + imageWidth / 2 - textWidth / 2, y + 18, textColor, false);
         }
-    }
-
-    @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float partialTicks) {
-        this.renderBackground(context);
-        super.render(context, mouseX, mouseY, partialTicks);
-        this.renderTooltip(context, mouseX, mouseY);
     }
 }

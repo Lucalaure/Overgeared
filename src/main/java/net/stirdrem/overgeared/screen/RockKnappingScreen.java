@@ -1,7 +1,10 @@
 package net.stirdrem.overgeared.screen;
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
@@ -9,8 +12,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.stirdrem.overgeared.Overgeared;
-import net.stirdrem.overgeared.client.ClientModMessages;
-import net.stirdrem.overgeared.networking.ModMessages;
 import net.stirdrem.overgeared.networking.packet.KnappingChipC2SPacket;
 
 import java.util.HashSet;
@@ -29,9 +30,7 @@ public class RockKnappingScreen extends AbstractContainerScreen<RockKnappingScre
     private final Set<Integer> chippedSpots = new HashSet<>();
 
     public RockKnappingScreen(RockKnappingScreenHandler handler, Inventory playerInventory, Component title) {
-        super(handler, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        super(handler, playerInventory, title, 176, 166);
         this.inventoryLabelY = this.imageHeight - 94;
     }
 
@@ -76,31 +75,36 @@ public class RockKnappingScreen extends AbstractContainerScreen<RockKnappingScre
 
             boolean isChipped = menu.isChipped(i);
 
-            ImageButton button = new ImageButton(
+            // ImageButton now only takes GUI sprites; the unchipped texture is a datapack-defined
+            // full texture, so the button blits it directly.
+            Button button = new Button(
                     x, y,
                     SLOT_SIZE, SLOT_SIZE,
-                    0, 0, 0,
-                    texture,
-                    SLOT_SIZE, SLOT_SIZE,
+                    Component.empty(),
                     btn -> {
                         if ((!hasResult || canContinueKnapping) && !isChipped) {
                             menu.setChip(index);
                             chippedSpots.add(index);
                             if (!resultCollected) {
-                                var buf = ModMessages.buf();
-                                KnappingChipC2SPacket.encode(new KnappingChipC2SPacket(index), buf);
-                                ClientModMessages.sendToServer(ModMessages.KNAPPING_CHIP, buf);
+                                ClientPlayNetworking.send(new KnappingChipC2SPacket(index));
 
                                 minecraft.player.playSound(menu.getSound(), 1.0F, 1.0F);
                             }
                             addKnappingButtons();
                         }
-                    }
+                    },
+                    narration -> narration.get()
             ) {
                 @Override
-                public boolean mouseClicked(double mouseX, double mouseY, int button) {
+                protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+                    graphics.blit(RenderPipelines.GUI_TEXTURED, texture, this.getX(), this.getY(), 0.0F, 0.0F,
+                            SLOT_SIZE, SLOT_SIZE, SLOT_SIZE, SLOT_SIZE);
+                }
+
+                @Override
+                public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
                     if (!menu.isKnappingFinished()) {
-                        return super.mouseClicked(mouseX, mouseY, button);
+                        return super.mouseClicked(event, doubleClick);
                     }
                     return false;
                 }
@@ -117,24 +121,18 @@ public class RockKnappingScreen extends AbstractContainerScreen<RockKnappingScre
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float partialTick) {
-        renderBackground(context);
-        super.render(context, mouseX, mouseY, partialTick);
-        renderTooltip(context, mouseX, mouseY);
-    }
-
-    @Override
-    protected void renderBg(GuiGraphics context, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(context, mouseX, mouseY, partialTick);
         int x = this.leftPos;
         int y = this.topPos;
 
-        context.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0.0F, 0.0F, imageWidth, imageHeight, 256, 256);
     }
 
     @Override
-    protected void renderLabels(GuiGraphics context, int mouseX, int mouseY) {
-        context.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
-        context.drawString(this.font, this.playerInventoryTitle, 8, this.inventoryLabelY, 0x404040, false);
+    protected void extractLabels(GuiGraphicsExtractor context, int mouseX, int mouseY) {
+        context.text(this.font, this.title, this.titleLabelX, this.titleLabelY, 0xFF404040, false);
+        context.text(this.font, this.playerInventoryTitle, 8, this.inventoryLabelY, 0xFF404040, false);
     }
 
     private void handleKnappingDrag(double mouseX, double mouseY) {
@@ -152,9 +150,7 @@ public class RockKnappingScreen extends AbstractContainerScreen<RockKnappingScre
                 menu.setChip(i);
                 chippedSpots.add(i);
                 if (!menu.isResultCollected()) {
-                    var buf = ModMessages.buf();
-                    KnappingChipC2SPacket.encode(new KnappingChipC2SPacket(i), buf);
-                    ClientModMessages.sendToServer(ModMessages.KNAPPING_CHIP, buf);
+                    ClientPlayNetworking.send(new KnappingChipC2SPacket(i));
                     minecraft.player.playSound(SoundEvents.STONE_BREAK, 1.0F, 1.0F);
                 }
 

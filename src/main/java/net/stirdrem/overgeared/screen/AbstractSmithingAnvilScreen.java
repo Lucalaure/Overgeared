@@ -1,8 +1,8 @@
 package net.stirdrem.overgeared.screen;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -18,9 +18,7 @@ public abstract class AbstractSmithingAnvilScreen<T extends AbstractSmithingAnvi
     protected Identifier TEXTURE;
 
     public AbstractSmithingAnvilScreen(T handler, Inventory playerInv, Component title, boolean enableBlueprintSlot) {
-        super(handler, playerInv, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        super(handler, playerInv, title, 176, 166);
         this.inventoryLabelY = this.imageHeight - 94;
         this.titleLabelX = 28;
         TEXTURE = enableBlueprintSlot
@@ -29,62 +27,53 @@ public abstract class AbstractSmithingAnvilScreen<T extends AbstractSmithingAnvi
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(context, mouseX, mouseY, partialTick);
         int x = this.leftPos;
         int y = this.topPos;
 
-        context.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0.0F, 0.0F, imageWidth, imageHeight, 256, 256);
 
         renderProgressArrow(context, x, y);
     }
 
-    protected void renderProgressArrow(GuiGraphics context, int x, int y) {
+    protected void renderProgressArrow(GuiGraphicsExtractor context, int x, int y) {
         if (menu.isCrafting()) {
-            context.blit(TEXTURE, x + 89, y + 35, 176, 0, menu.getScaledProgress(), 17);
+            context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 89, y + 35, 176.0F, 0.0F,
+                    menu.getScaledProgress(), 17, 256, 256);
         }
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
-        super.render(context, mouseX, mouseY, delta);
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(context, mouseX, mouseY, delta);
         renderHitsRemaining(context);
         renderGhostResult(context, this.leftPos, this.topPos, mouseX, mouseY);
-        this.renderTooltip(context, mouseX, mouseY);
     }
 
-    private void renderHitsRemaining(GuiGraphics context) {
+    private void renderHitsRemaining(GuiGraphicsExtractor context) {
         int remainingHits = menu.getRemainingHits();
         if (remainingHits == 0) return;
 
         Component hitsText = Component.translatable("gui.overgeared.remaining_hits", remainingHits);
         int x = this.leftPos;
         int y = this.topPos;
-        context.drawString(font, hitsText, x + 89, y + 17, 4210752, false);
+        context.text(font, hitsText, x + 89, y + 17, 0xFF404040, false);
     }
 
-    private void renderGhostResult(GuiGraphics context, int x, int y, int mouseX, int mouseY) {
+    /** Semi-transparent preview of the result, drawn like vanilla's recipe-book ghost slots. */
+    private void renderGhostResult(GuiGraphicsExtractor context, int x, int y, int mouseX, int mouseY) {
         ItemStack ghostResult = menu.getGhostResult();
         if (!ghostResult.isEmpty()) {
             int itemX = x + 124;
             int itemY = y + 35;
 
-            context.pose().pushPose();
-
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 0.5F); // 50% transparency
-
-            context.renderItem(ghostResult, itemX, itemY);
-            context.renderItemDecorations(this.font, ghostResult, itemX, itemY);
-
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); // Reset alpha
-            RenderSystem.disableBlend();
-
-            context.pose().popPose();
+            context.fakeItem(ghostResult, itemX, itemY);
+            context.fill(itemX, itemY, itemX + 16, itemY + 16, 0x30FFFFFF);
+            context.itemDecorations(this.font, ghostResult, itemX, itemY);
 
             if (mouseX >= itemX - 1 && mouseX < itemX + 17 && mouseY >= itemY - 1 && mouseY < itemY + 17) {
-                context.renderTooltip(this.font, ghostResult, mouseX, mouseY);
+                context.setTooltipForNextFrame(this.font, ghostResult, mouseX, mouseY);
             }
         }
     }

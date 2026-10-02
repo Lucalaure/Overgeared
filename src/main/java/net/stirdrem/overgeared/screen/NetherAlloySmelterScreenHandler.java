@@ -1,6 +1,5 @@
 package net.stirdrem.overgeared.screen;
 
-import net.fabricmc.fabric.api.registry.FuelRegistry;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -10,6 +9,7 @@ import net.minecraft.world.inventory.FurnaceResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.stirdrem.overgeared.block.ModBlocks;
+import net.stirdrem.overgeared.block.entity.BlockEntityHelper;
 import net.stirdrem.overgeared.block.entity.NetherAlloySmelterBlockEntity;
 
 public class NetherAlloySmelterScreenHandler extends AbstractContainerMenu {
@@ -95,8 +95,7 @@ public class NetherAlloySmelterScreenHandler extends AbstractContainerMenu {
                 }
             }
         } else if (index >= startPlayer && index < endPlayer) {
-            Integer fuelTime = FuelRegistry.INSTANCE.get(sourceStack.getItem());
-            if (fuelTime != null && fuelTime > 0) {
+            if (BlockEntityHelper.isFuel(sourceStack)) {
                 if (!moveItemStackTo(sourceStack, fuelSlot, fuelSlot + 1, false)) {
                     if (!moveItemStackTo(sourceStack, inputStart, inputEnd, false)) {
                         return ItemStack.EMPTY;

@@ -2,6 +2,7 @@ package net.stirdrem.overgeared.screen;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -12,41 +13,33 @@ public class AlloySmelterScreen extends AbstractContainerScreen<AlloySmelterScre
             Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "textures/gui/brick_alloy_furnace.png");
 
     public AlloySmelterScreen(AlloySmelterScreenHandler handler, Inventory playerInventory, Component title) {
-        super(handler, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
+        super(handler, playerInventory, title, 176, 166);
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(context, mouseX, mouseY, partialTick);
         int x = (this.width - this.imageWidth) / 2;
         int y = (this.height - this.imageHeight) / 2;
 
-        context.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
 
         if (this.menu.isLit()) {
             int litHeight = this.menu.getLitProgress();
-            context.blit(TEXTURE, x + 8, y + 36 + 13 - litHeight,
-                    176, 13 - litHeight, 14, litHeight + 1);
+            context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 8, y + 36 + 13 - litHeight,
+                    176.0F, 13 - litHeight, 14, litHeight + 1, 256, 256);
         }
 
         int progress = this.menu.getCookProgress();
-        context.blit(TEXTURE, x + 85, y + 34, 176, 14, progress + 1, 16);
+        context.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 85, y + 34, 176.0F, 14.0F, progress + 1, 16, 256, 256);
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
-        super.render(context, mouseX, mouseY, delta);
-        this.renderTooltip(context, mouseX, mouseY);
-    }
-
-    @Override
-    protected void renderLabels(GuiGraphics context, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor context, int mouseX, int mouseY) {
         int titleWidth = this.font.width(this.title);
         int titleX = (this.imageWidth - titleWidth) / 2;
-        context.drawString(this.font, this.title, titleX, this.titleLabelY, 4210752, false);
+        context.text(this.font, this.title, titleX, this.titleLabelY, 0xFF404040, false);
 
-        context.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.imageHeight - 94, 4210752, false);
+        context.text(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.imageHeight - 94, 0xFF404040, false);
     }
 }

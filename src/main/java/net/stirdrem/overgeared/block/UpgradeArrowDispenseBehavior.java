@@ -17,9 +17,9 @@ import net.stirdrem.overgeared.item.custom.UpgradeArrowItem;
 public class UpgradeArrowDispenseBehavior extends DefaultDispenseItemBehavior {
     @Override
     protected ItemStack execute(BlockSource pointer, ItemStack stack) {
-        Level world = pointer.getLevel();
+        Level world = pointer.level();
         Position position = DispenserBlock.getDispensePosition(pointer);
-        Direction direction = pointer.getBlockState().getValue(BlockStateProperties.FACING);
+        Direction direction = pointer.state().getValue(BlockStateProperties.FACING);
 
         if (stack.getItem() instanceof UpgradeArrowItem arrowItem) {
             createAndShootArrow(arrowItem.getTier(), world, position, direction, stack);
@@ -54,6 +54,6 @@ public class UpgradeArrowDispenseBehavior extends DefaultDispenseItemBehavior {
 
     @Override
     protected void playSound(BlockSource pointer) {
-        pointer.getLevel().levelEvent(1002, pointer.getPos(), 0);
+        pointer.level().levelEvent(1002, pointer.pos(), 0);
     }
 }
