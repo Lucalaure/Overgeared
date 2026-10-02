@@ -402,7 +402,7 @@ public class ForgingRecipe implements Recipe<ItemListInput> {
     public record Core(String group, ForgingBookCategory category, boolean requiresBlueprint, Set<String> blueprintTypes,
                        String tier, List<String> pattern, Map<Character, ForgingIngredient> key,
                        ItemStackTemplate result, Optional<ItemStackTemplate> failedResult) {
-        public static final MapCodec<Core> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+        public static final MapCodec<Core> MAP_CODEC = RecordCodecBuilder.<Core>mapCodec(i -> i.group(
                 Codec.STRING.optionalFieldOf("group", "").forGetter(Core::group),
                 TAB_CODEC.optionalFieldOf("category", ForgingBookCategory.MISC).forGetter(Core::category),
                 Codec.BOOL.optionalFieldOf("requires_blueprint", false).forGetter(Core::requiresBlueprint),

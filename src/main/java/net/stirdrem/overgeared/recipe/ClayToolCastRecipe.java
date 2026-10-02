@@ -1,44 +1,53 @@
 package net.stirdrem.overgeared.recipe;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.stirdrem.overgeared.BlueprintQuality;
+import net.stirdrem.overgeared.ForgingQuality;
 import net.stirdrem.overgeared.Overgeared;
+import net.stirdrem.overgeared.components.CastData;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.config.ServerConfig;
 import net.stirdrem.overgeared.item.ModItems;
 import net.stirdrem.overgeared.util.ConfigHelper;
 
+/**
+ * {@code overgeared:crafting_initial_cast}: a tool (mapped to a tool type via item_to_tooltype recipes) in the
+ * centre of a 3x3 grid, surrounded N/E/S/W by 4 clay balls (-> unfired tool cast) or 4 nether bricks (-> nether
+ * tool cast), corners empty. The tool is returned. The cast gets CAST_DATA with the tool type, the tool's quality
+ * downgraded one step, amount 0 and the configured max amount.
+ * <p>
+ * Input indexes are those of the (trimmed) {@link CraftingInput}; the pattern fills the whole 3x3 box so they
+ * equal the crafting grid slots (4 = centre).
+ */
 public class ClayToolCastRecipe extends CustomRecipe {
+    public static final ClayToolCastRecipe INSTANCE = new ClayToolCastRecipe();
 
-    private static final int[] CLAY_SLOTS = {1, 3, 5, 7}; // N, E, S, W around center
+    private static final int[] CLAY_SLOTS = {1, 3, 5, 7}; // N, W, E, S around center
 
-    // store the world between matches() and craft()
+    // store the world between matches() and assemble()
     private Level lastWorld = null;
 
-    public ClayToolCastRecipe(Identifier id, CraftingBookCategory category) {
-        super(id, category);
+    public ClayToolCastRecipe() {
     }
 
     @Override
-    public boolean matches(CraftingContainer inv, Level world) {
-        if (inv.getContainerSize() != 9) return false;
+    public boolean matches(CraftingInput inv, Level world) {
+        if (inv.width() != 3 || inv.height() != 3) return false;
 
-        // store world reference for craft()
         this.lastWorld = world;
 
         ItemStack center = inv.getItem(4);
         if (center.isEmpty()) return false;
 
-        // Must be mapped to a tool type in config
         String toolType = ConfigHelper.getToolTypeForItem(world, center);
         if ("none".equals(toolType)) return false;
 
@@ -51,10 +60,8 @@ public class ClayToolCastRecipe extends CustomRecipe {
             netherPattern &= stack.is(Items.NETHER_BRICK);
         }
 
-        // Must be exclusively clay or exclusively nether bricks
         if (!clayPattern && !netherPattern) return false;
 
-        // Other slots must be empty
         for (int i = 0; i < 9; i++) {
             if (i == 4 || i == 1 || i == 3 || i == 5 || i == 7) continue;
             if (!inv.getItem(i).isEmpty()) return false;
@@ -64,80 +71,66 @@ public class ClayToolCastRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput inv) {
         if (!ServerConfig.ENABLE_CASTING.get()) return ItemStack.EMPTY;
+        if (inv.width() != 3 || inv.height() != 3) return ItemStack.EMPTY;
 
         ItemStack center = inv.getItem(4);
         if (center.isEmpty()) return ItemStack.EMPTY;
 
-        // use the last known world from matches(), fallback to overworld if null
-        Level world = (lastWorld != null)
-                ? lastWorld
-                : Overgeared.getServer().overworld();
+        Level world = lastWorld != null ? lastWorld : Overgeared.getServer().overworld();
 
         String toolType = ConfigHelper.getToolTypeForItem(world, center);
         if ("none".equals(toolType) || toolType.isBlank()) return ItemStack.EMPTY;
 
-        // detect if nether bricks were used
         boolean netherPattern = true;
         for (int slot : CLAY_SLOTS) {
-            ItemStack stack = inv.getItem(slot);
-            netherPattern &= stack.is(Items.NETHER_BRICK);
+            netherPattern &= inv.getItem(slot).is(Items.NETHER_BRICK);
         }
 
-        // Determine which cast item to create
         ItemStack result = netherPattern
                 ? new ItemStack(ModItems.NETHER_TOOL_CAST)
                 : new ItemStack(ModItems.UNFIRED_TOOL_CAST);
 
-        // Extract forging quality from the center item
-        CompoundTag centerTag = center.getTag();
-        String quality = "none";
-        if (centerTag != null && centerTag.contains("ForgingQuality")) {
-            quality = centerTag.getString("ForgingQuality");
-            if (quality.isEmpty()) quality = "none";
-        }
+        ForgingQuality forgingQuality = ForgingQuality.get(center);
+        String quality = forgingQuality == null ? "none" : forgingQuality.getDisplayName();
 
         int maxAmount = ConfigHelper.getMaxMaterialAmount(toolType);
         if (maxAmount <= 0) maxAmount = 9;
 
-        // downgrade the quality one level
         if (!quality.equals("none"))
             quality = BlueprintQuality.getPrevious(BlueprintQuality.fromString(quality)).getId();
 
-        // Attach all relevant NBT data
-        CompoundTag tag = result.getOrCreateTag();
-        tag.putString("ToolType", toolType);
-        if (!quality.equalsIgnoreCase("none"))
-            tag.putString("Quality", quality);
-        tag.putInt("Amount", 0);
-        tag.putInt("MaxAmount", maxAmount);
-        tag.put("Materials", new CompoundTag());
+        result.set(ModComponents.CAST_DATA, CastData.EMPTY
+                .withToolType(toolType)
+                .withQuality(quality.equalsIgnoreCase("none") ? "" : quality)
+                .withAmount(0)
+                .withMaxAmount(maxAmount));
 
         return result;
     }
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
-        NonNullList<ItemStack> remaining = NonNullList.withSize(inv.getContainerSize(), ItemStack.EMPTY);
+    public NonNullList<ItemStack> getRemainingItems(CraftingInput inv) {
+        NonNullList<ItemStack> remaining = NonNullList.withSize(inv.size(), ItemStack.EMPTY);
 
-        // Keep the center item (slot 4)
-        ItemStack centerItem = inv.getItem(4);
-        if (!centerItem.isEmpty()) {
-            remaining.set(4, centerItem.copyWithCount(1));
+        // Keep the center item (slot 4); clay balls / nether bricks are consumed
+        if (inv.size() == 9) {
+            ItemStack centerItem = inv.getItem(4);
+            if (!centerItem.isEmpty()) {
+                remaining.set(4, centerItem.copyWithCount(1));
+            }
         }
 
-        // Clay balls / nether bricks are consumed
         return remaining;
     }
 
     @Override
-    public boolean canCraftInDimensions(int w, int h) {
-        return w * h >= 9;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<ClayToolCastRecipe> getSerializer() {
         return ModRecipes.CLAY_TOOL_CAST;
     }
+
+    public static final MapCodec<ClayToolCastRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
+    public static final StreamCodec<RegistryFriendlyByteBuf, ClayToolCastRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+    public static final RecipeSerializer<ClayToolCastRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 }

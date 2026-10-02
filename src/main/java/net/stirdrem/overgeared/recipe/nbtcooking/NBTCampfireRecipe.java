@@ -1,107 +1,53 @@
 package net.stirdrem.overgeared.recipe.nbtcooking;
 
-import com.google.gson.JsonObject;
-import net.minecraft.core.RegistryAccess;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.Container;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CampfireCookingRecipe;
-import net.minecraft.world.item.crafting.CookingBookCategory;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.CampfireCookingRecipe;
 import net.stirdrem.overgeared.recipe.ModRecipes;
-import net.stirdrem.overgeared.util.JsonToNBT;
 
-public class NBTCampfireRecipe extends CampfireCookingRecipe {
+/** {@code overgeared:nbt_add_campfire_cooking} - see {@link AbstractNBTCookingRecipe}. Type: {@code minecraft:campfire_cooking}. */
+public class NBTCampfireRecipe extends CampfireCookingRecipe implements AbstractNBTCookingRecipe {
 
     private final CompoundTag resultTag;
 
-    public NBTCampfireRecipe(Identifier id, String group, CookingBookCategory category,
-                              Ingredient ingredient, ItemStack result,
-                              float xp, int time, CompoundTag tag) {
-        super(id, group, category, ingredient, result, xp, time);
-        this.resultTag = tag;
+    public NBTCampfireRecipe(Recipe.CommonInfo commonInfo, AbstractCookingRecipe.CookingBookInfo bookInfo, Ingredient ingredient,
+                             ItemStackTemplate result, float xp, int time, CompoundTag tag) {
+        super(commonInfo, bookInfo, ingredient, result, xp, time);
+        this.resultTag = tag == null ? new CompoundTag() : tag;
     }
 
     @Override
-    public ItemStack assemble(Container inventory, RegistryAccess registryAccess) {
-        ItemStack result = super.assemble(inventory, registryAccess).copy();
-
-        if (resultTag != null && !resultTag.isEmpty()) {
-            result.getOrCreateTag().merge(resultTag);
-        }
-
-        return result;
+    public ItemStack assemble(SingleRecipeInput input) {
+        return AbstractNBTCookingRecipe.applyResultTag(result(), resultTag);
     }
 
+    @Override
     public CompoundTag getResultTag() {
         return resultTag;
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return ModRecipes.NBT_ADD_CAMPFIRE;
+    public ItemStackTemplate resultTemplate() {
+        return result();
     }
 
-    public static class Serializer implements RecipeSerializer<NBTCampfireRecipe> {
-        public static final Serializer INSTANCE = new Serializer();
-
-        @Override
-        public NBTCampfireRecipe fromJson(Identifier id, JsonObject json) {
-            String group = GsonHelper.getAsString(json, "group", "");
-
-            CookingBookCategory category = CookingBookCategory.CODEC.byName(
-                    GsonHelper.getAsString(json, "category", "misc"),
-                    CookingBookCategory.MISC
-            );
-
-            Ingredient ingredient = Ingredient.fromJson(
-                    GsonHelper.getAsJsonObject(json, "ingredient")
-            );
-
-            ItemStack result = ShapedRecipe.itemStackFromJson(
-                    GsonHelper.getAsJsonObject(json, "result")
-            );
-
-            float xp = GsonHelper.getAsFloat(json, "experience", 0.0f);
-            int time = GsonHelper.getAsInt(json, "cookingtime", 200);
-
-            CompoundTag tag = new CompoundTag();
-            if (json.has("nbt")) {
-                tag = JsonToNBT.parseCompound(
-                        GsonHelper.getAsJsonObject(json, "nbt")
-                );
-            }
-
-            return new NBTCampfireRecipe(id, group, category, ingredient, result, xp, time, tag);
-        }
-
-        @Override
-        public NBTCampfireRecipe fromNetwork(Identifier id, FriendlyByteBuf buf) {
-            String group = buf.readUtf();
-            CookingBookCategory category = buf.readEnum(CookingBookCategory.class);
-            Ingredient ingredient = Ingredient.fromNetwork(buf);
-            ItemStack result = buf.readItem();
-            float xp = buf.readFloat();
-            int time = buf.readVarInt();
-            CompoundTag tag = buf.readNbt();
-
-            return new NBTCampfireRecipe(id, group, category, ingredient, result, xp, time, tag);
-        }
-
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, NBTCampfireRecipe recipe) {
-            buf.writeUtf(recipe.getGroup());
-            buf.writeEnum(recipe.category());
-            recipe.getIngredients().get(0).toNetwork(buf);
-            buf.writeItem(recipe.getResultItem(null));
-            buf.writeFloat(recipe.getExperience());
-            buf.writeVarInt(recipe.getCookingTime());
-            buf.writeNbt(recipe.getResultTag());
-        }
+    @Override
+    public RecipeSerializer<CampfireCookingRecipe> getSerializer() {
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        RecipeSerializer<CampfireCookingRecipe> s = (RecipeSerializer) ModRecipes.NBT_ADD_CAMPFIRE;
+        return s;
     }
+
+    public static final MapCodec<NBTCampfireRecipe> MAP_CODEC = AbstractNBTCookingRecipe.mapCodec(NBTCampfireRecipe::new);
+    public static final StreamCodec<RegistryFriendlyByteBuf, NBTCampfireRecipe> STREAM_CODEC = AbstractNBTCookingRecipe.streamCodec(NBTCampfireRecipe::new);
+    public static final RecipeSerializer<NBTCampfireRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 }
