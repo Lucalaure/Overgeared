@@ -583,7 +583,7 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
         return RecipeLookup.<ItemListInput, ForgingRecipe>all(level, ModRecipeTypes.FORGING).stream()
                 .filter(holder -> holder.value().containsIngredient(key))
                 .filter(holder -> holder.value().matches(input, level))
-                .max(Comparator.comparingInt(holder -> holder.value().getWidth() * holder.value().getHeight()));
+                .max(Comparator.comparingInt((RecipeHolder<ForgingRecipe> holder) -> holder.value().getWidth() * holder.value().getHeight()));
     }
 
     protected boolean canInsertItemIntoOutputSlot(ItemStack stackToInsert, ForgingRecipe currentRecipe) {
