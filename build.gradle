@@ -35,7 +35,10 @@ dependencies {
 }
 
 fabricApi {
-    configureDataGeneration()
+    configureDataGeneration {
+        // Model providers live in the client-only net.minecraft.client.data package in 26.x.
+        client = true
+    }
 }
 
 processResources {

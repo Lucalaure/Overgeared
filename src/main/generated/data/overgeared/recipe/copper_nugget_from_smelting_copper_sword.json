@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "ingredient": "overgeared:copper_sword",
+  "result": {
+    "id": "overgeared:copper_nugget"
+  }
+}
