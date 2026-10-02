@@ -1,60 +1,65 @@
 package net.stirdrem.overgeared.recipe;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.Container;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.level.Level;
-import net.stirdrem.overgeared.Overgeared;
 
-public class RockKnappingRecipe implements Recipe<Container> {
+import java.util.List;
 
-    private final Identifier id;
-    private final ItemStack output;
+/**
+ * Rock knapping. Input: {@link ItemListInput} of exactly 9 stacks (3x3 grid, row-major); an empty slot is a
+ * chipped spot, a non-empty slot must match {@link #getIngredient()}.
+ * <p>
+ * JSON: {@code ingredient}, {@code result}, {@code pattern} (rows of 'x'/'X' = chipped, anything else = kept),
+ * optional {@code mirrored}.
+ */
+public class RockKnappingRecipe implements Recipe<ItemListInput> {
+
+    private final ItemStackTemplate output;
     private final Ingredient ingredient;
+    private final List<String> patternRows;
+    private final boolean mirrored;
 
     private final boolean[][] pattern;
     private final int width;
     private final int height;
-    private final boolean mirrored;
 
-
-    /* ---------------- CONSTRUCTOR ---------------- */
-
-    public RockKnappingRecipe(
-            Identifier id,
-            ItemStack output,
-            Ingredient ingredient,
-            boolean[][] pattern,
-            int width,
-            int height,
-            boolean mirrored
-    ) {
-        this.id = id;
+    public RockKnappingRecipe(ItemStackTemplate output, Ingredient ingredient, List<String> patternRows, boolean mirrored) {
         this.output = output;
         this.ingredient = ingredient;
-        this.pattern = pattern;
-        this.width = width;
-        this.height = height;
+        this.patternRows = List.copyOf(patternRows);
         this.mirrored = mirrored;
+        this.height = patternRows.size();
+        this.width = patternRows.getFirst().length();
+        this.pattern = new boolean[height][width];
+        for (int y = 0; y < height; y++) {
+            String row = patternRows.get(y);
+            for (int x = 0; x < width; x++) {
+                char c = row.charAt(x);
+                pattern[y][x] = (c == 'x' || c == 'X');
+            }
+        }
     }
 
     /* ---------------- MATCHING LOGIC ---------------- */
 
     @Override
-    public boolean matches(Container inv, Level world) {
-        if (inv.getContainerSize() != 9) return false;
+    public boolean matches(ItemListInput inv, Level world) {
+        if (inv.size() != 9) return false;
 
-        // Validate ingredient
         for (int i = 0; i < 9; i++) {
             ItemStack stack = inv.getItem(i);
             if (!stack.isEmpty() && !ingredient.test(stack)) {
@@ -90,10 +95,7 @@ public class RockKnappingRecipe implements Recipe<Container> {
         // Outside pattern must be chipped
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 3; x++) {
-                boolean inside =
-                        x >= ox && x < ox + width &&
-                                y >= oy && y < oy + height;
-
+                boolean inside = x >= ox && x < ox + width && y >= oy && y < oy + height;
                 if (!inside && input[y][x]) {
                     return false;
                 }
@@ -106,24 +108,46 @@ public class RockKnappingRecipe implements Recipe<Container> {
     /* ---------------- RECIPE OUTPUT ---------------- */
 
     @Override
-    public ItemStack assemble(Container inv, RegistryAccess access) {
-        return output.copy();
+    public ItemStack assemble(ItemListInput inv) {
+        return output.create();
     }
 
-    @Override
-    public ItemStack getResultItem(RegistryAccess access) {
+    /** A fresh copy of the result. */
+    public ItemStack getResultItem() {
+        return output.create();
+    }
+
+    /** @deprecated use {@link #getResultItem()}. */
+    @Deprecated
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
+        return getResultItem();
+    }
+
+    public ItemStackTemplate result() {
         return output;
-    }
-
-    @Override
-    public boolean canCraftInDimensions(int w, int h) {
-        return w == 3 && h == 3;
     }
 
     /* ---------------- GETTERS ---------------- */
 
+    /** [row][column]; true = chipped (empty) spot. */
     public boolean[][] getPattern() {
         return pattern;
+    }
+
+    public List<String> getPatternRows() {
+        return patternRows;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public boolean isMirrored() {
+        return mirrored;
     }
 
     public Ingredient getIngredient() {
@@ -133,18 +157,33 @@ public class RockKnappingRecipe implements Recipe<Container> {
     /* ---------------- RECIPE META ---------------- */
 
     @Override
-    public Identifier getId() {
-        return id;
+    public boolean showNotification() {
+        return true;
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public String group() {
+        return "";
+    }
+
+    @Override
+    public RecipeSerializer<RockKnappingRecipe> getSerializer() {
         return ModRecipes.ROCK_KNAPPING_SERIALIZER;
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<RockKnappingRecipe> getType() {
         return ModRecipeTypes.KNAPPING;
+    }
+
+    @Override
+    public PlacementInfo placementInfo() {
+        return PlacementInfo.create(ingredient);
+    }
+
+    @Override
+    public RecipeBookCategory recipeBookCategory() {
+        return ModRecipeBookCategories.KNAPPING;
     }
 
     /* ---------------- TYPE ---------------- */
@@ -152,87 +191,28 @@ public class RockKnappingRecipe implements Recipe<Container> {
     public static class Type implements RecipeType<RockKnappingRecipe> {
         public static final Type INSTANCE = new Type();
         public static final String ID = "rock_knapping";
+
+        @Override
+        public String toString() {
+            return ID;
+        }
     }
 
     /* ---------------- SERIALIZER ---------------- */
 
-    public static class Serializer implements RecipeSerializer<RockKnappingRecipe> {
+    public static final MapCodec<RockKnappingRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
+            RecipeCodecs.RESULT.fieldOf("result").forGetter(r -> r.output),
+            RecipeCodecs.INGREDIENT.fieldOf("ingredient").forGetter(r -> r.ingredient),
+            RecipeCodecs.pattern(3).fieldOf("pattern").forGetter(r -> r.patternRows),
+            Codec.BOOL.optionalFieldOf("mirrored", false).forGetter(r -> r.mirrored)
+    ).apply(i, RockKnappingRecipe::new));
 
-        public static final Serializer INSTANCE = new Serializer();
-        public static final Identifier ID =
-                Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, "rock_knapping");
+    public static final StreamCodec<RegistryFriendlyByteBuf, RockKnappingRecipe> STREAM_CODEC = StreamCodec.composite(
+            ItemStackTemplate.STREAM_CODEC, r -> r.output,
+            Ingredient.CONTENTS_STREAM_CODEC, r -> r.ingredient,
+            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), r -> r.patternRows,
+            ByteBufCodecs.BOOL, r -> r.mirrored,
+            RockKnappingRecipe::new);
 
-        @Override
-        public RockKnappingRecipe fromJson(Identifier id, JsonObject json) {
-            ItemStack result =
-                    ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
-
-            Ingredient ingredient =
-                    Ingredient.fromJson(GsonHelper.getAsJsonObject(json, "ingredient"));
-
-            JsonArray patternArray = GsonHelper.getAsJsonArray(json, "pattern");
-            int height = patternArray.size();
-            int width = patternArray.get(0).getAsString().length();
-
-            boolean[][] pattern = new boolean[height][width];
-
-            for (int y = 0; y < height; y++) {
-                String row = GsonHelper.convertToString(patternArray.get(y), "pattern row");
-                if (row.length() != width) {
-                    throw new IllegalArgumentException("Pattern rows must be same width");
-                }
-                for (int x = 0; x < width; x++) {
-                    char c = row.charAt(x);
-                    pattern[y][x] = (c == 'x' || c == 'X');
-                }
-            }
-
-            boolean mirrored = GsonHelper.getAsBoolean(json, "mirrored", false);
-
-            return new RockKnappingRecipe(
-                    id, result, ingredient, pattern,
-                    width, height, mirrored
-            );
-        }
-
-        @Override
-        public void toNetwork(FriendlyByteBuf buf, RockKnappingRecipe r) {
-            buf.writeItem(r.output);
-            r.ingredient.toNetwork(buf);
-
-            buf.writeVarInt(r.width);
-            buf.writeVarInt(r.height);
-
-            for (int y = 0; y < r.height; y++) {
-                for (int x = 0; x < r.width; x++) {
-                    buf.writeBoolean(r.pattern[y][x]);
-                }
-            }
-
-            buf.writeBoolean(r.mirrored);
-        }
-
-        @Override
-        public RockKnappingRecipe fromNetwork(Identifier id, FriendlyByteBuf buf) {
-            ItemStack output = buf.readItem();
-            Ingredient ingredient = Ingredient.fromNetwork(buf);
-
-            int width = buf.readVarInt();
-            int height = buf.readVarInt();
-
-            boolean[][] pattern = new boolean[height][width];
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    pattern[y][x] = buf.readBoolean();
-                }
-            }
-
-            boolean mirrored = buf.readBoolean();
-
-            return new RockKnappingRecipe(
-                    id, output, ingredient, pattern,
-                    width, height, mirrored
-            );
-        }
-    }
+    public static final RecipeSerializer<RockKnappingRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 }

@@ -1,27 +1,34 @@
 package net.stirdrem.overgeared.recipe;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.inventory.CraftingContainer;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 import net.stirdrem.overgeared.BlueprintQuality;
+import net.stirdrem.overgeared.components.BlueprintData;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.item.ModItems;
 
+/**
+ * {@code overgeared:crafting_cloning}: one empty blueprint + one written blueprint -> two copies of the written
+ * blueprint with its BLUEPRINT_DATA quality downgraded one step. Any extra JSON fields are ignored.
+ */
 public class BlueprintCloningRecipe extends CustomRecipe {
-    public BlueprintCloningRecipe(Identifier id, CraftingBookCategory category) {
-        super(id, category);
+    public static final BlueprintCloningRecipe INSTANCE = new BlueprintCloningRecipe();
+
+    public BlueprintCloningRecipe() {
     }
 
     @Override
-    public boolean matches(CraftingContainer inv, Level world) {
+    public boolean matches(CraftingInput inv, Level world) {
         int blueprintCount = 0;
         ItemStack emptyBlueprint = ItemStack.EMPTY;
 
-        for (int j = 0; j < inv.getContainerSize(); ++j) {
+        for (int j = 0; j < inv.size(); ++j) {
             ItemStack stack = inv.getItem(j);
             if (!stack.isEmpty()) {
                 if (stack.is(ModItems.EMPTY_BLUEPRINT)) {
@@ -33,7 +40,6 @@ public class BlueprintCloningRecipe extends CustomRecipe {
                     if (!stack.is(ModItems.BLUEPRINT)) {
                         return false;
                     }
-
                     ++blueprintCount;
                 }
             }
@@ -42,12 +48,11 @@ public class BlueprintCloningRecipe extends CustomRecipe {
         return !emptyBlueprint.isEmpty() && blueprintCount > 0;
     }
 
-
     @Override
-    public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput inv) {
         ItemStack source = ItemStack.EMPTY;
 
-        for (int j = 0; j < inv.getContainerSize(); ++j) {
+        for (int j = 0; j < inv.size(); ++j) {
             ItemStack stack = inv.getItem(j);
             if (!stack.isEmpty() && stack.is(ModItems.BLUEPRINT)) {
                 if (!source.isEmpty()) return ItemStack.EMPTY; // only 1 blueprint source allowed
@@ -59,29 +64,23 @@ public class BlueprintCloningRecipe extends CustomRecipe {
 
         ItemStack result = source.copyWithCount(2);
 
-        // Reduce quality
-        if (source.hasTag() && source.getTag().contains("Quality")) {
-            String currentId = source.getTag().getString("Quality");
-            BlueprintQuality current = BlueprintQuality.fromString(currentId);
-            BlueprintQuality downgraded = BlueprintQuality.getPrevious(current);
-
+        BlueprintData data = source.get(ModComponents.BLUEPRINT_DATA);
+        if (data != null) {
+            BlueprintQuality downgraded = BlueprintQuality.getPrevious(BlueprintQuality.fromString(data.quality()));
             if (downgraded != null) {
-                result.getOrCreateTag().putString("Quality", downgraded.getId());
+                result.set(ModComponents.BLUEPRINT_DATA, data.withQuality(downgraded.getId()));
             }
         }
 
         return result;
     }
 
-
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width >= 3 && height >= 3;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<BlueprintCloningRecipe> getSerializer() {
         return ModRecipes.CRAFTING_BLUEPRINTCLONING;
     }
 
+    public static final MapCodec<BlueprintCloningRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
+    public static final StreamCodec<RegistryFriendlyByteBuf, BlueprintCloningRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+    public static final RecipeSerializer<BlueprintCloningRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 }
