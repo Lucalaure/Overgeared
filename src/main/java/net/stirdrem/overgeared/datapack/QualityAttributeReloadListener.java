@@ -70,6 +70,12 @@ public class QualityAttributeReloadListener extends OvergearedJsonReloadListener
         Identifier attributeId = Identifier.tryParse(
                 GsonHelper.getAsString(json, "attribute")
         );
+        // 26.3 port: 1.21 dropped the "generic." / "player." prefixes from attribute ids; accept old packs.
+        if (attributeId != null && attributeId.getNamespace().equals("minecraft")) {
+            String path = attributeId.getPath();
+            if (path.startsWith("generic.")) attributeId = Identifier.withDefaultNamespace(path.substring("generic.".length()));
+            else if (path.startsWith("player.")) attributeId = Identifier.withDefaultNamespace(path.substring("player.".length()));
+        }
 
         // ---- targets ----
         List<QualityTarget> targets = new ArrayList<>();
