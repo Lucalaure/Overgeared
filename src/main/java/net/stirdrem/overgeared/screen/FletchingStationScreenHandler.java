@@ -1,12 +1,8 @@
 package net.stirdrem.overgeared.screen;
 
-import com.google.common.collect.Lists;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -15,18 +11,16 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.Level;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.config.ServerConfig;
 import net.stirdrem.overgeared.item.ModItems;
 import net.stirdrem.overgeared.recipe.FletchingRecipe;
+import net.stirdrem.overgeared.recipe.ItemListInput;
 import net.stirdrem.overgeared.recipe.ModRecipeTypes;
+import net.stirdrem.overgeared.recipe.RecipeLookup;
 
-import org.jetbrains.annotations.Nullable;
-import java.util.List;
 import java.util.Optional;
 
 public class FletchingStationScreenHandler extends AbstractContainerMenu {
@@ -44,7 +38,6 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
     private final ContainerLevelAccess access;
     private final Container input;
     private final ResultContainer result = new ResultContainer();
-    private final RecipeManager recipeManager;
     private final Player player;
 
     public FletchingStationScreenHandler(int syncId, Inventory playerInv) {
@@ -54,7 +47,6 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
     public FletchingStationScreenHandler(int syncId, Inventory playerInv, ContainerLevelAccess access) {
         super(ModMenuTypes.FLETCHING_STATION_MENU, syncId);
         this.access = access;
-        this.recipeManager = playerInv.player.level().getRecipeManager();
         this.player = playerInv.player;
         this.world = playerInv.player.level();
         this.input = new SimpleContainer(4) {
@@ -159,6 +151,15 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
                 || stack.is(ModItems.DIAMOND_UPGRADE_ARROW);
     }
 
+    /** Recipe input over the 4 input slots (tip, shaft, feather, potion). */
+    private ItemListInput recipeInput() {
+        return ItemListInput.of(input);
+    }
+
+    private Optional<FletchingRecipe> findRecipe() {
+        return RecipeLookup.firstMatchValue(world, ModRecipeTypes.FLETCHING, recipeInput());
+    }
+
     private void updateResultSlot() {
         if (world.isClientSide()) return;
 
@@ -174,7 +175,7 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
             broadcastChanges();
             return;
         }
-        Optional<FletchingRecipe> opt = recipeManager.getRecipeFor(ModRecipeTypes.FLETCHING, input, world);
+        Optional<FletchingRecipe> opt = findRecipe();
         ItemStack resultStack = ItemStack.EMPTY;
         ItemStack potion = input.getItem(INPUT_SLOT_POTION);
         boolean allowUpgradeableArrowConversion = ServerConfig.UPGRADE_ARROW_POTION_TOGGLE.get();
@@ -205,9 +206,9 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
                     if (isUpgradeableArrow(input.getItem(slotNumber)))
                         tippedArrows = input.getItem(slotNumber).copy();
                     else tippedArrows = new ItemStack(Items.TIPPED_ARROW, arrowCount);
-                    PotionUtils.setPotion(tippedArrows, PotionUtils.getPotion(potion));
-                    if (potion.hasTag()) {
-                        tippedArrows.setTag(potion.getTag().copy());
+                    PotionContents potionContents = potion.get(DataComponents.POTION_CONTENTS);
+                    if (potionContents != null) {
+                        tippedArrows.set(DataComponents.POTION_CONTENTS, potionContents);
                     }
                     resultStack = tippedArrows;
                 } else if (potion.is(Items.LINGERING_POTION)) {
@@ -217,12 +218,12 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
                     } else {
                         lingeringArrows = new ItemStack(ModItems.LINGERING_ARROW, arrowCount);
                     }
-                    PotionUtils.setPotion(lingeringArrows, PotionUtils.getPotion(potion));
-                    if (potion.hasTag()) {
-                        lingeringArrows.setTag(potion.getTag().copy());
+                    PotionContents potionContents = potion.get(DataComponents.POTION_CONTENTS);
+                    if (potionContents != null) {
+                        lingeringArrows.set(DataComponents.POTION_CONTENTS, potionContents);
                     }
                     if (isUpgradeableArrow(input.getItem(slotNumber))) {
-                        lingeringArrows.getOrCreateTag().putBoolean("LingeringPotion", true);
+                        lingeringArrows.set(ModComponents.LINGERING_STATUS, true);
                     }
                     resultStack = lingeringArrows;
                 }
@@ -237,7 +238,7 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
             int featherCount = input.getItem(INPUT_SLOT_FEATHER).getCount();
 
             int craftCount = Math.max(Math.min(Math.min(tipCount, shaftCount), featherCount), 1);
-            ItemStack baseResult = recipe.assemble(input, world.registryAccess());
+            ItemStack baseResult = recipe.assemble(recipeInput());
 
             if (!potion.isEmpty()) {
                 boolean isUpgradeable = isUpgradeableArrow(baseResult);
@@ -246,32 +247,25 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
                     broadcastChanges();
                     return;
                 }
-                String potionEffect = BuiltInRegistries.POTION.getKey(PotionUtils.getPotion(potion)).toString();
+                PotionContents potionContents = potion.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
 
+                // 26.3 port: the recipe's free-form tipped/lingering NBT tag keys have no component
+                // equivalent; the potion travels in POTION_CONTENTS (+ LINGERING_STATUS on upgrade
+                // arrows), as in the upstream 1.21.1 port.
                 if ((potion.is(Items.POTION) || potion.is(Items.SPLASH_POTION)) && !recipe.getTippedResult().isEmpty()) {
                     resultStack = recipe.getTippedResult().copy();
-                    CompoundTag resultTag = resultStack.getOrCreateTag();
-                    if (potion.hasTag()) {
-                        resultTag.merge(potion.getTag().copy());
+                    if (!potionContents.equals(PotionContents.EMPTY)) {
+                        resultStack.set(DataComponents.POTION_CONTENTS, potionContents);
                     }
-                    resultStack.setTag(potion.getTag() != null ? potion.getTag().copy() : resultTag);
-
                 } else if (potion.is(Items.LINGERING_POTION) && !recipe.getLingeringResult().isEmpty()) {
                     resultStack = recipe.getLingeringResult().copy();
 
-                    CompoundTag resultTag = resultStack.getOrCreateTag();
-
                     if (isUpgradeableArrow(resultStack)) {
-                        resultTag.putBoolean("LingeringPotion", true);
-                    } else if (recipe.getLingeringTag() != null) {
-                        resultTag.putString(recipe.getLingeringTag(), potionEffect);
+                        resultStack.set(ModComponents.LINGERING_STATUS, true);
                     }
-
-                    if (potion.hasTag()) {
-                        resultTag.merge(potion.getTag().copy());
+                    if (!potionContents.equals(PotionContents.EMPTY)) {
+                        resultStack.set(DataComponents.POTION_CONTENTS, potionContents);
                     }
-
-                    resultStack.setTag(resultTag);
                 } else {
                     result.setItem(0, ItemStack.EMPTY);
                     broadcastChanges();
@@ -295,10 +289,10 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
     private void consumeInputs(ItemStack takenResult) {
         if (takenResult.isEmpty()) return;
 
-        Optional<FletchingRecipe> opt = recipeManager.getRecipeFor(ModRecipeTypes.FLETCHING, input, world);
+        Optional<FletchingRecipe> opt = findRecipe();
         if (opt.isPresent()) {
             FletchingRecipe recipe = opt.get();
-            ItemStack baseResult = recipe.assemble(input, world.registryAccess());
+            ItemStack baseResult = recipe.assemble(recipeInput());
             int baseCount = baseResult.getCount();
             int tookCount = takenResult.getCount();
             int batchesTaken = Math.max(1, tookCount / baseCount);
@@ -386,8 +380,7 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
     }
 
     private boolean canStillCraft() {
-        Optional<FletchingRecipe> opt = recipeManager.getRecipeFor(ModRecipeTypes.FLETCHING, input, world);
-        return opt.isPresent();
+        return findRecipe().isPresent();
     }
 
     @Override
@@ -402,36 +395,5 @@ public class FletchingStationScreenHandler extends AbstractContainerMenu {
                     }
                 }
             }
-    }
-
-    public static Potion getPotion(@Nullable CompoundTag tag) {
-        if (tag == null) return Potions.EMPTY;
-
-        if (tag.contains("Potion", 8)) {
-            return BuiltInRegistries.POTION.get(net.minecraft.resources.Identifier.tryParse(tag.getString("Potion")));
-        }
-
-        return Potions.EMPTY;
-    }
-
-    public static List<MobEffectInstance> getAllEffects(@Nullable CompoundTag compoundTag) {
-        List<MobEffectInstance> list = Lists.newArrayList();
-        list.addAll(getPotion(compoundTag).getEffects());
-        getCustomEffects(compoundTag, list);
-        return list;
-    }
-
-    public static void getCustomEffects(@Nullable CompoundTag compoundTag, List<MobEffectInstance> effectList) {
-        if (compoundTag != null && compoundTag.contains("CustomPotionEffects", 9)) {
-            ListTag listTag = compoundTag.getList("CustomPotionEffects", 10);
-
-            for (int i = 0; i < listTag.size(); ++i) {
-                CompoundTag nbtCompound = listTag.getCompound(i);
-                MobEffectInstance effectInstance = MobEffectInstance.load(nbtCompound);
-                if (effectInstance != null) {
-                    effectList.add(effectInstance);
-                }
-            }
-        }
     }
 }
