@@ -16,17 +16,17 @@ public class CustomCopperLeggings {
         MeshDefinition modelData = new MeshDefinition();
         PartDefinition partData = modelData.getRoot();
 
-        partData.addOrReplaceChild("Body", CubeListBuilder.create()
+        partData.addOrReplaceChild("body", CubeListBuilder.create()
                         .texOffs(16, 16).addBox(-4.0F, 0.0F, -2.0F, 8.0F, 12.0F, 4.0F, new CubeDeformation(0.51F))
                         .texOffs(16, 0).addBox(-4.0F, 0.0F, -2.0F, 8.0F, 12.0F, 4.0F, new CubeDeformation(0.65F)),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
 
-        partData.addOrReplaceChild("RightLeg", CubeListBuilder.create()
+        partData.addOrReplaceChild("right_leg", CubeListBuilder.create()
                         .texOffs(0, 16).addBox(-2.0F, 0.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.5F))
                         .texOffs(40, 0).addBox(-2.1F, 0.0F, -2.0F, 8.0F, 12.0F, 4.0F, new CubeDeformation(0.65F)),
                 PartPose.offset(-1.9F, 12.0F, 0.0F));
 
-        partData.addOrReplaceChild("LeftLeg", CubeListBuilder.create()
+        partData.addOrReplaceChild("left_leg", CubeListBuilder.create()
                         .texOffs(0, 16).mirror().addBox(-2.0F, 0.0F, -2.0F, 4.0F, 12.0F, 4.0F, new CubeDeformation(0.5F)).mirror(false)
                         .texOffs(40, 0).addBox(-5.9F, 0.0F, -2.0F, 8.0F, 12.0F, 4.0F, new CubeDeformation(0.65F)),
                 PartPose.offset(1.9F, 12.0F, 0.0F));

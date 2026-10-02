@@ -1,51 +1,46 @@
 package net.stirdrem.overgeared.datagen;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.minecraft.client.color.item.Constant;
+import net.minecraft.client.color.item.Potion;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.MultiVariant;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
-import net.minecraft.client.data.models.blockstates.PropertyDispatch;
-import net.minecraft.client.data.models.blockstates.Variant;
-import net.minecraft.client.data.models.blockstates.VariantProperties;
+import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.client.data.models.model.ModelTemplates;
-import net.minecraft.client.data.models.model.TextureMapping;
-import net.minecraft.client.data.models.model.TextureSlot;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.properties.select.ComponentContents;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.stirdrem.overgeared.Overgeared;
 import net.stirdrem.overgeared.block.ModBlocks;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.item.ModItems;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Block states, block item models and item model definitions (assets/overgeared/items/*.json).
+ *
+ * <p>26.3 port notes:
+ * <ul>
+ *   <li>Item model "overrides" (overgeared:potion_type, trim_type) became item model definitions:
+ *       arrows use {@code minecraft:condition}/{@code minecraft:has_component} on potion_contents and a
+ *       {@code minecraft:select}/{@code minecraft:component} on overgeared:lingering_status; trims use
+ *       the vanilla {@code minecraft:trim_material} select.</li>
+ *   <li>The potion color (old ColorProviderRegistry ItemColor) is a {@code minecraft:potion} tint source
+ *       on layer0 (the "head" texture); layer1 stays untinted.</li>
+ *   <li>The drafting table keeps its hand-written blockstate/model in src/main/resources.</li>
+ * </ul>
+ */
 public class ModModelProvider extends FabricModelProviderPlus {
 
-    private static final LinkedHashMap<Identifier, Float> TRIM_MATERIALS =
-            new LinkedHashMap<>();
-
-    static {
-        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "quartz"), 0.1F);
-        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "iron"), 0.2F);
-        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "netherite"), 0.3F);
-        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "redstone"), 0.4F);
-        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "copper"), 0.5F);
-        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "gold"), 0.6F);
-        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "emerald"), 0.7F);
-        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "diamond"), 0.8F);
-        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "lapis"), 0.9F);
-        TRIM_MATERIALS.put(Identifier.fromNamespaceAndPath("minecraft", "amethyst"), 1.0F);
-    }
-
-    public ModModelProvider(FabricDataOutput output) {
+    public ModModelProvider(FabricPackOutput output) {
         super(output);
     }
 
@@ -55,217 +50,37 @@ public class ModModelProvider extends FabricModelProviderPlus {
 
     @Override
     public void generateBlockStateModels(BlockModelGenerators generator) {
-
-        // ---------------------------------------------------------------------
-        // Simple blocks
-        // ---------------------------------------------------------------------
-
         generator.createTrivialCube(ModBlocks.STEEL_BLOCK);
 
-        // ---------------------------------------------------------------------
-        // Horizontal blocks
-        // ---------------------------------------------------------------------
+        horizontalBlock(generator, ModBlocks.SMITHING_ANVIL, modLoc("block/smithing_anvil"));
+        horizontalBlock(generator, ModBlocks.TIER_A_SMITHING_ANVIL, modLoc("block/tier_a_smithing_anvil"));
+        horizontalBlock(generator, ModBlocks.TIER_B_SMITHING_ANVIL, modLoc("block/tier_b_smithing_anvil"));
+        horizontalBlock(generator, ModBlocks.STONE_SMITHING_ANVIL, modLoc("block/stone_anvil"));
 
-        horizontalBlock(
-                generator,
-                ModBlocks.SMITHING_ANVIL,
-                modLoc("block/smithing_anvil")
-        );
+        facingLitBlock(generator, ModBlocks.ALLOY_FURNACE, "alloy_furnace", "alloy_furnace_on");
+        facingLitBlock(generator, ModBlocks.NETHER_ALLOY_FURNACE, "nether_alloy_furnace", "nether_alloy_furnace_on");
+        facingLitBlock(generator, ModBlocks.CAST_FURNACE, "casting_furnace", "casting_furnace_on");
 
-        horizontalBlock(
-                generator,
-                ModBlocks.TIER_A_SMITHING_ANVIL,
-                modLoc("block/tier_a_smithing_anvil")
-        );
-
-        horizontalBlock(
-                generator,
-                ModBlocks.TIER_B_SMITHING_ANVIL,
-                modLoc("block/tier_b_smithing_anvil")
-        );
-
-        horizontalBlock(
-                generator,
-                ModBlocks.STONE_SMITHING_ANVIL,
-                modLoc("block/stone_anvil")
-        );
-
-        // ---------------------------------------------------------------------
-        // Lit blocks
-        // ---------------------------------------------------------------------
-
-        facingLitBlock(
-                generator,
-                ModBlocks.ALLOY_FURNACE,
-                "alloy_furnace",
-                "alloy_furnace_on"
-        );
-
-        facingLitBlock(
-                generator,
-                ModBlocks.NETHER_ALLOY_FURNACE,
-                "nether_alloy_furnace",
-                "nether_alloy_furnace_on"
-        );
-
-        facingLitBlock(
-                generator,
-                ModBlocks.CAST_FURNACE,
-                "casting_furnace",
-                "casting_furnace_on"
-        );
+        // Blockstate is hand-written (src/main/resources); only the item definition is generated.
+        blockItem(generator, ModBlocks.DRAFTING_TABLE, modLoc("block/drafting_table"));
     }
 
-    // =========================================================================
-    // HORIZONTAL BLOCK
-    // =========================================================================
-
-    private void horizontalBlock(
-            BlockModelGenerators generator,
-            Block block,
-            Identifier model
-    ) {
+    private void horizontalBlock(BlockModelGenerators generator, Block block, Identifier model) {
         generator.blockStateOutput.accept(
-                MultiVariantGenerator.multiVariant(block)
-                        .with(
-                                PropertyDispatch.property(BlockStateProperties.HORIZONTAL_FACING)
-                                        .select(
-                                                Direction.NORTH,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, model)
-                                        )
-                                        .select(
-                                                Direction.EAST,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, model)
-                                                        .with(
-                                                                VariantProperties.Y_ROT,
-                                                                VariantProperties.Rotation.R90
-                                                        )
-                                        )
-                                        .select(
-                                                Direction.SOUTH,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, model)
-                                                        .with(
-                                                                VariantProperties.Y_ROT,
-                                                                VariantProperties.Rotation.R180
-                                                        )
-                                        )
-                                        .select(
-                                                Direction.WEST,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, model)
-                                                        .with(
-                                                                VariantProperties.Y_ROT,
-                                                                VariantProperties.Rotation.R270
-                                                        )
-                                        )
-                        )
-        );
-
-        generator.delegateItemModel(block, model);
+                MultiVariantGenerator.dispatch(block, BlockModelGenerators.plainVariant(model))
+                        .with(BlockModelGenerators.ROTATION_HORIZONTAL_FACING));
+        blockItem(generator, block, model);
     }
 
-    // =========================================================================
-    // FACING + LIT BLOCK
-    // =========================================================================
-
-    private void facingLitBlock(
-            BlockModelGenerators generator,
-            Block block,
-            String baseModelName,
-            String litModelName
-    ) {
-        Identifier baseModel =
-                modLoc("block/" + baseModelName);
-
-        Identifier litModel =
-                modLoc("block/" + litModelName);
-
+    private void facingLitBlock(BlockModelGenerators generator, Block block, String baseModelName, String litModelName) {
+        Identifier baseModel = modLoc("block/" + baseModelName);
+        MultiVariant normal = BlockModelGenerators.plainVariant(baseModel);
+        MultiVariant lit = BlockModelGenerators.plainVariant(modLoc("block/" + litModelName));
         generator.blockStateOutput.accept(
-                MultiVariantGenerator.multiVariant(block)
-                        .with(
-                                PropertyDispatch.properties(
-                                                BlockStateProperties.HORIZONTAL_FACING,
-                                                BlockStateProperties.LIT
-                                        )
-                                        .select(
-                                                Direction.NORTH,
-                                                false,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, baseModel)
-                                        )
-                                        .select(
-                                                Direction.EAST,
-                                                false,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, baseModel)
-                                                        .with(
-                                                                VariantProperties.Y_ROT,
-                                                                VariantProperties.Rotation.R90
-                                                        )
-                                        )
-                                        .select(
-                                                Direction.SOUTH,
-                                                false,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, baseModel)
-                                                        .with(
-                                                                VariantProperties.Y_ROT,
-                                                                VariantProperties.Rotation.R180
-                                                        )
-                                        )
-                                        .select(
-                                                Direction.WEST,
-                                                false,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, baseModel)
-                                                        .with(
-                                                                VariantProperties.Y_ROT,
-                                                                VariantProperties.Rotation.R270
-                                                        )
-                                        )
-                                        .select(
-                                                Direction.NORTH,
-                                                true,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, litModel)
-                                        )
-                                        .select(
-                                                Direction.EAST,
-                                                true,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, litModel)
-                                                        .with(
-                                                                VariantProperties.Y_ROT,
-                                                                VariantProperties.Rotation.R90
-                                                        )
-                                        )
-                                        .select(
-                                                Direction.SOUTH,
-                                                true,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, litModel)
-                                                        .with(
-                                                                VariantProperties.Y_ROT,
-                                                                VariantProperties.Rotation.R180
-                                                        )
-                                        )
-                                        .select(
-                                                Direction.WEST,
-                                                true,
-                                                Variant.variant()
-                                                        .with(VariantProperties.MODEL, litModel)
-                                                        .with(
-                                                                VariantProperties.Y_ROT,
-                                                                VariantProperties.Rotation.R270
-                                                        )
-                                        )
-                        )
-        );
-
-        generator.delegateItemModel(block, baseModel);
+                MultiVariantGenerator.dispatch(block)
+                        .with(BlockModelGenerators.createBooleanModelDispatch(BlockStateProperties.LIT, lit, normal))
+                        .with(BlockModelGenerators.ROTATION_HORIZONTAL_FACING));
+        blockItem(generator, block, baseModel);
     }
 
     // -------------------------------------------------------------------------
@@ -274,11 +89,7 @@ public class ModModelProvider extends FabricModelProviderPlus {
 
     @Override
     public void generateItemModels(ItemModelGenerators generator) {
-
-        // ---------------------------------------------------------------------
         // Simple items
-        // ---------------------------------------------------------------------
-
         simpleItem(generator, ModItems.CRUDE_STEEL);
         simpleItem(generator, ModItems.HEATED_CRUDE_STEEL);
         simpleItem(generator, ModItems.ROCK);
@@ -293,28 +104,20 @@ public class ModModelProvider extends FabricModelProviderPlus {
         simpleItem(generator, ModItems.CLAY_TOOL_CAST);
         simpleItem(generator, ModItems.NETHER_TOOL_CAST);
 
-        // ---------------------------------------------------------------------
-        // Upgrade arrows
-        // ---------------------------------------------------------------------
-
+        // Arrows
         upgradeArrowModel(generator, ModItems.IRON_UPGRADE_ARROW);
         upgradeArrowModel(generator, ModItems.STEEL_UPGRADE_ARROW);
         upgradeArrowModel(generator, ModItems.DIAMOND_UPGRADE_ARROW);
+        lingeringArrowModel(generator, ModItems.LINGERING_ARROW);
 
-        // ---------------------------------------------------------------------
         // Heated metals
-        // ---------------------------------------------------------------------
-
         simpleItem(generator, ModItems.HEATED_COPPER_INGOT);
         simpleItem(generator, ModItems.HEATED_IRON_INGOT);
         simpleItem(generator, ModItems.HEATED_STEEL_INGOT);
         simpleItem(generator, ModItems.HEATED_SILVER_INGOT);
         simpleItem(generator, ModItems.HEATED_NETHERITE_ALLOY);
 
-        // ---------------------------------------------------------------------
         // Plates / miscellaneous
-        // ---------------------------------------------------------------------
-
         simpleItem(generator, ModItems.COPPER_PLATE);
         simpleItem(generator, ModItems.IRON_PLATE);
         simpleItem(generator, ModItems.STEEL_PLATE);
@@ -326,26 +129,17 @@ public class ModModelProvider extends FabricModelProviderPlus {
         simpleItem(generator, ModItems.EMPTY_BLUEPRINT);
         simpleItem(generator, ModItems.BLUEPRINT);
 
-        // ---------------------------------------------------------------------
-        // Armor
-        // ---------------------------------------------------------------------
+        // Armor (vanilla trim_material select)
+        Map<net.minecraft.world.item.equipment.trim.TrimMaterials.Palette, net.minecraft.world.item.equipment.trim.TrimMaterials.Palette> noReplacements = Map.of();
+        generator.generateTrimmableArmorSet(ModItems.STEEL_HELMET, ModItems.STEEL_CHESTPLATE,
+                ModItems.STEEL_LEGGINGS, ModItems.STEEL_BOOTS, false, noReplacements);
 
-        generator.generateArmorTrims((ArmorItem) ModItems.STEEL_HELMET);
-        generator.generateArmorTrims((ArmorItem) ModItems.STEEL_BOOTS);
-        generator.generateArmorTrims((ArmorItem) ModItems.STEEL_CHESTPLATE);
-        generator.generateArmorTrims((ArmorItem) ModItems.STEEL_LEGGINGS);
+        generator.generateTrimmableItem(ModItems.COPPER_HELMET, ItemModelGenerators.TRIM_PREFIX_HELMET, false, noReplacements);
+        generator.generateTrimmableItem(ModItems.COPPER_CHESTPLATE, ItemModelGenerators.TRIM_PREFIX_CHESTPLATE, false, noReplacements);
+        trimmableItemWithOverlay(generator, ModItems.COPPER_LEGGINGS, ItemModelGenerators.TRIM_PREFIX_LEGGINGS);
+        generator.generateTrimmableItem(ModItems.COPPER_BOOTS, ItemModelGenerators.TRIM_PREFIX_BOOTS, false, noReplacements);
 
-        generator.generateArmorTrims((ArmorItem) ModItems.COPPER_HELMET);
-        generator.generateArmorTrims((ArmorItem) ModItems.COPPER_CHESTPLATE);
-
-        registerArmorWithOverlay(generator, (ArmorItem) ModItems.COPPER_LEGGINGS);
-
-        generator.generateArmorTrims((ArmorItem) ModItems.COPPER_BOOTS);
-
-        // ---------------------------------------------------------------------
         // Handheld items
-        // ---------------------------------------------------------------------
-
         handheldItem(generator, ModItems.IRON_TONGS);
         handheldItem(generator, ModItems.STEEL_TONGS);
         handheldItem(generator, ModItems.WOODEN_TONGS);
@@ -369,19 +163,12 @@ public class ModModelProvider extends FabricModelProviderPlus {
         handheldItem(generator, ModItems.COPPER_SHOVEL);
         handheldItem(generator, ModItems.COPPER_HOE);
 
-        // ---------------------------------------------------------------------
-        // Sword blades
-        // ---------------------------------------------------------------------
-
+        // Tool parts
         simpleItem(generator, ModItems.STONE_SWORD_BLADE);
         simpleItem(generator, ModItems.IRON_SWORD_BLADE);
         simpleItem(generator, ModItems.GOLDEN_SWORD_BLADE);
         simpleItem(generator, ModItems.STEEL_SWORD_BLADE);
         simpleItem(generator, ModItems.COPPER_SWORD_BLADE);
-
-        // ---------------------------------------------------------------------
-        // Pickaxe heads
-        // ---------------------------------------------------------------------
 
         simpleItem(generator, ModItems.STONE_PICKAXE_HEAD);
         simpleItem(generator, ModItems.IRON_PICKAXE_HEAD);
@@ -389,19 +176,11 @@ public class ModModelProvider extends FabricModelProviderPlus {
         simpleItem(generator, ModItems.STEEL_PICKAXE_HEAD);
         simpleItem(generator, ModItems.COPPER_PICKAXE_HEAD);
 
-        // ---------------------------------------------------------------------
-        // Axe heads
-        // ---------------------------------------------------------------------
-
         simpleItem(generator, ModItems.STONE_AXE_HEAD);
         simpleItem(generator, ModItems.IRON_AXE_HEAD);
         simpleItem(generator, ModItems.GOLDEN_AXE_HEAD);
         simpleItem(generator, ModItems.STEEL_AXE_HEAD);
         simpleItem(generator, ModItems.COPPER_AXE_HEAD);
-
-        // ---------------------------------------------------------------------
-        // Shovel heads
-        // ---------------------------------------------------------------------
 
         simpleItem(generator, ModItems.STONE_SHOVEL_HEAD);
         simpleItem(generator, ModItems.IRON_SHOVEL_HEAD);
@@ -409,20 +188,12 @@ public class ModModelProvider extends FabricModelProviderPlus {
         simpleItem(generator, ModItems.STEEL_SHOVEL_HEAD);
         simpleItem(generator, ModItems.COPPER_SHOVEL_HEAD);
 
-        // ---------------------------------------------------------------------
-        // Hoe heads
-        // ---------------------------------------------------------------------
-
         simpleItem(generator, ModItems.STONE_HOE_HEAD);
         simpleItem(generator, ModItems.IRON_HOE_HEAD);
         simpleItem(generator, ModItems.GOLDEN_HOE_HEAD);
         simpleItem(generator, ModItems.STEEL_HOE_HEAD);
         simpleItem(generator, ModItems.COPPER_HOE_HEAD);
     }
-
-    // =========================================================================
-    // BASIC ITEMS
-    // =========================================================================
 
     private void simpleItem(ItemModelGenerators generator, Item item) {
         generator.generateFlatItem(item, ModelTemplates.FLAT_ITEM);
@@ -432,242 +203,48 @@ public class ModModelProvider extends FabricModelProviderPlus {
         generator.generateFlatItem(item, ModelTemplates.FLAT_HANDHELD_ITEM);
     }
 
-    protected void registerArmorWithOverlay(
-            ItemModelGenerators generators,
-            ArmorItem armor
-    ) {
-        Identifier itemId = BuiltInRegistries.ITEM.getKey(armor);
-        Identifier baseModelId = ModelLocationUtils.getModelLocation(armor);
-
-        Identifier baseTexture = TextureMapping.getItemTexture(armor);
-
-        Identifier skirtOverlay = Identifier.tryBuild(
-                Overgeared.MOD_ID,
-                "item/" + itemId.getPath() + "_overlay"
-        );
-
-        JsonArray overrides = new JsonArray();
-
-        for (Map.Entry<Identifier, Float> entry : TRIM_MATERIALS.entrySet()) {
-            Identifier trimMaterial = entry.getKey();
-            float trimValue = entry.getValue();
-
-            String trimName = trimMaterial.getPath();
-
-            Identifier trimModelId =
-                    baseModelId.withSuffix(
-                            "_" + trimName + "_trim"
-                    );
-
-            Identifier trimTexture = Identifier.fromNamespaceAndPath(
-                    "minecraft",
-                    "trims/items/"
-                            + getArmorType(armor)
-                            + "_trim_"
-                            + trimName
-            );
-
-            /*
-             * Explicitly define:
-             *
-             * layer0 = base armor
-             * layer1 = trim
-             * layer2 = skirt overlay
-             */
-            TextureMapping textures = new TextureMapping()
-                    .put(TextureSlot.LAYER0, baseTexture)
-                    .put(TextureSlot.LAYER1, trimTexture)
-                    .put(TextureSlot.LAYER2, skirtOverlay);
-
-            ModelTemplates.THREE_LAYERED_ITEM.create(
-                    trimModelId,
-                    textures,
-                    generators.output
-            );
-
-            JsonObject predicate = new JsonObject();
-            predicate.addProperty(
-                    ItemModelGenerators.TRIM_TYPE_PREDICATE_ID.getPath(),
-                    trimValue
-            );
-
-            JsonObject override = new JsonObject();
-            override.add("predicate", predicate);
-            override.addProperty(
-                    "model",
-                    trimModelId.toString()
-            );
-
-            overrides.add(override);
-        }
-
-        /*
-         * Base model:
-         *
-         * layer0 = base armor
-         * layer1 = skirt overlay
-         */
-        TextureMapping baseTextures = new TextureMapping()
-                .put(TextureSlot.LAYER0, baseTexture)
-                .put(TextureSlot.LAYER1, skirtOverlay);
-
-        ModelTemplates.TWO_LAYERED_ITEM.create(
-                baseModelId,
-                baseTextures,
-                generators.output,
-                (id, textures) -> {
-                    JsonObject json =
-                            ModelTemplates.TWO_LAYERED_ITEM.createBaseTemplate(
-                                    id,
-                                    textures
-                            );
-
-                    json.add("overrides", overrides);
-
-                    return json;
-                }
-        );
+    /** Potion tint on layer0 (the "head" coating), layer1 untinted. */
+    private static ItemModel.Unbaked potionTinted(Identifier model) {
+        return ItemModelUtils.tintedModel(model, new Potion(), new Constant(-1));
     }
 
-    private void upgradeArrowModel(
-            ItemModelGenerators generator,
-            Item item
-    ) {
-        Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
-        String baseName = itemId.getPath();
+    /**
+     * Plain arrow; with POTION_CONTENTS -> tipped model, and if also LINGERING_STATUS=true ->
+     * lingering model (replaces the old overgeared:potion_type 0/1/2 predicate).
+     */
+    private void upgradeArrowModel(ItemModelGenerators generator, Item item) {
+        String name = itemId(item).getPath();
 
-        Identifier baseTexture = modLoc(
-                "item/" + baseName
-        );
+        Identifier baseModel = flatModel(generator, ModelLocationUtils.getModelLocation(item),
+                modLoc("item/" + name), ModelTemplates.FLAT_ITEM);
+        Identifier tippedModel = layeredModel(generator, modLoc("item/" + name + "_tipped"),
+                modLoc("item/tipped_" + name + "_head"), modLoc("item/tipped_" + name + "_base"));
+        Identifier lingeringModel = layeredModel(generator, modLoc("item/" + name + "_lingering"),
+                modLoc("item/lingering_" + name + "_head"), modLoc("item/lingering_" + name + "_base"));
 
-        Identifier tippedHead = modLoc(
-                "item/tipped_" + baseName + "_head"
-        );
+        ItemModel.Unbaked potionModel = ItemModelUtils.select(
+                new ComponentContents<>(ModComponents.LINGERING_STATUS),
+                potionTinted(tippedModel),
+                ItemModelUtils.when(Boolean.TRUE, potionTinted(lingeringModel)));
 
-        Identifier tippedBase = modLoc(
-                "item/tipped_" + baseName + "_base"
-        );
-
-        Identifier lingeringHead = modLoc(
-                "item/lingering_" + baseName + "_head"
-        );
-
-        Identifier lingeringBase = modLoc(
-                "item/lingering_" + baseName + "_base"
-        );
-
-        Identifier baseModel = ModelLocationUtils.getModelLocation(item);
-
-        Identifier tippedModel = modLoc(
-                "item/" + baseName + "_tipped"
-        );
-
-        Identifier lingeringModel = modLoc(
-                "item/" + baseName + "_lingering"
-        );
-
-        // ---------------------------------------------------------------------
-        // Base arrow
-        // ---------------------------------------------------------------------
-
-        JsonArray overrides = new JsonArray();
-
-        // potion_type = 1 -> tipped
-        JsonObject tippedPredicate = new JsonObject();
-        tippedPredicate.addProperty(
-                "overgeared:potion_type",
-                1.0F
-        );
-
-        JsonObject tippedOverride = new JsonObject();
-        tippedOverride.add("predicate", tippedPredicate);
-        tippedOverride.addProperty(
-                "model",
-                tippedModel.toString()
-        );
-
-        overrides.add(tippedOverride);
-
-        // potion_type = 2 -> lingering
-        JsonObject lingeringPredicate = new JsonObject();
-        lingeringPredicate.addProperty(
-                "overgeared:potion_type",
-                2.0F
-        );
-
-        JsonObject lingeringOverride = new JsonObject();
-        lingeringOverride.add("predicate", lingeringPredicate);
-        lingeringOverride.addProperty(
-                "model",
-                lingeringModel.toString()
-        );
-
-        overrides.add(lingeringOverride);
-
-        ModelTemplates.FLAT_ITEM.create(
-                baseModel,
-                TextureMapping.layer0(baseTexture),
-                generator.output,
-                (id, textures) -> {
-                    JsonObject json =
-                            ModelTemplates.FLAT_ITEM.createBaseTemplate(
-                                    id,
-                                    textures
-                            );
-
-                    json.add("overrides", overrides);
-
-                    return json;
-                }
-        );
-
-        // ---------------------------------------------------------------------
-        // Tipped arrow
-        // ---------------------------------------------------------------------
-
-        ModelTemplates.TWO_LAYERED_ITEM.create(
-                tippedModel,
-                TextureMapping.layered(
-                        tippedHead,
-                        tippedBase
-                ),
-                generator.output
-        );
-
-        // ---------------------------------------------------------------------
-        // Lingering arrow
-        // ---------------------------------------------------------------------
-
-        ModelTemplates.TWO_LAYERED_ITEM.create(
-                lingeringModel,
-                TextureMapping.layered(
-                        lingeringHead,
-                        lingeringBase
-                ),
-                generator.output
-        );
+        generator.itemModelOutput.accept(item, ItemModelUtils.conditional(
+                ItemModelUtils.hasComponent(DataComponents.POTION_CONTENTS),
+                potionModel,
+                ItemModelUtils.plainModel(baseModel)));
     }
 
-    private String getArmorType(ArmorItem armor) {
-        return switch (armor.getEquipmentSlot()) {
-            case HEAD -> "helmet";
-            case CHEST -> "chestplate";
-            case LEGS -> "leggings";
-            case FEET -> "boots";
-            default -> "";
-        };
+    /** Flint lingering arrow: always the lingering art; potion tint only when it carries a potion. */
+    private void lingeringArrowModel(ItemModelGenerators generator, Item item) {
+        String name = itemId(item).getPath();
+        Identifier model = layeredModel(generator, ModelLocationUtils.getModelLocation(item),
+                modLoc("item/" + name + "_head"), modLoc("item/" + name + "_base"));
+        generator.itemModelOutput.accept(item, ItemModelUtils.conditional(
+                ItemModelUtils.hasComponent(DataComponents.POTION_CONTENTS),
+                potionTinted(model),
+                ItemModelUtils.plainModel(model)));
     }
 
-    private String getItemName(Item item) {
-        return BuiltInRegistries.ITEM
-                .getKey(item)
-                .getPath();
-    }
-
-    private Identifier modLoc(String path) {
-        return Identifier.fromNamespaceAndPath(
-                Overgeared.MOD_ID,
-                path
-        );
+    private static Identifier modLoc(String path) {
+        return Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, path);
     }
 }

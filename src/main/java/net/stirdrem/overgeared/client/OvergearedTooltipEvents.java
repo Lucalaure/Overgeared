@@ -2,12 +2,13 @@ package net.stirdrem.overgeared.client;
 
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.stirdrem.overgeared.ForgingQuality;
+import net.stirdrem.overgeared.components.ModComponents;
 import net.stirdrem.overgeared.config.ServerConfig;
 import net.stirdrem.overgeared.item.ModItems;
 import net.stirdrem.overgeared.util.ModTags;
@@ -26,18 +27,18 @@ public class OvergearedTooltipEvents {
         ItemTooltipCallback.EVENT.register(OvergearedTooltipEvents::onTooltip);
     }
 
-    private static void onTooltip(ItemStack stack, net.minecraft.world.item.TooltipFlag context, List<Component> tooltip) {
+    private static void onTooltip(ItemStack stack, Item.TooltipContext tooltipContext, net.minecraft.world.item.TooltipFlag context, List<Component> tooltip) {
         int insertOffset = 1;
 
         // Add Forging Quality
-        if (stack.hasTag() && stack.getTag().contains("ForgingQuality")) {
-            String quality = stack.getTag().getString("ForgingQuality");
+        ForgingQuality quality = ForgingQuality.get(stack);
+        if (quality != null) {
             Component qualityComponent = switch (quality) {
-                case "poor" -> Component.translatable("tooltip.overgeared.poor").withStyle(ChatFormatting.RED);
-                case "well" -> Component.translatable("tooltip.overgeared.well").withStyle(ChatFormatting.YELLOW);
-                case "expert" -> Component.translatable("tooltip.overgeared.expert").withStyle(ChatFormatting.BLUE);
-                case "perfect" -> Component.translatable("tooltip.overgeared.perfect").withStyle(ChatFormatting.GOLD);
-                case "master" -> Component.translatable("tooltip.overgeared.master").withStyle(ChatFormatting.LIGHT_PURPLE);
+                case POOR -> Component.translatable("tooltip.overgeared.poor").withStyle(ChatFormatting.RED);
+                case WELL -> Component.translatable("tooltip.overgeared.well").withStyle(ChatFormatting.YELLOW);
+                case EXPERT -> Component.translatable("tooltip.overgeared.expert").withStyle(ChatFormatting.BLUE);
+                case PERFECT -> Component.translatable("tooltip.overgeared.perfect").withStyle(ChatFormatting.GOLD);
+                case MASTER -> Component.translatable("tooltip.overgeared.master").withStyle(ChatFormatting.LIGHT_PURPLE);
                 default -> null;
             };
             if (qualityComponent != null) {
@@ -49,24 +50,25 @@ public class OvergearedTooltipEvents {
                     Component.translatable("tooltip.overgeared.item_broken").withStyle(ChatFormatting.RED)
             );
         }
-        if (stack.hasTag() && stack.getTag().contains("Heated")) {
+        if (stack.has(ModComponents.HEATED)) {
             tooltip.add(insertOffset++, Component.translatable("tooltip.overgeared.heated").withStyle(ChatFormatting.RED, ChatFormatting.ITALIC));
         }
         // Add Polish status
-        if (stack.hasTag() && stack.getTag().contains("Polished")) {
-            boolean isPolished = stack.getTag().getBoolean("Polished");
+        Boolean polished = stack.get(ModComponents.POLISHED);
+        if (polished != null) {
+            boolean isPolished = polished;
             Component polishComponent = isPolished
                     ? Component.translatable("tooltip.overgeared.polished").withStyle(ChatFormatting.BLUE, ChatFormatting.ITALIC)
                     : Component.translatable("tooltip.overgeared.unpolished").withStyle(ChatFormatting.RED, ChatFormatting.ITALIC);
             tooltip.add(insertOffset++, polishComponent);
         }
-        if (stack.hasTag() && stack.getTag().contains("failedResult")) {
+        if (stack.has(ModComponents.FAILED_RESULT)) {
             tooltip.add(insertOffset, Component.translatable("tooltip.overgeared.failedResult").withStyle(ChatFormatting.RED));
         }
 
         // Smithing Hammer special tooltip
         if (stack.is(ModTags.Items.SMITHING_HAMMERS)) {
-            if (!Screen.hasShiftDown()) {
+            if (!Minecraft.getInstance().hasShiftDown()) {
                 tooltip.add(insertOffset, Component.translatable("tooltip.overgeared.smithing_hammer.hold_shift")
                         .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
             } else {
@@ -84,13 +86,8 @@ public class OvergearedTooltipEvents {
         }
 
         if (stack.is(Items.POTION) && ServerConfig.TIPPING_TOGGLE.get()) {
-            CompoundTag tag = stack.getTag();
             int maxUses = ServerConfig.MAX_POTION_TIPPING_USE.get();
-            int used = 0;
-
-            if (tag != null && tag.contains("TippedUsed", Tag.TAG_INT)) {
-                used = tag.getInt("TippedUsed");
-            }
+            int used = stack.getOrDefault(ModComponents.TIPPED_USES, 0);
 
             int left = Math.max(0, maxUses - used);
             tooltip.add(Component.translatable("tooltip.overgeared.potion_uses", left, maxUses).withStyle(ChatFormatting.GRAY));
@@ -116,8 +113,8 @@ public class OvergearedTooltipEvents {
             tooltip.add(insertOffset++, Component.translatable("tooltip.overgeared.hotitems.tooltip").withStyle(ChatFormatting.RED));
         }
 
-        if (stack.hasTag() && stack.getTag().contains("Creator")) {
-            String creatorName = stack.getTag().getString("Creator");
+        String creatorName = stack.get(ModComponents.CREATOR);
+        if (creatorName != null) {
             Component creatorComponent = Component.translatable("tooltip.overgeared.made_by")
                     .append(" ")
                     .append(creatorName)

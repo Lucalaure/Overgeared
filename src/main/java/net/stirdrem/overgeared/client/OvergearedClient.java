@@ -2,21 +2,16 @@ package net.stirdrem.overgeared.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.ArmorRenderer;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.minecraft.client.color.item.ItemColor;
+import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.stirdrem.overgeared.block.entity.AbstractSmithingAnvilBlockEntity;
 import net.stirdrem.overgeared.block.entity.ModBlockEntities;
-import net.stirdrem.overgeared.block.entity.renderer.SmithingAnvilBlockEntityRenderer;
+import net.stirdrem.overgeared.client.renderer.SmithingAnvilBlockEntityRenderer;
+import net.stirdrem.overgeared.client.renderer.SmithingAnvilRenderState;
 import net.stirdrem.overgeared.entity.ModEntities;
 import net.stirdrem.overgeared.entity.renderer.LingeringArrowEntityRenderer;
 import net.stirdrem.overgeared.entity.renderer.UpgradeArrowEntityRenderer;
@@ -25,6 +20,13 @@ import net.stirdrem.overgeared.item.armor.model.CustomCopperHelmet;
 import net.stirdrem.overgeared.item.armor.model.CustomCopperLeggings;
 import net.stirdrem.overgeared.screen.*;
 
+/**
+ * Client entrypoint.
+ *
+ * <p>26.3: item tints and model predicates (potion-tinted/tipped/lingering arrows, armor trims)
+ * are no longer registered here - they live in the generated item model definitions under
+ * assets/overgeared/items/ (see datagen/ModModelProvider).
+ */
 public class OvergearedClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
@@ -50,57 +52,20 @@ public class OvergearedClient implements ClientModInitializer {
         registerAnvilRenderer(ModBlockEntities.TIER_B_SMITHING_ANVIL_BE);
         registerAnvilRenderer(ModBlockEntities.STONE_SMITHING_ANVIL_BE);
 
-        EntityModelLayerRegistry.registerModelLayer(CustomCopperHelmet.LAYER_LOCATION, CustomCopperHelmet::createBodyLayer);
-        EntityModelLayerRegistry.registerModelLayer(CustomCopperLeggings.LAYER_LOCATION, CustomCopperLeggings::createBodyLayer);
-        CopperArmorRenderer copperArmorRenderer = new CopperArmorRenderer();
-        ArmorRenderer.register(copperArmorRenderer, ModItems.COPPER_HELMET);
-        ArmorRenderer.register(copperArmorRenderer, ModItems.COPPER_LEGGINGS);
+        ModelLayerRegistry.registerModelLayer(CustomCopperHelmet.LAYER_LOCATION, CustomCopperHelmet::createBodyLayer);
+        ModelLayerRegistry.registerModelLayer(CustomCopperLeggings.LAYER_LOCATION, CustomCopperLeggings::createBodyLayer);
+        ArmorRenderer.register(CopperArmorRenderer::new, ModItems.COPPER_HELMET, ModItems.COPPER_LEGGINGS);
 
         EntityRendererRegistry.register(ModEntities.LINGERING_ARROW, LingeringArrowEntityRenderer::new);
         EntityRendererRegistry.register(ModEntities.UPGRADE_ARROW, UpgradeArrowEntityRenderer::new);
-
-        registerArrowPotionTypeProvider(ModItems.IRON_UPGRADE_ARROW);
-        registerArrowPotionTypeProvider(ModItems.STEEL_UPGRADE_ARROW);
-        registerArrowPotionTypeProvider(ModItems.DIAMOND_UPGRADE_ARROW);
-
-        // layer0 (the "*_head" texture, despite the name - see upgradeArrowModel in the Forge
-        // datagen) is the tintable potion-coating layer; layer1 ("*_base") is pre-colored art
-        // and always renders at full white (no tint).
-        ItemColor arrowColorProvider = (stack, tintIndex) ->
-                tintIndex == 0 && stack.hasTag() ? PotionUtils.getColor(stack) : 0xFFFFFFFF;
-        ColorProviderRegistry.ITEM.register(arrowColorProvider,
-                ModItems.IRON_UPGRADE_ARROW, ModItems.STEEL_UPGRADE_ARROW,
-                ModItems.DIAMOND_UPGRADE_ARROW, ModItems.LINGERING_ARROW);
     }
 
     /**
-     * Item model "overrides" predicate: 0 = plain arrow, 1 = tipped (Potion tag, no
-     * LingeringPotion flag), 2 = lingering (Potion tag + LingeringPotion flag). Matches the
-     * NBT written by FletchingStationScreenHandler when crafting tipped/lingering results.
+     * All four anvil tiers share one renderer targeting the abstract base type.
      */
-    private static void registerArrowPotionTypeProvider(Item item) {
-        ItemProperties.register(item, Identifier.fromNamespaceAndPath("overgeared", "potion_type"),
-                (stack, world, entity, seed) -> {
-                    CompoundTag nbt = stack.getTag();
-                    if (nbt == null || !nbt.contains("Potion")) {
-                        return 0f;
-                    }
-                    return nbt.getBoolean("LingeringPotion") ? 2f : 1f;
-                });
-    }
-
-    /**
-     * All four anvil tiers share one renderer targeting the abstract base type. Generics are
-     * invariant, so BlockEntityRenderer<AbstractSmithingAnvilBlockEntity> can't be handed
-     * directly to register(BlockEntityType<E>, BlockEntityRendererFactory<? super E>) for a
-     * concrete E - the cast is safe since the renderer only ever touches the abstract type's API.
-     */
-    private static <E extends AbstractSmithingAnvilBlockEntity> void registerAnvilRenderer(
-            BlockEntityType<E> type
-    ) {
-        BlockEntityRenderers.register(
-                type,
-                SmithingAnvilBlockEntityRenderer::new
-        );
+    private static <E extends AbstractSmithingAnvilBlockEntity> void registerAnvilRenderer(BlockEntityType<E> type) {
+        BlockEntityRendererProvider<AbstractSmithingAnvilBlockEntity, SmithingAnvilRenderState> provider =
+                SmithingAnvilBlockEntityRenderer::new;
+        BlockEntityRendererRegistry.<E, SmithingAnvilRenderState>register(type, provider);
     }
 }

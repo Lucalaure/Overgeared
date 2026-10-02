@@ -3,11 +3,9 @@ package net.stirdrem.overgeared.client;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.stirdrem.overgeared.config.ServerConfig;
 import net.stirdrem.overgeared.event.ModItemInteractEvents;
-import net.stirdrem.overgeared.networking.ModMessages;
 import net.stirdrem.overgeared.networking.packet.SetMinigameVisibleC2SPacket;
 
 import java.util.Collections;
@@ -168,7 +166,7 @@ public class AnvilMinigameEvents {
         // Age existing popups
         for (int i = 0; i < POPUPS.size(); i++) {
             Popup popup = POPUPS.get(i);
-            popup.age += Minecraft.getInstance().getDeltaFrameTime() * 1000f;
+            popup.age += Minecraft.getInstance().getDeltaTracker().getRealtimeDeltaTicks() * 1000f;
             if (popup.age >= POPUP_DURATION_MS) {
                 POPUPS.remove(i--);
             }
@@ -197,9 +195,7 @@ public class AnvilMinigameEvents {
 
     public static void setIsVisible(BlockPos pos, boolean isVisible) {
         AnvilMinigameEvents.isVisible = isVisible;
-        FriendlyByteBuf buf = ModMessages.buf();
-        SetMinigameVisibleC2SPacket.encode(new SetMinigameVisibleC2SPacket(pos, isVisible), buf);
-        ClientModMessages.sendToServer(ModMessages.SET_MINIGAME_VISIBLE, buf);
+        ClientModMessages.sendToServer(new SetMinigameVisibleC2SPacket(pos, isVisible));
     }
 
     public static void resetPopUps() {
@@ -451,9 +447,7 @@ public class AnvilMinigameEvents {
         isVisible = false;
         BlockPos pos = ModItemInteractEvents.playerAnvilPositions.get(playerId);
         if (pos != null && !pos.equals(BlockPos.ZERO)) {
-            FriendlyByteBuf buf = ModMessages.buf();
-            SetMinigameVisibleC2SPacket.encode(new SetMinigameVisibleC2SPacket(pos, false), buf);
-            ClientModMessages.sendToServer(ModMessages.SET_MINIGAME_VISIBLE, buf);
+            ClientModMessages.sendToServer(new SetMinigameVisibleC2SPacket(pos, false));
         }
     }
 

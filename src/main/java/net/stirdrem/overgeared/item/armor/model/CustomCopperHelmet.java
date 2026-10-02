@@ -11,9 +11,9 @@ import net.stirdrem.overgeared.Overgeared;
 
 /**
  * Blockbench-authored custom armor geometry, ported from the Forge original's
- * {@code EntityModel<T>} subclass. Only the baked-part extraction is needed here -
- * rendering goes through Fabric's {@code ArmorRenderer.renderPart}, see
- * {@link net.stirdrem.overgeared.client.CopperArmorRenderer}.
+ * {@code EntityModel<T>} subclass. Part names match the vanilla humanoid model ("head",
+ * "body", "right_leg", "left_leg") so Fabric's TransformCopyingModel can copy the wearer's
+ * pose onto them, see {@link net.stirdrem.overgeared.client.CopperArmorRenderer}.
  */
 public class CustomCopperHelmet {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(Overgeared.id("copper_helmet"), "main");
@@ -22,7 +22,7 @@ public class CustomCopperHelmet {
         MeshDefinition modelData = new MeshDefinition();
         PartDefinition partData = modelData.getRoot();
 
-        PartDefinition head = partData.addOrReplaceChild("Head", CubeListBuilder.create()
+        PartDefinition head = partData.addOrReplaceChild("head", CubeListBuilder.create()
                         .texOffs(0, 0).addBox(-4.0F, -8.0F, -4.0F, 8.0F, 8.0F, 8.0F, new CubeDeformation(1.0F))
                         .texOffs(34, -15).addBox(0.0F, -15.0F, -5.0F, 0.0F, 6.0F, 15.0F, CubeDeformation.NONE)
                         .texOffs(54, 1).addBox(0.0F, -9.0F, 5.0F, 0.0F, 2.0F, 5.0F, CubeDeformation.NONE),
