@@ -1,9 +1,12 @@
 package net.stirdrem.overgeared.client;
 
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.stirdrem.overgeared.Overgeared;
 import net.stirdrem.overgeared.config.ClientConfig;
 
 import java.util.List;
@@ -16,10 +19,10 @@ public class PopupOverlay {
     private static final float POPUP_DURATION_MS = 10000f;
 
     public static void register() {
-        HudRenderCallback.EVENT.register(PopupOverlay::render);
+        HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Overgeared.id("forging_popups"), PopupOverlay::render);
     }
 
-    private static void render(GuiGraphics context, float tickDelta) {
+    private static void render(GuiGraphicsExtractor context, DeltaTracker deltaTracker) {
         if (!ClientConfig.POP_UP_TOGGLE.get()) return;
 
         List<AnvilMinigameEvents.Popup> popups = AnvilMinigameEvents.getPopups();
@@ -48,11 +51,11 @@ public class PopupOverlay {
 
             float popupY = screenHeight / 2f - 40 - floatUp - yOffset;
 
-            context.pose().pushPose();
-            context.pose().translate(screenWidth / 2f, popupY, 0);
-            context.pose().scale(scale, scale, 1f);
+            context.pose().pushMatrix();
+            context.pose().translate(screenWidth / 2f, popupY);
+            context.pose().scale(scale, scale);
 
-            context.drawString(
+            context.text(
                     font,
                     popup.text,
                     -textWidth / 2,
@@ -61,7 +64,7 @@ public class PopupOverlay {
                     false
             );
 
-            context.pose().popPose();
+            context.pose().popMatrix();
         }
     }
 }
