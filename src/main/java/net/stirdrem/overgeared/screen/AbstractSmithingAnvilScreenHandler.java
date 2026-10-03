@@ -38,6 +38,11 @@ public class AbstractSmithingAnvilScreenHandler extends AbstractContainerMenu {
     private final List<Integer> craftingSlotIndices = new ArrayList<>();
     private final boolean blueprintEnabled;
 
+    /** Menu index of the first 3x3 grid slot: after the hammer slot, and the blueprint slot when present. */
+    public int getGridSlotStart() {
+        return blueprintEnabled ? 2 : 1;
+    }
+
     public AbstractSmithingAnvilScreenHandler(MenuType<?> type, int syncId, Inventory inv, AbstractSmithingAnvilBlockEntity entity, ContainerData data, boolean hasBlueprint) {
         super(type, syncId);
         checkContainerSize(entity, 12);

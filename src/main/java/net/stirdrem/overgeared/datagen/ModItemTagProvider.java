@@ -260,6 +260,26 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                 );
 
         // ---------------------------------------------------------------------
+        // Enchantability: 26.x decides which enchantments an item accepts by tag.
+        // Steel armor joins the vanilla armor-slot tags (Protection, Unbreaking, Mending, ...);
+        // hammers and tongs were DiggerItems in 1.20.1 and keep the same enchantments.
+        // ---------------------------------------------------------------------
+        getOrCreateTagBuilder(ItemTags.HEAD_ARMOR).add(ModItems.STEEL_HELMET);
+        getOrCreateTagBuilder(ItemTags.CHEST_ARMOR).add(ModItems.STEEL_CHESTPLATE);
+        getOrCreateTagBuilder(ItemTags.LEG_ARMOR).add(ModItems.STEEL_LEGGINGS);
+        getOrCreateTagBuilder(ItemTags.FOOT_ARMOR).add(ModItems.STEEL_BOOTS);
+
+        getOrCreateTagBuilder(ItemTags.DURABILITY_ENCHANTABLE)
+                .addTag(ModTags.Items.SMITHING_HAMMERS)
+                .addTag(ModTags.Items.TONGS);
+        getOrCreateTagBuilder(ItemTags.MINING_ENCHANTABLE)
+                .addTag(ModTags.Items.SMITHING_HAMMERS)
+                .addTag(ModTags.Items.TONGS);
+        getOrCreateTagBuilder(ItemTags.MINING_LOOT_ENCHANTABLE)
+                .addTag(ModTags.Items.SMITHING_HAMMERS)
+                .addTag(ModTags.Items.TONGS);
+
+        // ---------------------------------------------------------------------
         // Common tool tags
         // ---------------------------------------------------------------------
 

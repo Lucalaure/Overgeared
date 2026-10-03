@@ -340,21 +340,13 @@ public class JEIOvergearedModPlugin implements IModPlugin {
     @Override
     public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
 
-        registration.addRecipeTransferHandler(SteelSmithingAnvilScreenHandler.class,
-                ModMenuTypes.STEEL_SMITHING_ANVIL_MENU,
-                ForgingRecipeCategory.FORGING_RECIPE_TYPE, 2, 9, 12, 36);
+        registration.addRecipeTransferHandler(new AnvilRecipeTransferInfo<>(SteelSmithingAnvilScreenHandler.class, ModMenuTypes.STEEL_SMITHING_ANVIL_MENU));
 
-        registration.addRecipeTransferHandler(StoneSmithingAnvilScreenHandler.class,
-                ModMenuTypes.STONE_SMITHING_ANVIL_MENU,
-                ForgingRecipeCategory.FORGING_RECIPE_TYPE, 2, 9, 12, 36);
+        registration.addRecipeTransferHandler(new AnvilRecipeTransferInfo<>(StoneSmithingAnvilScreenHandler.class, ModMenuTypes.STONE_SMITHING_ANVIL_MENU));
 
-        registration.addRecipeTransferHandler(TierASmithingAnvilScreenHandler.class,
-                ModMenuTypes.TIER_A_SMITHING_ANVIL_MENU,
-                ForgingRecipeCategory.FORGING_RECIPE_TYPE, 2, 9, 12, 36);
+        registration.addRecipeTransferHandler(new AnvilRecipeTransferInfo<>(TierASmithingAnvilScreenHandler.class, ModMenuTypes.TIER_A_SMITHING_ANVIL_MENU));
 
-        registration.addRecipeTransferHandler(TierBSmithingAnvilScreenHandler.class,
-                ModMenuTypes.TIER_B_SMITHING_ANVIL_MENU,
-                ForgingRecipeCategory.FORGING_RECIPE_TYPE, 2, 9, 12, 36);
+        registration.addRecipeTransferHandler(new AnvilRecipeTransferInfo<>(TierBSmithingAnvilScreenHandler.class, ModMenuTypes.TIER_B_SMITHING_ANVIL_MENU));
 
         registration.addRecipeTransferHandler(FletchingStationScreenHandler.class,
                 ModMenuTypes.FLETCHING_STATION_MENU,

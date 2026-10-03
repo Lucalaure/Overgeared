@@ -1,5 +1,12 @@
 package net.stirdrem.overgeared.datagen;
 
+import java.util.Optional;
+import net.minecraft.world.item.crafting.SmithingTransformRecipe;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Item;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.advancements.Advancement;
@@ -114,6 +121,25 @@ public class ModRecipeProvider extends FabricRecipeProvider {
     private static class Recipes extends RecipeProvider {
         Recipes(BootstrapContext<Recipe<?>> recipes, BootstrapContext<Advancement> advancements) {
             super(recipes, advancements);
+        }
+
+        /**
+         * Steel -> diamond upgrade at the smithing table, saved under the vanilla id
+         * (minecraft:diamond_*) so it replaces vanilla's crafting-table recipe, like the iron/gold
+         * overrides. Accepted directly because Fabric's datagen rewrites ids passed through
+         * SmithingTransformRecipeBuilder into the mod's namespace.
+         */
+        private void diamondUpgrade(Item steel, Item diamond, RecipeCategory category) {
+            ResourceKey<Recipe<?>> id = ResourceKey.create(Registries.RECIPE, BuiltInRegistries.ITEM.getKey(diamond));
+            SmithingTransformRecipe recipe = new SmithingTransformRecipe(
+                    new Recipe.CommonInfo(true),
+                    Optional.of(Ingredient.of(ModItems.DIAMOND_UPGRADE_SMITHING_TEMPLATE)),
+                    Ingredient.of(steel),
+                    Optional.of(Ingredient.of(Items.DIAMOND)),
+                    new ItemStackTemplate(diamond));
+            RecipeBuilderSupport.Unlocks unlocks = new RecipeBuilderSupport.Unlocks();
+            unlocks.add("has_diamond", has(Items.DIAMOND));
+            output.accept(id, recipe, unlocks.build(output, id, category.getFolderName()));
         }
 
         @Override
@@ -942,87 +968,31 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .offerTo(output);
 
             // Steel Axe to Diamond Axe
-            SmithingTransformRecipeBuilder.smithing(
-                            Ingredient.of(ModItems.DIAMOND_UPGRADE_SMITHING_TEMPLATE),
-                            Ingredient.of(ModItems.STEEL_AXE),
-                            Ingredient.of(Items.DIAMOND),
-                            RecipeCategory.COMBAT,
-                            Items.DIAMOND_AXE)
-                    .unlocks("has_diamond", has(Items.DIAMOND))
-                    .save(output, "minecraft:diamond_axe");
+            diamondUpgrade(ModItems.STEEL_AXE, Items.DIAMOND_AXE, RecipeCategory.TOOLS);
 
             // Steel Pickaxe to Diamond Pickaxe
-            SmithingTransformRecipeBuilder.smithing(
-                            Ingredient.of(ModItems.DIAMOND_UPGRADE_SMITHING_TEMPLATE),
-                            Ingredient.of(ModItems.STEEL_PICKAXE),
-                            Ingredient.of(Items.DIAMOND),
-                            RecipeCategory.TOOLS,
-                            Items.DIAMOND_PICKAXE)
-                    .unlocks("has_diamond", has(Items.DIAMOND))
-                    .save(output, "minecraft:diamond_pickaxe");
+            diamondUpgrade(ModItems.STEEL_PICKAXE, Items.DIAMOND_PICKAXE, RecipeCategory.TOOLS);
 
             // Steel Shovel to Diamond Shovel
-            SmithingTransformRecipeBuilder.smithing(
-                            Ingredient.of(ModItems.DIAMOND_UPGRADE_SMITHING_TEMPLATE),
-                            Ingredient.of(ModItems.STEEL_SHOVEL),
-                            Ingredient.of(Items.DIAMOND),
-                            RecipeCategory.TOOLS,
-                            Items.DIAMOND_SHOVEL).unlocks("has_diamond", has(Items.DIAMOND))
-                    .save(output, "minecraft:diamond_shovel");
+            diamondUpgrade(ModItems.STEEL_SHOVEL, Items.DIAMOND_SHOVEL, RecipeCategory.TOOLS);
 
             // Steel Hoe to Diamond Hoe
-            SmithingTransformRecipeBuilder.smithing(
-                            Ingredient.of(ModItems.DIAMOND_UPGRADE_SMITHING_TEMPLATE),
-                            Ingredient.of(ModItems.STEEL_HOE),
-                            Ingredient.of(Items.DIAMOND),
-                            RecipeCategory.TOOLS,
-                            Items.DIAMOND_HOE).unlocks("has_diamond", has(Items.DIAMOND))
-                    .save(output, "minecraft:diamond_hoe");
+            diamondUpgrade(ModItems.STEEL_HOE, Items.DIAMOND_HOE, RecipeCategory.TOOLS);
 
             // Steel Sword to Diamond Sword
-            SmithingTransformRecipeBuilder.smithing(
-                            Ingredient.of(ModItems.DIAMOND_UPGRADE_SMITHING_TEMPLATE),
-                            Ingredient.of(ModItems.STEEL_SWORD),
-                            Ingredient.of(Items.DIAMOND),
-                            RecipeCategory.COMBAT,
-                            Items.DIAMOND_SWORD).unlocks("has_diamond", has(Items.DIAMOND))
-                    .save(output, "minecraft:diamond_sword");
+            diamondUpgrade(ModItems.STEEL_SWORD, Items.DIAMOND_SWORD, RecipeCategory.COMBAT);
 
             // Steel Helmet to Diamond Helmet
-            SmithingTransformRecipeBuilder.smithing(
-                            Ingredient.of(ModItems.DIAMOND_UPGRADE_SMITHING_TEMPLATE),
-                            Ingredient.of(ModItems.STEEL_HELMET),
-                            Ingredient.of(Items.DIAMOND),
-                            RecipeCategory.COMBAT,
-                            Items.DIAMOND_HELMET).unlocks("has_diamond", has(Items.DIAMOND))
-                    .save(output, "minecraft:diamond_helmet");
+            diamondUpgrade(ModItems.STEEL_HELMET, Items.DIAMOND_HELMET, RecipeCategory.COMBAT);
 
             // Steel Chestplate to Diamond Chestplate
-            SmithingTransformRecipeBuilder.smithing(
-                            Ingredient.of(ModItems.DIAMOND_UPGRADE_SMITHING_TEMPLATE),
-                            Ingredient.of(ModItems.STEEL_CHESTPLATE),
-                            Ingredient.of(Items.DIAMOND),
-                            RecipeCategory.COMBAT,
-                            Items.DIAMOND_CHESTPLATE).unlocks("has_diamond", has(Items.DIAMOND))
-                    .save(output, "minecraft:diamond_chestplate");
+            diamondUpgrade(ModItems.STEEL_CHESTPLATE, Items.DIAMOND_CHESTPLATE, RecipeCategory.COMBAT);
 
             // Steel Leggings to Diamond Leggings
-            SmithingTransformRecipeBuilder.smithing(
-                            Ingredient.of(ModItems.DIAMOND_UPGRADE_SMITHING_TEMPLATE),
-                            Ingredient.of(ModItems.STEEL_LEGGINGS),
-                            Ingredient.of(Items.DIAMOND),
-                            RecipeCategory.COMBAT,
-                            Items.DIAMOND_LEGGINGS).unlocks("has_diamond", has(Items.DIAMOND))
-                    .save(output, "minecraft:diamond_leggings");
+            diamondUpgrade(ModItems.STEEL_LEGGINGS, Items.DIAMOND_LEGGINGS, RecipeCategory.COMBAT);
 
             // Steel Boots to Diamond Boots
-            SmithingTransformRecipeBuilder.smithing(
-                            Ingredient.of(ModItems.DIAMOND_UPGRADE_SMITHING_TEMPLATE),
-                            Ingredient.of(ModItems.STEEL_BOOTS),
-                            Ingredient.of(Items.DIAMOND),
-                            RecipeCategory.COMBAT,
-                            Items.DIAMOND_BOOTS).unlocks("has_diamond", has(Items.DIAMOND))
-                    .save(output, "minecraft:diamond_boots");
+            diamondUpgrade(ModItems.STEEL_BOOTS, Items.DIAMOND_BOOTS, RecipeCategory.COMBAT);
 
             /*
              * FletchingRecipeBuilder.fletching(

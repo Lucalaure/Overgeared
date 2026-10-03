@@ -32,7 +32,23 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
                         ModBlocks.TIER_A_SMITHING_ANVIL,
                         ModBlocks.TIER_B_SMITHING_ANVIL,
                         ModBlocks.ALLOY_FURNACE,
-                        ModBlocks.NETHER_ALLOY_FURNACE
+                        ModBlocks.NETHER_ALLOY_FURNACE,
+                        ModBlocks.CAST_FURNACE
+                );
+
+        // Wooden, like the crafting table it is made from
+        getOrCreateTagBuilder(BlockTags.MINEABLE_WITH_AXE)
+                .add(ModBlocks.DRAFTING_TABLE);
+
+        /*
+         * Steel tier: iron < steel < diamond. Steel can't harvest diamond-tier blocks except
+         * obsidian and crying obsidian.
+         */
+        getOrCreateTagBuilder(ModTags.Blocks.INCORRECT_FOR_STEEL_TOOL)
+                .add(
+                        Blocks.NETHERITE_BLOCK,
+                        Blocks.RESPAWN_ANCHOR,
+                        Blocks.ANCIENT_DEBRIS
                 );
 
         /*

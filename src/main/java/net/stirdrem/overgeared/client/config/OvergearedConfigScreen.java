@@ -25,6 +25,10 @@ public class OvergearedConfigScreen implements ModMenuApi {
 
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory() {
+        // Cloth Config is optional: without it Mod Menu shows no config button instead of crashing.
+        if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("cloth-config")) {
+            return parent -> null;
+        }
         return OvergearedConfigScreen::buildScreen;
     }
 

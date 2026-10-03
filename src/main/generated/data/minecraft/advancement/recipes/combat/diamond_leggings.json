@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": "overgeared:diamond_pickaxe"
+        "recipes": "minecraft:diamond_leggings"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "overgeared:diamond_pickaxe"
+      "minecraft:diamond_leggings"
     ]
   }
 }

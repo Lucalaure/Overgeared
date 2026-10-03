@@ -18,7 +18,14 @@ b5cd97f53951078db6ffcca3338cc9b452b721ac data/c/tags/item/armors/leggings.json
 165b6cdeb3e3296c19a67192cfca80e7fe41bdc2 data/c/tags/item/tools/swords.json
 bb15aac6fe7fd204327acd103f32a64e1d980caf data/minecraft/tags/item/arrows.json
 820612a76261085606774fa90436ac4f52ab2180 data/minecraft/tags/item/axes.json
+31c2c906632980db1889a446fe05df65ae9ecd8b data/minecraft/tags/item/chest_armor.json
+41737df2af91abac1f0713eaef7f26138a5ae7cb data/minecraft/tags/item/enchantable/durability.json
+41737df2af91abac1f0713eaef7f26138a5ae7cb data/minecraft/tags/item/enchantable/mining.json
+41737df2af91abac1f0713eaef7f26138a5ae7cb data/minecraft/tags/item/enchantable/mining_loot.json
+b2e515530d7fe53e0ab5aa25df714179688d85c6 data/minecraft/tags/item/foot_armor.json
+5161230daf3f2231e5be2bad3260fb70550d1928 data/minecraft/tags/item/head_armor.json
 4e26dc6b0d74bfa4286ab7be52a22ed35c601a24 data/minecraft/tags/item/hoes.json
+b5cd97f53951078db6ffcca3338cc9b452b721ac data/minecraft/tags/item/leg_armor.json
 82b7ce28fa9856ad13aac5c98735d76b0e2a6d1a data/minecraft/tags/item/pickaxes.json
 0cce3f8d69e88ab069ac158c44029905cb0114ed data/minecraft/tags/item/shovels.json
 165b6cdeb3e3296c19a67192cfca80e7fe41bdc2 data/minecraft/tags/item/swords.json

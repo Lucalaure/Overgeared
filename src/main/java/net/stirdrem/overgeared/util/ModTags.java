@@ -15,6 +15,9 @@ public class ModTags {
         public static final TagKey<net.minecraft.world.level.block.Block> TIER_A_ANVIL_BASES = tag("tier_a_anvil_bases");
         public static final TagKey<net.minecraft.world.level.block.Block> TIER_B_ANVIL_BASES = tag("tier_b_anvil_bases");
         public static final TagKey<net.minecraft.world.level.block.Block> GRINDSTONES = tag("grindstones");
+        // Blocks steel tools can't harvest: diamond-tier blocks except obsidian / crying obsidian
+        // (iron < steel < diamond, as in the original mod's needs_steel_tool tier).
+        public static final TagKey<net.minecraft.world.level.block.Block> INCORRECT_FOR_STEEL_TOOL = tag("incorrect_for_steel_tool");
 
         private static TagKey<net.minecraft.world.level.block.Block> tag(String name) {
             return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Overgeared.MOD_ID, name));

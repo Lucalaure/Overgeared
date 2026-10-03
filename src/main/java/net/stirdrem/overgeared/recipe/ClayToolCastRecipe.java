@@ -98,8 +98,11 @@ public class ClayToolCastRecipe extends CustomRecipe {
         int maxAmount = ConfigHelper.getMaxMaterialAmount(toolType);
         if (maxAmount <= 0) maxAmount = 9;
 
-        if (!quality.equals("none"))
-            quality = BlueprintQuality.getPrevious(BlueprintQuality.fromString(quality)).getId();
+        if (!quality.equals("none")) {
+            // The cast stores one tier below the pattern head; Poor has no lower tier and stays Poor.
+            BlueprintQuality lower = BlueprintQuality.getPrevious(BlueprintQuality.fromString(quality));
+            quality = lower != null ? lower.getId() : BlueprintQuality.POOR.getId();
+        }
 
         result.set(ModComponents.CAST_DATA, CastData.EMPTY
                 .withToolType(toolType)

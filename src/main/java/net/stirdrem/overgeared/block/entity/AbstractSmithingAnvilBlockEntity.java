@@ -1,5 +1,7 @@
 package net.stirdrem.overgeared.block.entity;
 
+import net.minecraft.world.item.SmithingTemplateItem;
+import net.stirdrem.overgeared.item.ModItems;
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -65,6 +67,7 @@ import static net.stirdrem.overgeared.Overgeared.getCooledItem;
  */
 public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity implements ExtendedMenuProvider<BlockPos>, Container, WorldlyContainer {
     protected static final int INPUT_SLOT = 0;
+    protected static final int HAMMER_SLOT = 9;
     protected static final int OUTPUT_SLOT = 10;
     protected static final int BLUEPRINT_SLOT = 11;
 
@@ -1085,7 +1088,12 @@ public abstract class AbstractSmithingAnvilBlockEntity extends BlockEntity imple
 
     @Override
     public boolean canPlaceItemThroughFace(int slot, ItemStack stack, @Nullable Direction dir) {
-        return dir != Direction.DOWN && itemHandler.isItemValid(slot, stack);
+        if (dir == Direction.DOWN) return false;
+        // Same rules as the menu slots: never into the output, only hammers / blueprints into their slots.
+        if (slot == OUTPUT_SLOT) return false;
+        if (slot == HAMMER_SLOT) return stack.is(ModTags.Items.SMITHING_HAMMERS);
+        if (slot == BLUEPRINT_SLOT) return stack.is(ModItems.BLUEPRINT) || stack.getItem() instanceof SmithingTemplateItem;
+        return itemHandler.isItemValid(slot, stack);
     }
 
     @Override

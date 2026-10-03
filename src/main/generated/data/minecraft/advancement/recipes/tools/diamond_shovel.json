@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipes": "overgeared:diamond_chestplate"
+        "recipes": "minecraft:diamond_shovel"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "overgeared:diamond_chestplate"
+      "minecraft:diamond_shovel"
     ]
   }
 }
