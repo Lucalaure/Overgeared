@@ -116,7 +116,7 @@ public abstract class BrewingStandBlockEntityMixin {
             if (cache[i] != -1) {
                 ItemStack brewed = slots.get(i);
                 if (!brewed.isEmpty()) {
-                    TippedPotionHelper.setTippedUses(brewed, cache[i]);
+                    TippedPotionHelper.restoreAfterBrewing(brewed, cache[i]);
                 }
             }
         }

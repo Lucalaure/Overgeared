@@ -11,6 +11,7 @@ import net.minecraft.util.Prediction;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -225,16 +226,21 @@ public abstract class ItemStackMixin {
     }
 
     /**
-     * 26.3: every durability loss funnels into hurtAndBreak(int, ServerLevel, ServerPlayer, Consumer).
-     * With the quality break system the item stays at max damage ("broken") instead of being destroyed,
-     * unless the quality-based break chance roll says it really breaks.
+     * Quality break system: when a player or mob wears an item down to zero durability it can stay
+     * at max damage ("broken") and drop a quality tier instead of being destroyed, unless the
+     * quality-based break chance roll says it really breaks.
+     * <p>
+     * Hooks the LivingEntity overload, like the 1.20.1 hurtAndBreak(int, LivingEntity, Consumer)
+     * hook did: dispensers (shears, flint and steel) damage items through the ServerLevel overload
+     * directly and break normally, as they did in 1.20.1.
      */
-    @Inject(method = "hurtAndBreak(ILnet/minecraft/server/level/ServerLevel;Lnet/minecraft/server/level/ServerPlayer;Ljava/util/function/Consumer;)V",
+    @Inject(method = "hurtAndBreak(ILnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;)V",
             at = @At("HEAD"), cancellable = true)
-    private void overgeared$qualityBasedBreak(int amount, ServerLevel level, @Nullable ServerPlayer player, Consumer<ItemStack> onBreak, CallbackInfo ci) {
+    private void overgeared$qualityBasedBreak(int amount, LivingEntity owner, EquipmentSlot slot, CallbackInfo ci) {
         ItemStack stack = (ItemStack) (Object) this;
+        if (!(owner.level() instanceof ServerLevel level)) return;
         if (!stack.isDamageableItem()) return;
-        if (player != null && player.hasInfiniteMaterials()) return;
+        if (owner instanceof Player player && player.hasInfiniteMaterials()) return;
 
         int currentDamage = stack.getDamageValue();
         int newDamage = currentDamage + amount;
@@ -260,28 +266,11 @@ public abstract class ItemStackMixin {
                 stack.setDamageValue(stack.getMaxDamage());
             }
 
-            if (player != null) {
-                EquipmentSlot slot = overgeared$findSlot(player, stack);
-                if (slot != null) {
-                    // entity event -> client plays the break sound/particles (was broadcastBreakEvent)
-                    player.onEquippedItemBroken(stack, slot);
-                } else {
-                    level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                            SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 0.8F, 0.8F + level.getRandom().nextFloat() * 0.4F);
-                }
-            }
-            // 26.3 port: non-player owners are not passed to this overload, so no break sound for mobs.
+            // entity event -> clients play the break sound/particles (was broadcastBreakEvent)
+            owner.onEquippedItemBroken(stack, slot);
 
             ci.cancel();
         }
-    }
-
-    @Unique
-    private static @Nullable EquipmentSlot overgeared$findSlot(Player player, ItemStack stack) {
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            if (player.getItemBySlot(slot) == stack) return slot;
-        }
-        return null;
     }
 
     @Unique
