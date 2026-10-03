@@ -8,6 +8,7 @@ public class ServerConfig {
 
     public static final ConfigSpec SERVER_CONFIG;
     public static final ConfigSpec.BooleanValue ENABLE_MOD_TOOLTIPS;
+    public static final ConfigSpec.BooleanValue GIVE_GUIDE_BOOK_ON_FIRST_JOIN;
 
 
     // --- Core Anvil Configs ---
@@ -145,6 +146,7 @@ public class ServerConfig {
         builder.push("General Configs");
         ENABLE_MOD_TOOLTIPS = builder.comment("Toggle for the mod's custom tooltips").define("enableModTooltips", true);
         ENABLE_CREATIVE_TAB_ITEMS = builder.comment("Toggle for the mod's items to appear in vanilla creative tabs").define("enableCreativeTabItems", true);
+        GIVE_GUIDE_BOOK_ON_FIRST_JOIN = builder.comment("Give each player the Overgeared guide book the first time they join a world (/overgeared guide gives another copy)").define("giveGuideBookOnFirstJoin", true);
         builder.pop();
         // --- Anvil Conversion ---
         builder.push("Anvil Conversion");

@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.stirdrem.overgeared.ForgingQuality;
 import net.stirdrem.overgeared.components.CastData;
 import net.stirdrem.overgeared.components.ModComponents;
+import net.stirdrem.overgeared.guide.GuideBook;
 import net.stirdrem.overgeared.item.ModItems;
 import net.stirdrem.overgeared.util.ConfigHelper;
 
@@ -21,6 +22,16 @@ public class ModCommands {
     private static final String[] QUALITIES = {"poor", "well", "expert", "perfect", "master"};
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        // /overgeared guide - anyone can get a fresh copy of the guide book
+        dispatcher.register(
+                Commands.literal("overgeared")
+                        .then(Commands.literal("guide")
+                                .executes(ctx -> {
+                                    GuideBook.give(ctx.getSource().getPlayerOrException());
+                                    return 1;
+                                }))
+        );
+
 
         // /setforgingquality <quality>
         dispatcher.register(

@@ -102,6 +102,7 @@ public class Overgeared implements ModInitializer {
         // Accessories compat (disabled-compat/accessories) is off until Accessories ships a 26.3 build.
 
         ModLootModifiers.register();
+        net.stirdrem.overgeared.guide.GuideBook.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 ModCommands.register(dispatcher));
     }
