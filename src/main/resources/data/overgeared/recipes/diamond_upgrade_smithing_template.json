@@ -6,7 +6,7 @@
       "item": "minecraft:diamond"
     },
     "b": {
-      "tag": "forge:ingots/steel"
+      "tag": "c:ingots/steel"
     },
     "x": {
       "item": "overgeared:diamond_upgrade_smithing_template"
