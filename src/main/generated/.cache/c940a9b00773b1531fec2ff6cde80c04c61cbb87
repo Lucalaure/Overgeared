@@ -10,7 +10,7 @@ b5cd97f53951078db6ffcca3338cc9b452b721ac data/c/tags/item/armors/leggings.json
 4007a97db2e6c0b940bcd6cdd238ae29cf9e42b8 data/c/tags/item/plates/copper.json
 994a9abc007636667e24bd3a282a8a580929f9f2 data/c/tags/item/plates/iron.json
 4838643523d711aa80124fca1e2c09d2de88ef3c data/c/tags/item/plates/steel.json
-75297adfb266864152bc82be8f14ae54e1dad5cf data/c/tags/item/tools.json
+5efd2a7f4a448471768c26b96346d8c94b5d45a4 data/c/tags/item/tools.json
 820612a76261085606774fa90436ac4f52ab2180 data/c/tags/item/tools/axes.json
 4e26dc6b0d74bfa4286ab7be52a22ed35c601a24 data/c/tags/item/tools/hoes.json
 82b7ce28fa9856ad13aac5c98735d76b0e2a6d1a data/c/tags/item/tools/pickaxes.json
@@ -28,13 +28,14 @@ b2e515530d7fe53e0ab5aa25df714179688d85c6 data/minecraft/tags/item/foot_armor.jso
 b5cd97f53951078db6ffcca3338cc9b452b721ac data/minecraft/tags/item/leg_armor.json
 82b7ce28fa9856ad13aac5c98735d76b0e2a6d1a data/minecraft/tags/item/pickaxes.json
 0cce3f8d69e88ab069ac158c44029905cb0114ed data/minecraft/tags/item/shovels.json
+676ee2330eab0b6800882d4621fe7622b7ae1677 data/minecraft/tags/item/spears.json
 165b6cdeb3e3296c19a67192cfca80e7fe41bdc2 data/minecraft/tags/item/swords.json
 c03f8cfd37cb63d7d0e6322b10dfacd47fa13772 data/minecraft/tags/item/trimmable_armor.json
 578a5be03a0383e2c2c697ced056673b0904ff94 data/overgeared/tags/item/heated_metals.json
 efe9e0caf089100a228c46379f3aa70d7f602ddc data/overgeared/tags/item/hot_items.json
 c1220e2e769c21a53897c9751da3f6460c3b48d7 data/overgeared/tags/item/iron_smithing_hammers.json
 4464bc6ff081e4bd26876fa0c7f35711c489fd74 data/overgeared/tags/item/knappables.json
-87532b1a50d827432e600c344919206990cfce61 data/overgeared/tags/item/quality_blacklist.json
+5ce4544f45d08861393d0456d6418aab2b18c3e6 data/overgeared/tags/item/quality_blacklist.json
 9b21b0989058742365dc1b98e2df8336f419660b data/overgeared/tags/item/repairs_steel_armor.json
 1f663c8c05997e3702e6e9b92facd573b0eea2f8 data/overgeared/tags/item/smithing_hammers.json
 9b21b0989058742365dc1b98e2df8336f419660b data/overgeared/tags/item/steel_tool_materials.json
@@ -43,4 +44,4 @@ c92e0d5eb747d7320b806e7659c04ecf21cc2940 data/overgeared/tags/item/tier_a_smithi
 35133e95f1c8fdd7a1c21afcc231fc0bffefb9a8 data/overgeared/tags/item/tier_b_smithing_hammers.json
 674dbabcbe3f580ce68b3c7db84470c73c52b2e5 data/overgeared/tags/item/tongs.json
 b4c385933b70d1dec536ee49f3ab70c9f261f0ef data/overgeared/tags/item/tool_casts.json
-1282e2b259eb7c5fea247afc912323f0a97bb1b2 data/overgeared/tags/item/tool_parts.json
+081664f1ab3abce0ac4f8f3fbcb158600a83d560 data/overgeared/tags/item/tool_parts.json

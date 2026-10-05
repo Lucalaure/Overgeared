@@ -88,6 +88,7 @@ public final class QualityWrappedTrade {
                 || stack.is(Items.STONE_PICKAXE)
                 || stack.is(Items.STONE_AXE)
                 || stack.is(Items.STONE_SHOVEL)
+                || stack.is(Items.STONE_SPEAR)
                 || stack.is(Items.STONE_HOE);
     }
 }

@@ -121,6 +121,12 @@ public class ModItems {
     public static final Item STEEL_SHOVEL_HEAD = register("steel_shovel_head", Item::new, new Item.Properties());
     public static final Item COPPER_SHOVEL_HEAD = register("copper_shovel_head", Item::new, new Item.Properties());
 
+    public static final Item STONE_SPEAR_HEAD = register("stone_spear_head", Item::new, new Item.Properties());
+    public static final Item IRON_SPEAR_HEAD = register("iron_spear_head", Item::new, new Item.Properties());
+    public static final Item GOLDEN_SPEAR_HEAD = register("golden_spear_head", Item::new, new Item.Properties());
+    public static final Item STEEL_SPEAR_HEAD = register("steel_spear_head", Item::new, new Item.Properties());
+    public static final Item COPPER_SPEAR_HEAD = register("copper_spear_head", Item::new, new Item.Properties());
+
 
     public static final Item STONE_HOE_HEAD = register("stone_hoe_head", Item::new, new Item.Properties());
     public static final Item IRON_HOE_HEAD = register("iron_hoe_head", Item::new, new Item.Properties());
@@ -139,6 +145,10 @@ public class ModItems {
             Item::new, new Item.Properties().hoe(ModToolTiers.STEEL, -3f, -0.5f));
     public static final Item STEEL_SHOVEL = register("steel_shovel",
             Item::new, new Item.Properties().shovel(ModToolTiers.STEEL, 1f, -3));
+    // 26.x spear. Spear tuning (attack duration, damage multiplier, charge timings) sits between
+    // vanilla's iron and diamond spears, like the rest of the steel tier.
+    public static final Item STEEL_SPEAR = register("steel_spear",
+            Item::new, new Item.Properties().spear(ModToolTiers.STEEL, 1.0F, 1.0125F, 0.55F, 2.75F, 10.5F, 6.625F, 5.1F, 10.625F, 4.6F));
 
     public static final Item STEEL_HELMET = register("steel_helmet",
             Item::new, new Item.Properties().humanoidArmor(ModArmorMaterials.STEEL, ArmorType.HELMET));

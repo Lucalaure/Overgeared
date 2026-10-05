@@ -150,6 +150,7 @@ public class ModModelProvider extends FabricModelProviderPlus {
         handheldItem(generator, ModItems.STEEL_PICKAXE);
         handheldItem(generator, ModItems.STEEL_AXE);
         handheldItem(generator, ModItems.STEEL_SHOVEL);
+        generator.generateSpear(ModItems.STEEL_SPEAR); // 26.x spear: flat icon + 3D in-hand model
         handheldItem(generator, ModItems.STEEL_HOE);
 
 
@@ -177,6 +178,11 @@ public class ModModelProvider extends FabricModelProviderPlus {
         simpleItem(generator, ModItems.GOLDEN_SHOVEL_HEAD);
         simpleItem(generator, ModItems.STEEL_SHOVEL_HEAD);
         simpleItem(generator, ModItems.COPPER_SHOVEL_HEAD);
+        simpleItem(generator, ModItems.STONE_SPEAR_HEAD);
+        simpleItem(generator, ModItems.IRON_SPEAR_HEAD);
+        simpleItem(generator, ModItems.GOLDEN_SPEAR_HEAD);
+        simpleItem(generator, ModItems.STEEL_SPEAR_HEAD);
+        simpleItem(generator, ModItems.COPPER_SPEAR_HEAD);
 
         simpleItem(generator, ModItems.STONE_HOE_HEAD);
         simpleItem(generator, ModItems.IRON_HOE_HEAD);

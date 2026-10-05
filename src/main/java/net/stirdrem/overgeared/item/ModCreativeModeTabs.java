@@ -75,12 +75,14 @@ public class ModCreativeModeTabs {
                         entries.accept(ModItems.STEEL_AXE);
                         entries.accept(ModItems.STEEL_SHOVEL);
                         entries.accept(ModItems.STEEL_HOE);
+                        entries.accept(ModItems.STEEL_SPEAR);
 
                         // === STONE ===
                         entries.accept(ModItems.STONE_SWORD_BLADE);
                         entries.accept(ModItems.STONE_PICKAXE_HEAD);
                         entries.accept(ModItems.STONE_AXE_HEAD);
                         entries.accept(ModItems.STONE_SHOVEL_HEAD);
+                        entries.accept(ModItems.STONE_SPEAR_HEAD);
                         entries.accept(ModItems.STONE_HOE_HEAD);
 
                         // === COPPER ===
@@ -88,6 +90,7 @@ public class ModCreativeModeTabs {
                         entries.accept(ModItems.COPPER_PICKAXE_HEAD);
                         entries.accept(ModItems.COPPER_AXE_HEAD);
                         entries.accept(ModItems.COPPER_SHOVEL_HEAD);
+                        entries.accept(ModItems.COPPER_SPEAR_HEAD);
                         entries.accept(ModItems.COPPER_HOE_HEAD);
 
                         // === IRON ===
@@ -95,6 +98,7 @@ public class ModCreativeModeTabs {
                         entries.accept(ModItems.IRON_PICKAXE_HEAD);
                         entries.accept(ModItems.IRON_AXE_HEAD);
                         entries.accept(ModItems.IRON_SHOVEL_HEAD);
+                        entries.accept(ModItems.IRON_SPEAR_HEAD);
                         entries.accept(ModItems.IRON_HOE_HEAD);
 
                         // === GOLD ===
@@ -102,6 +106,7 @@ public class ModCreativeModeTabs {
                         entries.accept(ModItems.GOLDEN_PICKAXE_HEAD);
                         entries.accept(ModItems.GOLDEN_AXE_HEAD);
                         entries.accept(ModItems.GOLDEN_SHOVEL_HEAD);
+                        entries.accept(ModItems.GOLDEN_SPEAR_HEAD);
                         entries.accept(ModItems.GOLDEN_HOE_HEAD);
 
                         // === STEEL ===
@@ -109,6 +114,7 @@ public class ModCreativeModeTabs {
                         entries.accept(ModItems.STEEL_PICKAXE_HEAD);
                         entries.accept(ModItems.STEEL_AXE_HEAD);
                         entries.accept(ModItems.STEEL_SHOVEL_HEAD);
+                        entries.accept(ModItems.STEEL_SPEAR_HEAD);
                         entries.accept(ModItems.STEEL_HOE_HEAD);
 
                         entries.accept(ModBlocks.STONE_SMITHING_ANVIL);

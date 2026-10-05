@@ -69,6 +69,7 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                         ModItems.STONE_PICKAXE_HEAD,
                         ModItems.STONE_AXE_HEAD,
                         ModItems.STONE_SHOVEL_HEAD,
+                        ModItems.STONE_SPEAR_HEAD,
                         ModItems.STONE_HOE_HEAD,
 
                         // Copper
@@ -78,12 +79,14 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                         ModItems.COPPER_AXE_HEAD,
                         ModItems.COPPER_HOE_HEAD,
                         ModItems.COPPER_SHOVEL_HEAD,
+                        ModItems.COPPER_SPEAR_HEAD,
 
                         // Iron
                         ModItems.IRON_SWORD_BLADE,
                         ModItems.IRON_PICKAXE_HEAD,
                         ModItems.IRON_AXE_HEAD,
                         ModItems.IRON_SHOVEL_HEAD,
+                        ModItems.IRON_SPEAR_HEAD,
                         ModItems.IRON_HOE_HEAD,
 
                         // Golden
@@ -91,6 +94,7 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                         ModItems.GOLDEN_PICKAXE_HEAD,
                         ModItems.GOLDEN_AXE_HEAD,
                         ModItems.GOLDEN_SHOVEL_HEAD,
+                        ModItems.GOLDEN_SPEAR_HEAD,
                         ModItems.GOLDEN_HOE_HEAD,
 
                         // Steel
@@ -99,6 +103,7 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                         ModItems.STEEL_PICKAXE_HEAD,
                         ModItems.STEEL_AXE_HEAD,
                         ModItems.STEEL_SHOVEL_HEAD,
+                        ModItems.STEEL_SPEAR_HEAD,
                         ModItems.STEEL_HOE_HEAD,
 
                         // Arrow heads
@@ -230,7 +235,8 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                         ModItems.STEEL_PICKAXE,
                         ModItems.STEEL_HOE,
                         ModItems.STEEL_SHOVEL,
-                        ModItems.STEEL_SWORD
+                        ModItems.STEEL_SWORD,
+                        ModItems.STEEL_SPEAR
                         
                 );
 
@@ -257,6 +263,12 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         getOrCreateTagBuilder(ItemTags.SWORDS)
                 .add(
                         ModItems.STEEL_SWORD
+                );
+
+        // 26.x spears; vanilla's spear enchantment tags (lunge, melee, durability) include #minecraft:spears
+        getOrCreateTagBuilder(ItemTags.SPEARS)
+                .add(
+                        ModItems.STEEL_SPEAR
                 );
 
         // ---------------------------------------------------------------------
@@ -364,6 +376,7 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                         Items.WOODEN_AXE,
                         Items.WOODEN_SHOVEL,
                         Items.WOODEN_HOE,
+                        Items.WOODEN_SPEAR,
 
                         Items.LEATHER_HELMET,
                         Items.LEATHER_CHESTPLATE,

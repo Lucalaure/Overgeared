@@ -272,13 +272,13 @@ public class ServerConfig {
         builder.push("Blueprint & Tool Types");
 
         AVAILABLE_TOOL_TYPES = builder.comment(
-                        "List of available tool types for blueprints. Default options: sword, axe, pickaxe, shovel, hoe. You may freely add or remove types.",
+                        "List of available tool types for blueprints. Default options: sword, axe, pickaxe, shovel, hoe, spear. You may freely add or remove types.",
                         "To add a custom blueprint type: add it to availableToolTypes, then define its display name in your lang file.",
                         "Template format: \"availableToolTypes\": [\"sword\", \"axe\", \"your_custom_type\"]",
                         "Lang format: tooltype.overgeared.your_custom_type"
                 )
                 .defineList("availableToolTypes",
-                        Arrays.asList("sword", "axe", "pickaxe", "shovel", "hoe"),
+                        Arrays.asList("sword", "axe", "pickaxe", "shovel", "hoe", "spear"),
                         entry -> entry instanceof String
                 );
 
@@ -398,6 +398,7 @@ public class ServerConfig {
                                 List.of("axe", 27),
                                 List.of("shovel", 9),
                                 List.of("hoe", 18),
+                                List.of("spear", 10),
                                 List.of("hammer", 18)
                         ),
                         entry -> entry instanceof List<?> list &&

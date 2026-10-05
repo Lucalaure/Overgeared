@@ -61,6 +61,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             ModItems.IRON_SWORD_BLADE,
             ModItems.IRON_AXE_HEAD,
             ModItems.IRON_SHOVEL_HEAD,
+            ModItems.IRON_SPEAR_HEAD,
             ModItems.IRON_ARROW_HEAD
 
     );
@@ -70,11 +71,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             ModItems.STEEL_SWORD_BLADE,
             ModItems.STEEL_AXE_HEAD,
             ModItems.STEEL_SHOVEL_HEAD,
+            ModItems.STEEL_SPEAR_HEAD,
             ModItems.STEEL_HOE,
             ModItems.STEEL_PICKAXE,
             ModItems.STEEL_SWORD,
             ModItems.STEEL_AXE,
             ModItems.STEEL_SHOVEL,
+            ModItems.STEEL_SPEAR,
             ModItems.STEEL_HELMET,
             ModItems.STEEL_CHESTPLATE,
             ModItems.STEEL_LEGGINGS,
@@ -86,7 +89,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             ModItems.COPPER_PICKAXE_HEAD,
             ModItems.COPPER_SWORD_BLADE,
             ModItems.COPPER_AXE_HEAD,
-            ModItems.COPPER_SHOVEL_HEAD
+            ModItems.COPPER_SHOVEL_HEAD,
+            ModItems.COPPER_SPEAR_HEAD
             // Copper tools/armor are vanilla items since 26.x - vanilla's own
             // copper_nugget_from_smelting/blasting recipes already cover them.
     );
@@ -95,7 +99,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             ModItems.GOLDEN_PICKAXE_HEAD,
             ModItems.GOLDEN_SWORD_BLADE,
             ModItems.GOLDEN_AXE_HEAD,
-            ModItems.GOLDEN_SHOVEL_HEAD
+            ModItems.GOLDEN_SHOVEL_HEAD,
+            ModItems.GOLDEN_SPEAR_HEAD
 
     );
 
@@ -244,6 +249,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                             has(ModItems.STONE_SHOVEL_HEAD))
                     .save(output);
 
+            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.STONE_SPEAR)
+                    .input(ModItems.STONE_SPEAR_HEAD)
+                    .input(Items.STICK)
+                    .unlockedBy(getHasName(ModItems.STONE_SPEAR_HEAD),
+                            has(ModItems.STONE_SPEAR_HEAD))
+                    .save(output);
+
             OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.STONE_HOE)
                     .input(ModItems.STONE_HOE_HEAD)
                     .input(Items.STICK)
@@ -278,6 +290,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                             has(ModItems.IRON_SHOVEL_HEAD))
                     .save(output);
 
+            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.IRON_SPEAR)
+                    .input(ModItems.IRON_SPEAR_HEAD)
+                    .input(Items.STICK)
+                    .unlockedBy(getHasName(ModItems.IRON_SPEAR_HEAD),
+                            has(ModItems.IRON_SPEAR_HEAD))
+                    .save(output);
+
             OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.IRON_HOE)
                     .input(ModItems.IRON_HOE_HEAD)
                     .input(Items.STICK)
@@ -310,6 +329,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .input(Items.STICK)
                     .unlockedBy(getHasName(ModItems.STEEL_SHOVEL_HEAD),
                             has(ModItems.STEEL_SHOVEL_HEAD))
+                    .save(output);
+
+            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.COMBAT, ModItems.STEEL_SPEAR)
+                    .input(ModItems.STEEL_SPEAR_HEAD)
+                    .input(Items.STICK)
+                    .unlockedBy(getHasName(ModItems.STEEL_SPEAR_HEAD),
+                            has(ModItems.STEEL_SPEAR_HEAD))
                     .save(output);
 
             OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.STEEL_HOE)
@@ -347,6 +373,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                             has(ModItems.COPPER_SHOVEL_HEAD))
                     .save(output);
 
+            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.COPPER_SPEAR)
+                    .input(ModItems.COPPER_SPEAR_HEAD)
+                    .input(Items.STICK)
+                    .unlockedBy(getHasName(ModItems.COPPER_SPEAR_HEAD),
+                            has(ModItems.COPPER_SPEAR_HEAD))
+                    .save(output);
+
             OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_HOE)
                     .input(ModItems.COPPER_HOE_HEAD)
                     .input(Items.STICK)
@@ -380,6 +413,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .input(Items.STICK)
                     .unlockedBy(getHasName(ModItems.GOLDEN_SHOVEL_HEAD),
                             has(ModItems.GOLDEN_SHOVEL_HEAD))
+                    .save(output);
+
+            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.GOLDEN_SPEAR)
+                    .input(ModItems.GOLDEN_SPEAR_HEAD)
+                    .input(Items.STICK)
+                    .unlockedBy(getHasName(ModItems.GOLDEN_SPEAR_HEAD),
+                            has(ModItems.GOLDEN_SPEAR_HEAD))
                     .save(output);
 
             OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.GOLDEN_HOE)
@@ -484,6 +524,16 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion(getHasName(Items.IRON_INGOT), has(Items.IRON_INGOT))
                     .offerTo(output);
 
+            ShapedForgingRecipeBuilder.create(ForgingBookCategory.TOOL_HEADS, ModItems.IRON_SPEAR_HEAD, 3)
+                    .tier(AnvilTier.STONE)
+                    .setBlueprint(ToolType.SPEAR.getId())
+                    .pattern("n")
+                    .pattern("#")
+                    .input('#', ModItems.HEATED_IRON_INGOT)
+                    .input('n', Items.IRON_NUGGET)
+                    .criterion(getHasName(Items.IRON_INGOT), has(Items.IRON_INGOT))
+                    .offerTo(output);
+
             ShapedForgingRecipeBuilder.create(ForgingBookCategory.TOOL_HEADS, ModItems.IRON_HOE_HEAD, 3)
                     .tier(AnvilTier.STONE)
                     .setBlueprint(ToolType.HOE.getId())
@@ -544,6 +594,16 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .setBlueprint(ToolType.SHOVEL.getId())
                     .pattern("#")
                     .input('#', ModItems.HEATED_COPPER_INGOT)
+                    .criterion(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
+                    .offerTo(output);
+
+            ShapedForgingRecipeBuilder.create(ForgingBookCategory.TOOL_HEADS, ModItems.COPPER_SPEAR_HEAD, 3)
+                    .tier(AnvilTier.STONE)
+                    .setBlueprint(ToolType.SPEAR.getId())
+                    .pattern("n")
+                    .pattern("#")
+                    .input('#', ModItems.HEATED_COPPER_INGOT)
+                    .input('n', Items.COPPER_NUGGET)
                     .criterion(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
                     .offerTo(output);
 
@@ -610,6 +670,16 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                             has(ModItems.STEEL_INGOT))
                     .offerTo(output);
 
+            ShapedForgingRecipeBuilder.create(ForgingBookCategory.TOOL_HEADS, ModItems.STEEL_SPEAR_HEAD, 4)
+                    .setBlueprint(ToolType.SPEAR.getId())
+                    .pattern("n")
+                    .pattern("#")
+                    .input('#', ModItems.HEATED_STEEL_INGOT)
+                    .input('n', ModItems.STEEL_NUGGET)
+                    .criterion("has_steel_ingot",
+                            has(ModItems.STEEL_INGOT))
+                    .offerTo(output);
+
             ShapedForgingRecipeBuilder.create(ForgingBookCategory.TOOL_HEADS, ModItems.STEEL_HOE_HEAD, 4)
                     .setBlueprint(ToolType.HOE.getId())
                     .pattern("##")
@@ -661,6 +731,17 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .setNeedQuenching(false)
                     .pattern("#")
                     .input('#', Items.GOLD_INGOT)
+                    .criterion(getHasName(Items.GOLD_INGOT), has(Items.GOLD_INGOT))
+                    .offerTo(output);
+
+            ShapedForgingRecipeBuilder.create(ForgingBookCategory.TOOL_HEADS, ModItems.GOLDEN_SPEAR_HEAD, 3)
+                    .tier(AnvilTier.STONE)
+                    .setBlueprint(ToolType.SPEAR.getId())
+                    .setNeedQuenching(false)
+                    .pattern("n")
+                    .pattern("#")
+                    .input('#', Items.GOLD_INGOT)
+                    .input('n', Items.GOLD_NUGGET)
                     .criterion(getHasName(Items.GOLD_INGOT), has(Items.GOLD_INGOT))
                     .offerTo(output);
 
@@ -976,6 +1057,9 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             // Steel Shovel to Diamond Shovel
             diamondUpgrade(ModItems.STEEL_SHOVEL, Items.DIAMOND_SHOVEL, RecipeCategory.TOOLS);
 
+            // Steel Spear to Diamond Spear
+            diamondUpgrade(ModItems.STEEL_SPEAR, Items.DIAMOND_SPEAR, RecipeCategory.COMBAT);
+
             // Steel Hoe to Diamond Hoe
             diamondUpgrade(ModItems.STEEL_HOE, Items.DIAMOND_HOE, RecipeCategory.TOOLS);
 
@@ -1074,6 +1158,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
                     .offerTo(output, rl("copper_shovel_head"));
 
+            ToolCastSmeltingRecipeBuilder.cast(ModItems.COPPER_SPEAR_HEAD, 0.5F, 150)
+                    .toolType("spear").material("copper", 10).needsPolishing(true)
+                    .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
+                    .offerTo(output, rl("copper_spear_head"));
+
             ToolCastSmeltingRecipeBuilder.cast(ModItems.COPPER_HOE_HEAD, 0.5F, 150)
                     .toolType("hoe").material("copper", 18).needsPolishing(true)
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
@@ -1100,6 +1189,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
                     .offerTo(output, rl("iron_shovel_head"));
 
+            ToolCastSmeltingRecipeBuilder.cast(ModItems.IRON_SPEAR_HEAD, 0.7F, 150)
+                    .toolType("spear").material("iron", 10).needsPolishing(true)
+                    .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
+                    .offerTo(output, rl("iron_spear_head"));
+
             ToolCastSmeltingRecipeBuilder.cast(ModItems.IRON_HOE_HEAD, 0.7F, 150)
                     .toolType("hoe").material("iron", 18).needsPolishing(true)
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
@@ -1125,6 +1219,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .toolType("shovel").material("gold", 9).needsPolishing(true)
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
                     .offerTo(output, rl("golden_shovel_head"));
+
+            ToolCastSmeltingRecipeBuilder.cast(ModItems.GOLDEN_SPEAR_HEAD, 1.0F, 150)
+                    .toolType("spear").material("gold", 10).needsPolishing(true)
+                    .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
+                    .offerTo(output, rl("golden_spear_head"));
 
             ToolCastSmeltingRecipeBuilder.cast(ModItems.GOLDEN_HOE_HEAD, 1.0F, 150)
                     .toolType("hoe").material("gold", 18).needsPolishing(true)
@@ -1156,6 +1255,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .toolType("shovel").material("steel", 9).needsPolishing(true)
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
                     .offerTo(output, rl("steel_shovel_head"));
+
+            ToolCastSmeltingRecipeBuilder.cast(ModItems.STEEL_SPEAR_HEAD, 0.9F, 150)
+                    .toolType("spear").material("steel", 10).needsPolishing(true)
+                    .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
+                    .offerTo(output, rl("steel_spear_head"));
 
             ToolCastSmeltingRecipeBuilder.cast(ModItems.STEEL_HOE_HEAD, 0.9F, 150)
                     .toolType("hoe").material("steel", 18).needsPolishing(true)
@@ -1190,6 +1294,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
                     .offerTo(output, rl("copper_shovel_head"));
 
+            ToolCastBlastingRecipeBuilder.cast(ModItems.COPPER_SPEAR_HEAD, 0.5F, 75)
+                    .toolType("spear").material("copper", 10).needsPolishing(true)
+                    .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
+                    .offerTo(output, rl("copper_spear_head"));
+
             ToolCastBlastingRecipeBuilder.cast(ModItems.COPPER_HOE_HEAD, 0.5F, 75)
                     .toolType("hoe").material("copper", 18).needsPolishing(true)
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
@@ -1216,6 +1325,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
                     .offerTo(output, rl("iron_shovel_head"));
 
+            ToolCastBlastingRecipeBuilder.cast(ModItems.IRON_SPEAR_HEAD, 0.7F, 75)
+                    .toolType("spear").material("iron", 10).needsPolishing(true)
+                    .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
+                    .offerTo(output, rl("iron_spear_head"));
+
             ToolCastBlastingRecipeBuilder.cast(ModItems.IRON_HOE_HEAD, 0.7F, 75)
                     .toolType("hoe").material("iron", 18).needsPolishing(true)
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
@@ -1241,6 +1355,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .toolType("shovel").material("gold", 9).needsPolishing(true)
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
                     .offerTo(output, rl("golden_shovel_head"));
+
+            ToolCastBlastingRecipeBuilder.cast(ModItems.GOLDEN_SPEAR_HEAD, 1.0F, 75)
+                    .toolType("spear").material("gold", 10).needsPolishing(true)
+                    .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
+                    .offerTo(output, rl("golden_spear_head"));
 
             ToolCastBlastingRecipeBuilder.cast(ModItems.GOLDEN_HOE_HEAD, 1.0F, 75)
                     .toolType("hoe").material("gold", 18).needsPolishing(true)
@@ -1273,6 +1392,11 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
                     .offerTo(output, rl("steel_shovel_head"));
 
+            ToolCastBlastingRecipeBuilder.cast(ModItems.STEEL_SPEAR_HEAD, 0.9F, 75)
+                    .toolType("spear").material("steel", 10).needsPolishing(true)
+                    .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
+                    .offerTo(output, rl("steel_spear_head"));
+
             ToolCastBlastingRecipeBuilder.cast(ModItems.STEEL_HOE_HEAD, 0.9F, 75)
                     .toolType("hoe").material("steel", 18).needsPolishing(true)
                     .criterion("has_cast", has(ModItems.UNFIRED_TOOL_CAST))
@@ -1297,6 +1421,14 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             CastingRecipeBuilder.casting(ModItems.COPPER_SHOVEL_HEAD, 0.3f, 120)
                     .toolType("shovel")
                     .material("copper", 9)
+                    .needsPolishing(true)
+                    .criterion("has_cast", has(ModTags.Items.TOOL_CAST))
+                    .offerTo(output);
+
+            // Spear
+            CastingRecipeBuilder.casting(ModItems.COPPER_SPEAR_HEAD, 0.3f, 120)
+                    .toolType("spear")
+                    .material("copper", 10)
                     .needsPolishing(true)
                     .criterion("has_cast", has(ModTags.Items.TOOL_CAST))
                     .offerTo(output);
@@ -1345,6 +1477,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .criterion("has_cast", has(ModTags.Items.TOOL_CAST))
                     .offerTo(output);
 
+            CastingRecipeBuilder.casting(ModItems.IRON_SPEAR_HEAD, 0.5f, 140)
+                    .toolType("spear")
+                    .material("iron", 10)
+                    .needsPolishing(true)
+                    .criterion("has_cast", has(ModTags.Items.TOOL_CAST))
+                    .offerTo(output);
+
             CastingRecipeBuilder.casting(ModItems.IRON_HOE_HEAD, 0.5f, 120)
                     .toolType("hoe")
                     .material("iron", 18)
@@ -1375,6 +1514,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             CastingRecipeBuilder.casting(ModItems.STEEL_SHOVEL_HEAD, 0.7f, 180)
                     .toolType("shovel")
                     .material("steel", 9)
+                    .needsPolishing(true)
+                    .criterion("has_cast", has(ModTags.Items.TOOL_CAST))
+                    .offerTo(output);
+
+            CastingRecipeBuilder.casting(ModItems.STEEL_SPEAR_HEAD, 0.7f, 180)
+                    .toolType("spear")
+                    .material("steel", 10)
                     .needsPolishing(true)
                     .criterion("has_cast", has(ModTags.Items.TOOL_CAST))
                     .offerTo(output);
@@ -1417,6 +1563,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             CastingRecipeBuilder.casting(ModItems.GOLDEN_SHOVEL_HEAD, 0.2f, 80)
                     .toolType("shovel")
                     .material("gold", 9)
+                    .needsPolishing(false)
+                    .criterion("has_cast", has(ModTags.Items.TOOL_CAST))
+                    .offerTo(output);
+
+            CastingRecipeBuilder.casting(ModItems.GOLDEN_SPEAR_HEAD, 0.2f, 80)
+                    .toolType("spear")
+                    .material("gold", 10)
                     .needsPolishing(false)
                     .criterion("has_cast", has(ModTags.Items.TOOL_CAST))
                     .offerTo(output);
