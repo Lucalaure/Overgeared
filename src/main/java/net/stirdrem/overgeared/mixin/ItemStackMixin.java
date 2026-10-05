@@ -107,6 +107,7 @@ public abstract class ItemStackMixin {
         if (player.hasEffect(MobEffects.FIRE_RESISTANCE)) {
             return;
         }
+        if (player.isCreative()) return;
 
         long tick = world.getGameTime();
         int cooldownTicks = ServerConfig.HEATED_ITEM_COOLDOWN_TICKS.get();
@@ -180,8 +181,9 @@ public abstract class ItemStackMixin {
                 overgeared$lastTongsHit.put(uuid, tick);
             }
         } else {
-            if (tick % 10 != 0) return;
-            player.hurtServer(serverLevel, world.damageSources().hotFloor(), 1.0f);
+            // Holding hot metal without tongs sets you on fire (upstream "Hot ingot changed to fire damage").
+            player.setSharedFlagOnFire(true);
+            player.setRemainingFireTicks(20);
         }
     }
 
