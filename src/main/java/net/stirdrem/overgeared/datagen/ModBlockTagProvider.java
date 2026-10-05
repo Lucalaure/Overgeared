@@ -74,9 +74,13 @@ public class ModBlockTagProvider extends FabricTagsProvider.BlockTagsProvider {
         getOrCreateTagBuilder(ModTags.Blocks.IRON_ANVIL_BASES)
                 .add(Blocks.ANVIL);
 
-        // 26.3 port: Fabric's MiningLevelManager is gone; level 2 = vanilla needs_iron_tool, 3 = needs_diamond_tool.
+        /*
+         * Copper tier: stone < copper < iron (as in the original mod's needs_copper_tool).
+         * Iron ore and iron blocks need at least copper: stone (and wooden) tools can't harvest
+         * them, vanilla's copper tools can (copper only fails on #needs_iron_tool / diamond).
+         */
         getOrCreateTagBuilder(
-                BlockTags.NEEDS_IRON_TOOL
+                BlockTags.INCORRECT_FOR_STONE_TOOL
         ).add(
                 Blocks.IRON_ORE,
                 Blocks.DEEPSLATE_IRON_ORE,
