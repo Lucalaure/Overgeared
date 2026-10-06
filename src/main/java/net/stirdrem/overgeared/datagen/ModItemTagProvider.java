@@ -122,6 +122,7 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                         ModItems.IRON_TONGS,
                         ModItems.STEEL_TONGS,
                         ModItems.SMITHING_HAMMER,
+                        ModItems.STONE_SMITHING_HAMMER,
                         ModItems.COPPER_SMITHING_HAMMER
                 );
 
@@ -146,6 +147,7 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
         getOrCreateTagBuilder(ModTags.Items.SMITHING_HAMMERS)
                 .add(
                         ModItems.SMITHING_HAMMER,
+                        ModItems.STONE_SMITHING_HAMMER,
                         ModItems.COPPER_SMITHING_HAMMER
                 )
                 .addTag(ModTags.Items.STONE_SMITHING_HAMMERS)
@@ -154,7 +156,7 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
                 .addTag(ModTags.Items.TIER_B_SMITHING_HAMMERS);
 
         getOrCreateTagBuilder(ModTags.Items.STONE_SMITHING_HAMMERS)
-                .add(ModItems.COPPER_SMITHING_HAMMER)
+                .add(ModItems.STONE_SMITHING_HAMMER, ModItems.COPPER_SMITHING_HAMMER)
                 .addTag(ModTags.Items.IRON_SMITHING_HAMMERS)
                 .addTag(ModTags.Items.TIER_A_SMITHING_HAMMERS)
                 .addTag(ModTags.Items.TIER_B_SMITHING_HAMMERS);

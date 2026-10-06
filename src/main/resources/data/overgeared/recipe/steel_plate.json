@@ -6,7 +6,7 @@
   "needs_minigame": false,
   "need_quenching": false,
   "pattern": [
-    "#"
+    "##"
   ],
   "key": {
     "#": "#c:ingots/steel"

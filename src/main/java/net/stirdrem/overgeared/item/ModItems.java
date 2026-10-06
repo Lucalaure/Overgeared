@@ -84,6 +84,9 @@ public class ModItems {
     public static final Item SMITHING_HAMMER = register("smithing_hammer",
             SmithingHammer::new, new Item.Properties().tool(ModToolTiers.STEEL, ModTags.Blocks.SMITHING, -1, -2.8f, 0));
 
+    public static final Item STONE_SMITHING_HAMMER = register("stone_smithing_hammer",
+            SmithingHammer::new, new Item.Properties().tool(ToolMaterial.STONE, ModTags.Blocks.SMITHING, -1, -2.8f, 0));
+
     public static final Item COPPER_SMITHING_HAMMER = register("copper_smithing_hammer",
             SmithingHammer::new, new Item.Properties().tool(ToolMaterial.COPPER, ModTags.Blocks.SMITHING, -1, -2.8f, 0));
 

@@ -547,7 +547,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .tier(AnvilTier.STONE)
                     .setNeedQuenching(false)
                     .setQuality(false)
-                    .pattern("#")
+                    .pattern("##")
                     .input('#', Items.IRON_INGOT)
                     .criterion(getHasName(Items.IRON_INGOT), has(Items.IRON_INGOT))
                     .offerTo(output);
@@ -556,7 +556,7 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .tier(AnvilTier.STONE)
                     .setNeedQuenching(false)
                     .setQuality(false)
-                    .pattern("#")
+                    .pattern("##")
                     .input('#', Items.COPPER_INGOT)
                     .criterion(getHasName(Items.COPPER_INGOT), has(Items.COPPER_INGOT))
                     .offerTo(output);
@@ -923,16 +923,6 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .pattern("#")
                     .input('#', ModItems.HEATED_NETHERITE_ALLOY)
                     .criterion(getHasName(Items.NETHERITE_SCRAP), has(Items.NETHERITE_SCRAP))
-                    .offerTo(output);
-
-            ShapedForgingRecipeBuilder.create(ForgingBookCategory.MISC, Blocks.CAULDRON, 5)
-                    .setQuality(false)
-                    .setNeedQuenching(false)
-                    .pattern("# #")
-                    .pattern("# #")
-                    .pattern("###")
-                    .input('#', ModItems.STEEL_PLATE)
-                    .criterion(getHasName(ModItems.STEEL_PLATE), has(ModItems.STEEL_PLATE))
                     .offerTo(output);
 
             ShapedForgingRecipeBuilder.create(ForgingBookCategory.ARMORS, Items.IRON_HELMET, 3)

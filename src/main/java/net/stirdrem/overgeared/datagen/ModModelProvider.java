@@ -144,6 +144,7 @@ public class ModModelProvider extends FabricModelProviderPlus {
         handheldItem(generator, ModItems.STEEL_HAMMER_HEAD);
 
         handheldItem(generator, ModItems.SMITHING_HAMMER);
+        handheldItem(generator, ModItems.STONE_SMITHING_HAMMER);
         handheldItem(generator, ModItems.COPPER_SMITHING_HAMMER);
 
         handheldItem(generator, ModItems.STEEL_SWORD);

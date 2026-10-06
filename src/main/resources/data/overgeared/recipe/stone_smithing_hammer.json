@@ -1,0 +1,16 @@
+{
+  "type": "overgeared:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "H",
+    "S",
+    "S"
+  ],
+  "key": {
+    "H": "overgeared:stone_hammer_head",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "overgeared:stone_smithing_hammer"
+  }
+}

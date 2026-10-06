@@ -7,7 +7,7 @@
   },
   "need_quenching": false,
   "pattern": [
-    "#"
+    "##"
   ],
   "result": {
     "id": "overgeared:iron_plate"
