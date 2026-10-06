@@ -20,6 +20,7 @@ d3d1bf6c03c19c4a846daaac31229d8dc7dbbc18 data/minecraft/advancement/recipes/comb
 143f23be125e59f83bba7825d5b6042d9e9e91c8 data/minecraft/advancement/recipes/combat/diamond_sword.json
 932c47af6fe2627932be4b73adc8d75119f1b9fb data/minecraft/advancement/recipes/combat/golden_spear.json
 9a618a2fc20b0ab1e086f0d06b1f2915a8af61c4 data/minecraft/advancement/recipes/combat/iron_spear.json
+aa815cc29fc4b75b3c5d501d764bd6f6c2653656 data/minecraft/advancement/recipes/combat/shield.json
 1cec08b2a7f20402d69146a487dce71ecd3dded7 data/minecraft/advancement/recipes/combat/stone_spear.json
 da4722e7a824c814dc62dce72afea9530ba57375 data/minecraft/advancement/recipes/fletching/spectral_arrow.json
 b5afb0979a386b44a9c9ab253115ad0e1fe856f0 data/minecraft/advancement/recipes/misc/bucket.json
@@ -92,6 +93,7 @@ f269dd857d5043b9c460f9ab98d8d7a82e9f032a data/minecraft/recipe/iron_helmet.json
 be7568bc7857954d0b9f0f55876cad410374c34f data/minecraft/recipe/iron_sword.json
 8c6c82d41035fa1142395962a71da877abcb15dc data/minecraft/recipe/netherite_ingot.json
 8ce0e3a4a572cd1cd412c15849e5d2ae69982917 data/minecraft/recipe/shears.json
+be34212f7b2ed8a2c8b6681c52252938498245f2 data/minecraft/recipe/shield.json
 db499e76959e5d51daace7139659e8d6b4a72c83 data/minecraft/recipe/spectral_arrow.json
 9a1096ec313f137558224b509c641eb3c1f55f8d data/minecraft/recipe/stone_axe.json
 28abc8a6d91d39770eea9ffb854b9cd9717adb58 data/minecraft/recipe/stone_hoe.json

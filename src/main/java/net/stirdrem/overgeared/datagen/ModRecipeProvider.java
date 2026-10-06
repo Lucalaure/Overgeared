@@ -18,6 +18,12 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.SmithingTransformRecipeBuilder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.core.HolderGetter;
+import java.util.Map;
+import net.minecraft.data.recipes.RecipeBuilder;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
@@ -147,6 +153,28 @@ public class ModRecipeProvider extends FabricRecipeProvider {
             output.accept(id, recipe, unlocks.build(output, id, category.getFolderName()));
         }
 
+        /**
+         * Vanilla shield with the iron ingot swapped for an iron plate, saved under minecraft:shield
+         * so it replaces vanilla's recipe (accepted directly for the same reason as diamondUpgrade).
+         */
+        private void shieldFromPlate() {
+            ResourceKey<Recipe<?>> id = ResourceKey.create(Registries.RECIPE, BuiltInRegistries.ITEM.getKey(Items.SHIELD));
+            HolderGetter<Item> items = RecipeBuilderSupport.items(output);
+            ShapedRecipe recipe = new ShapedRecipe(
+                    RecipeBuilder.createCraftingCommonInfo(true),
+                    RecipeBuilder.createCraftingBookInfo(RecipeCategory.COMBAT, null),
+                    ShapedRecipePattern.of(Map.of(
+                                    'W', Ingredient.of(items.getOrThrow(ItemTags.WOODEN_TOOL_MATERIALS)),
+                                    'o', Ingredient.of(items.getOrThrow(ModTags.Items.IRON_PLATES))),
+                            "WoW",
+                            "WWW",
+                            " W "),
+                    new ItemStackTemplate(Items.SHIELD));
+            RecipeBuilderSupport.Unlocks unlocks = new RecipeBuilderSupport.Unlocks();
+            unlocks.add(getHasName(ModItems.IRON_PLATE), has(ModItems.IRON_PLATE));
+            output.accept(id, recipe, unlocks.build(output, id, RecipeCategory.COMBAT.getFolderName()));
+        }
+
         @Override
         public void buildRecipes() {
             oreBlasting(STEEL_SMELTABLES, RecipeCategory.MISC, CookingBookCategory.MISC, ModItems.HEATED_CRUDE_STEEL, 0, 100,
@@ -227,6 +255,8 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                     .unlockedBy(getHasName(ModItems.EMPTY_BLUEPRINT),
                             has(ModItems.EMPTY_BLUEPRINT))
                     .save(output);
+
+            shieldFromPlate();
 
             OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.STONE_AXE)
                     .pattern("H")
