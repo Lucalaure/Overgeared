@@ -28,12 +28,18 @@ public class ModLootModifiers {
             BuiltInLootTables.JUNGLE_TEMPLE,
             BuiltInLootTables.ANCIENT_CITY,
             BuiltInLootTables.PILLAGER_OUTPOST,
-            BuiltInLootTables.BURIED_TREASURE
+            BuiltInLootTables.BURIED_TREASURE,
+            // 26.x structures. Vaults roll the top-level reward table, which already pulls from the
+            // nested common/rare/unique tables, so only the top-level one is listed.
+            BuiltInLootTables.TRIAL_CHAMBERS_REWARD_OMINOUS,
+            BuiltInLootTables.ABANDONED_CAMP_SECRET_CHEST
     );
 
     private static final List<ResourceKey<LootTable>> LESS_RARE_DUNGEONS = List.of(
             BuiltInLootTables.ABANDONED_MINESHAFT,
-            BuiltInLootTables.SIMPLE_DUNGEON
+            BuiltInLootTables.SIMPLE_DUNGEON,
+            // 26.x: regular trial chamber vaults
+            BuiltInLootTables.TRIAL_CHAMBERS_REWARD
     );
 
     public static void register() {
