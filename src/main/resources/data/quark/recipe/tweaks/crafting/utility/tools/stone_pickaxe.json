@@ -1,10 +1,15 @@
 {
-  "type": "overgeared:crafting_shapeless",
+  "type": "overgeared:crafting_shaped",
   "category": "equipment",
-  "ingredients": [
-    "overgeared:stone_pickaxe_head",
-    "minecraft:stick"
+  "pattern": [
+    "H",
+    "S",
+    "S"
   ],
+  "key": {
+    "H": "overgeared:stone_pickaxe_head",
+    "S": "minecraft:stick"
+  },
   "result": {
     "id": "minecraft:stone_pickaxe"
   }

@@ -1,9 +1,14 @@
 {
-  "type": "overgeared:crafting_shapeless",
+  "type": "overgeared:crafting_shaped",
   "category": "equipment",
-  "ingredients": [
-    "overgeared:steel_spear_head",
-    "minecraft:stick"
+  "key": {
+    "H": "overgeared:steel_spear_head",
+    "S": "minecraft:stick"
+  },
+  "pattern": [
+    "H",
+    "S",
+    "S"
   ],
   "result": {
     "id": "overgeared:steel_spear"

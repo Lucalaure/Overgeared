@@ -1,9 +1,14 @@
 {
-  "type": "overgeared:crafting_shapeless",
+  "type": "overgeared:crafting_shaped",
   "category": "equipment",
-  "ingredients": [
-    "overgeared:golden_hoe_head",
-    "minecraft:stick"
+  "key": {
+    "H": "overgeared:golden_hoe_head",
+    "S": "minecraft:stick"
+  },
+  "pattern": [
+    "H",
+    "S",
+    "S"
   ],
   "result": {
     "id": "minecraft:golden_hoe"

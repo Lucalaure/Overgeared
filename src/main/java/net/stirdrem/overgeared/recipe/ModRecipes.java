@@ -24,6 +24,8 @@ public class ModRecipes {
             register("rock_knapping", RockKnappingRecipe.SERIALIZER);
     public static final RecipeSerializer<OvergearedShapelessRecipe> CRAFTING_SHAPELESS =
             register("crafting_shapeless", OvergearedShapelessRecipe.SERIALIZER);
+    public static final RecipeSerializer<OvergearedShapedRecipe> CRAFTING_SHAPED =
+            register("crafting_shaped", OvergearedShapedRecipe.SERIALIZER);
     public static final RecipeSerializer<BlueprintCloningRecipe> CRAFTING_BLUEPRINTCLONING =
             register("crafting_cloning", BlueprintCloningRecipe.SERIALIZER);
     public static final RecipeSerializer<DynamicToolCastRecipe> CRAFTING_DYNAMIC_TOOL_CAST =

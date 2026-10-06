@@ -101,8 +101,15 @@ public class OvergearedShapelessRecipe extends ShapelessRecipe {
 
     @Override
     public ItemStack assemble(CraftingInput container) {
-        ItemStack result = resultTemplate.create();
+        return applyIngredientQuality(resultTemplate.create(), container);
+    }
 
+    /**
+     * Passes the forging quality / creator of the grid's ingredients on to {@code result}. Shared with
+     * {@link OvergearedShapedRecipe}. Returns {@link ItemStack#EMPTY} when the minigame is disabled and an
+     * ingredient is unpolished or still heated.
+     */
+    public static ItemStack applyIngredientQuality(ItemStack result, CraftingInput container) {
         boolean unpolished = false;
         boolean unquenched = false;
         ForgingQuality foundQuality = null;

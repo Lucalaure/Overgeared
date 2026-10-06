@@ -228,37 +228,52 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                             has(ModItems.EMPTY_BLUEPRINT))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.STONE_AXE)
-                    .input(ModItems.STONE_AXE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.STONE_AXE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.STONE_AXE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.STONE_AXE_HEAD),
                             has(ModItems.STONE_AXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.STONE_PICKAXE)
-                    .input(ModItems.STONE_PICKAXE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.STONE_PICKAXE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.STONE_PICKAXE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.STONE_PICKAXE_HEAD),
                             has(ModItems.STONE_PICKAXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.STONE_SHOVEL)
-                    .input(ModItems.STONE_SHOVEL_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.STONE_SHOVEL)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.STONE_SHOVEL_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.STONE_SHOVEL_HEAD),
                             has(ModItems.STONE_SHOVEL_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.STONE_SPEAR)
-                    .input(ModItems.STONE_SPEAR_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.STONE_SPEAR)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.STONE_SPEAR_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.STONE_SPEAR_HEAD),
                             has(ModItems.STONE_SPEAR_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.STONE_HOE)
-                    .input(ModItems.STONE_HOE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.STONE_HOE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.STONE_HOE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.STONE_HOE_HEAD),
                             has(ModItems.STONE_HOE_HEAD))
                     .save(output);
@@ -270,36 +285,51 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                             has(ModItems.STONE_SWORD_BLADE))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.IRON_AXE)
-                    .input(ModItems.IRON_AXE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.IRON_AXE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.IRON_AXE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.IRON_AXE_HEAD), has(ModItems.IRON_AXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.IRON_PICKAXE)
-                    .input(ModItems.IRON_PICKAXE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.IRON_PICKAXE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.IRON_PICKAXE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.IRON_PICKAXE_HEAD),
                             has(ModItems.IRON_PICKAXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.IRON_SHOVEL)
-                    .input(ModItems.IRON_SHOVEL_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.IRON_SHOVEL)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.IRON_SHOVEL_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.IRON_SHOVEL_HEAD),
                             has(ModItems.IRON_SHOVEL_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.IRON_SPEAR)
-                    .input(ModItems.IRON_SPEAR_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.IRON_SPEAR)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.IRON_SPEAR_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.IRON_SPEAR_HEAD),
                             has(ModItems.IRON_SPEAR_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.IRON_HOE)
-                    .input(ModItems.IRON_HOE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.IRON_HOE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.IRON_HOE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.IRON_HOE_HEAD), has(ModItems.IRON_HOE_HEAD))
                     .save(output);
 
@@ -310,37 +340,52 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                             has(ModItems.IRON_SWORD_BLADE))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.STEEL_AXE)
-                    .input(ModItems.STEEL_AXE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.STEEL_AXE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.STEEL_AXE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.STEEL_AXE_HEAD),
                             has(ModItems.STEEL_AXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.STEEL_PICKAXE)
-                    .input(ModItems.STEEL_PICKAXE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.STEEL_PICKAXE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.STEEL_PICKAXE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.STEEL_PICKAXE_HEAD),
                             has(ModItems.STEEL_PICKAXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.STEEL_SHOVEL)
-                    .input(ModItems.STEEL_SHOVEL_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.STEEL_SHOVEL)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.STEEL_SHOVEL_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.STEEL_SHOVEL_HEAD),
                             has(ModItems.STEEL_SHOVEL_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.COMBAT, ModItems.STEEL_SPEAR)
-                    .input(ModItems.STEEL_SPEAR_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, ModItems.STEEL_SPEAR)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.STEEL_SPEAR_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.STEEL_SPEAR_HEAD),
                             has(ModItems.STEEL_SPEAR_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.STEEL_HOE)
-                    .input(ModItems.STEEL_HOE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, ModItems.STEEL_HOE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.STEEL_HOE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.STEEL_HOE_HEAD),
                             has(ModItems.STEEL_HOE_HEAD))
                     .save(output);
@@ -352,37 +397,52 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                             has(ModItems.STEEL_SWORD_BLADE))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_AXE)
-                    .input(ModItems.COPPER_AXE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_AXE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.COPPER_AXE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.COPPER_AXE_HEAD),
                             has(ModItems.COPPER_AXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_PICKAXE)
-                    .input(ModItems.COPPER_PICKAXE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_PICKAXE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.COPPER_PICKAXE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.COPPER_PICKAXE_HEAD),
                             has(ModItems.COPPER_PICKAXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_SHOVEL)
-                    .input(ModItems.COPPER_SHOVEL_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_SHOVEL)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.COPPER_SHOVEL_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.COPPER_SHOVEL_HEAD),
                             has(ModItems.COPPER_SHOVEL_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.COPPER_SPEAR)
-                    .input(ModItems.COPPER_SPEAR_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.COPPER_SPEAR)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.COPPER_SPEAR_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.COPPER_SPEAR_HEAD),
                             has(ModItems.COPPER_SPEAR_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_HOE)
-                    .input(ModItems.COPPER_HOE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.COPPER_HOE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.COPPER_HOE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.COPPER_HOE_HEAD),
                             has(ModItems.COPPER_HOE_HEAD))
                     .save(output);
@@ -394,37 +454,52 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                             has(ModItems.COPPER_SWORD_BLADE))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.GOLDEN_AXE)
-                    .input(ModItems.GOLDEN_AXE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.GOLDEN_AXE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.GOLDEN_AXE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.GOLDEN_AXE_HEAD),
                             has(ModItems.GOLDEN_AXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.GOLDEN_PICKAXE)
-                    .input(ModItems.GOLDEN_PICKAXE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.GOLDEN_PICKAXE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.GOLDEN_PICKAXE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.GOLDEN_PICKAXE_HEAD),
                             has(ModItems.GOLDEN_PICKAXE_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.GOLDEN_SHOVEL)
-                    .input(ModItems.GOLDEN_SHOVEL_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.GOLDEN_SHOVEL)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.GOLDEN_SHOVEL_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.GOLDEN_SHOVEL_HEAD),
                             has(ModItems.GOLDEN_SHOVEL_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.GOLDEN_SPEAR)
-                    .input(ModItems.GOLDEN_SPEAR_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.COMBAT, Items.GOLDEN_SPEAR)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.GOLDEN_SPEAR_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.GOLDEN_SPEAR_HEAD),
                             has(ModItems.GOLDEN_SPEAR_HEAD))
                     .save(output);
 
-            OvergearedShapelessRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.GOLDEN_HOE)
-                    .input(ModItems.GOLDEN_HOE_HEAD)
-                    .input(Items.STICK)
+            OvergearedShapedRecipeJsonBuilder.create(RecipeCategory.TOOLS, Items.GOLDEN_HOE)
+                    .pattern("H")
+                    .pattern("S")
+                    .pattern("S")
+                    .define('H', ModItems.GOLDEN_HOE_HEAD)
+                    .define('S', Items.STICK)
                     .unlockedBy(getHasName(ModItems.GOLDEN_HOE_HEAD),
                             has(ModItems.GOLDEN_HOE_HEAD))
                     .save(output);

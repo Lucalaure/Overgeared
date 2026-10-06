@@ -151,6 +151,9 @@ Field names of every mod recipe type are unchanged unless noted below.
   Ingredients: plain ingredient or `{"ingredient": .., "remainder": bool, "durability_decrease": int}`
   (1.20.1 `{"item": .., "remainder": ..}` accepted). `getIngredientsWithRemainder()`, `getIngredients()`,
   `getResultItem()`, `result()`. `OvergearedShapelessRecipe.Type` is deprecated (recipes are `minecraft:crafting`).
+- `overgeared:crafting_shaped` - `OvergearedShapedRecipe extends ShapedRecipe`. Vanilla shaped JSON; passes ingredient
+  quality / creator to the result exactly like `crafting_shapeless` (`OvergearedShapelessRecipe.applyIngredientQuality`).
+  Used for head + two sticks tool / hammer recipes.
 - `overgeared:crafting_cloning` - `BlueprintCloningRecipe` (empty blueprint + blueprint -> 2 blueprints, BLUEPRINT_DATA
   quality downgraded).
 - `overgeared:crafting_cast` - `DynamicToolCastRecipe` (cast + materials -> cast with materials added to CAST_DATA
