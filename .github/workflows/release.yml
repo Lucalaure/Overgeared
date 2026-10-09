@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to create the release at (defaults to v<mod_version> from gradle.properties)'
+        required: false
+        type: string
+      prerelease:
+        description: 'Mark the release as a pre-release'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # `assemble` builds and remaps the mod jar without booting the game tests.
+      - name: Build
+        run: ./gradlew assemble --stacktrace
+
+      - name: Work out the release tag
+        id: meta
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          version="$(sed -n 's/^mod_version=//p' gradle.properties)"
+          mc="$(sed -n 's/^minecraft_version=//p' gradle.properties)"
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            tag="${GITHUB_REF_NAME}"
+          elif [ -n "${INPUT_TAG}" ]; then
+            tag="${INPUT_TAG}"
+          else
+            tag="v${version}"
+          fi
+          {
+            echo "tag=${tag}"
+            echo "version=${version}"
+            echo "mc=${mc}"
+          } >> "$GITHUB_OUTPUT"
+          ls -l build/libs
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          MC: ${{ steps.meta.outputs.mc }}
+          PRERELEASE: ${{ inputs.prerelease == false && 'false' || 'true' }}
+        run: |
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" build/libs/*.jar --clobber
+          else
+            notes="$(printf '%s\n\n%s\n\n%s\n' \
+              "Overgeared \`${VERSION}\` for Minecraft ${MC} (Fabric)." \
+              "Built from \`${GITHUB_SHA}\`." \
+              "Download \`overgeared-fabric-${VERSION}.jar\` below and drop it in your \`mods\` folder.")"
+            flags=()
+            if [ "${PRERELEASE}" = "true" ]; then flags+=(--prerelease); fi
+            gh release create "${TAG}" build/libs/*.jar \
+              --target "${GITHUB_SHA}" \
+              --title "Overgeared ${VERSION}" \
+              --notes "${notes}" \
+              "${flags[@]}"
+          fi
+          gh release view "${TAG}" --json url --jq .url
