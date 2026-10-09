@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - 'v*'
+    # A push to the dev branch only releases when the commit message says so,
+    # so ordinary work-in-progress pushes neither build nor publish anything.
+    branches:
+      - personal
   workflow_dispatch:
     inputs:
       tag:
@@ -13,7 +17,7 @@ on:
       prerelease:
         description: 'Mark the release as a pre-release'
         required: false
-        default: true
+        default: false
         type: boolean
 
 permissions:
@@ -22,6 +26,9 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'push' || github.ref_type == 'tag' ||
+      contains(github.event.head_commit.message, '[release]')
     steps:
       - uses: actions/checkout@v4
 
@@ -65,7 +72,7 @@ jobs:
           TAG: ${{ steps.meta.outputs.tag }}
           VERSION: ${{ steps.meta.outputs.version }}
           MC: ${{ steps.meta.outputs.mc }}
-          PRERELEASE: ${{ inputs.prerelease == false && 'false' || 'true' }}
+          PRERELEASE: ${{ inputs.prerelease == true }}
         run: |
           if gh release view "${TAG}" >/dev/null 2>&1; then
             gh release upload "${TAG}" build/libs/*.jar --clobber
